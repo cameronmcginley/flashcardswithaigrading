@@ -10,13 +10,14 @@ export default function FlashcardApp() {
   const [selectedDecks, setSelectedDecks] = useState<
     { deckId: string; cardCount: number }[]
   >([]);
+  const [debugMode, setDebugMode] = useState(false);
 
   return (
     <Layout>
-      <Topbar />
+      <Topbar onDebugModeChange={setDebugMode} />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar onSelectedDecksChange={setSelectedDecks} />
-        <MainArea selectedDecks={selectedDecks} />
+        <MainArea selectedDecks={selectedDecks} debugMode={debugMode} />
       </div>
     </Layout>
   );

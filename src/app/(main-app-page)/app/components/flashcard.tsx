@@ -35,6 +35,7 @@ interface FlashcardProps {
   onUpdate: (question: string, answer: string) => void;
   onDelete: () => void;
   resetGradingOnCardChange?: boolean;
+  onAnswered?: () => void;
 }
 
 export default function Flashcard({
@@ -42,6 +43,7 @@ export default function Flashcard({
   onUpdate,
   onDelete,
   resetGradingOnCardChange = true,
+  onAnswered,
 }: FlashcardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
@@ -95,6 +97,11 @@ export default function Flashcard({
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
+
+    // Notify parent that user has answered (viewed the answer)
+    if (!isFlipped && onAnswered) {
+      onAnswered();
+    }
   };
 
   const handleGradeWithAI = () => {
@@ -214,11 +221,11 @@ Can you help me understand this feedback better and suggest how I can improve my
 
   return (
     <div className="w-full max-w-2xl">
-      {/* Action buttons above the card */}
+      {/* Action buttons above the card - now icon only */}
       <div className="flex justify-end mb-2 gap-2">
         <Popover>
           <PopoverTrigger asChild>
-            <Button variant="outline" size="icon" className="h-9 w-9">
+            <Button variant="ghost" size="icon" className="h-9 w-9 p-0">
               <Info className="h-4 w-4" />
             </Button>
           </PopoverTrigger>
@@ -258,18 +265,18 @@ Can you help me understand this feedback better and suggest how I can improve my
         </Popover>
 
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="h-9 w-9"
+          className="h-9 w-9 p-0"
           onClick={startEditing}
         >
           <Edit className="h-4 w-4" />
         </Button>
 
         <Button
-          variant="outline"
+          variant="ghost"
           size="icon"
-          className="h-9 w-9 text-red-500 hover:bg-red-50 hover:text-red-600"
+          className="h-9 w-9 p-0 text-red-500 hover:text-red-600"
           onClick={onDelete}
         >
           <Trash className="h-4 w-4" />

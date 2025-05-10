@@ -51,17 +51,23 @@ const initialCards = [
   },
 ];
 
+// Update the MainArea component to respect debug mode
 interface MainAreaProps {
   selectedDecks?: { deckId: string; cardCount: number }[];
+  debugMode?: boolean;
 }
 
-export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
+export default function MainArea({
+  selectedDecks = [],
+  debugMode = false,
+}: MainAreaProps) {
   const [cards, setCards] = useState(initialCards);
   const [filteredCards, setFilteredCards] = useState<typeof initialCards>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [cardKey, setCardKey] = useState(0);
+  const [hasAnswered, setHasAnswered] = useState(false);
 
   // Filter cards based on selected decks
   useEffect(() => {
@@ -76,6 +82,7 @@ export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
     );
     setFilteredCards(filtered);
     setCurrentCardIndex(0); // Reset to first card when selection changes
+    setHasAnswered(false); // Reset answered state
   }, [selectedDecks, cards]);
 
   const currentCard = filteredCards[currentCardIndex];
@@ -86,6 +93,7 @@ export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
         (prevIndex) => (prevIndex + 1) % filteredCards.length
       );
       setCardKey((prev) => prev + 1); // Force reset grading on card change
+      setHasAnswered(false); // Reset answered state
     }
   };
 
@@ -96,7 +104,12 @@ export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
           (prevIndex - 1 + filteredCards.length) % filteredCards.length
       );
       setCardKey((prev) => prev + 1); // Force reset grading on card change
+      setHasAnswered(false); // Reset answered state
     }
+  };
+
+  const handleAnswered = () => {
+    setHasAnswered(true);
   };
 
   const handleAddCard = (question: string, answer: string, deckId: string) => {
@@ -198,7 +211,7 @@ export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
 
   return (
     <div className="flex-1 p-6 flex flex-col">
-      <div className="flex-1 flex flex-col items-center justify-center">
+      <div className="flex-1 flex flex-col items-center justify-start pt-8">
         {selectedDecks.length === 0 ? (
           <div className="text-center text-gray-500">
             <p>
@@ -208,22 +221,39 @@ export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
           </div>
         ) : filteredCards.length > 0 ? (
           <>
-            <div className="text-sm text-gray-500 mb-2">
-              Card {currentCardIndex + 1} of {filteredCards.length}
-            </div>
+            {/* Only show card count when debug mode is enabled */}
+            {debugMode && (
+              <div className="text-sm text-gray-500 mb-2">
+                Card {currentCardIndex + 1} of {filteredCards.length}
+              </div>
+            )}
             <Flashcard
               key={cardKey}
               card={currentCard}
               onUpdate={handleUpdateCard}
               onDelete={() => setIsDeleteModalOpen(true)}
+              onAnswered={handleAnswered}
             />
             <div className="flex gap-4 mt-6">
-              <Button variant="outline" onClick={handlePrevCard}>
-                Previous
-              </Button>
-              <Button variant="outline" onClick={handleNextCard}>
-                Next
-              </Button>
+              {/* Show navigation buttons based on debug mode or answered state */}
+              {debugMode ? (
+                // In debug mode, show both buttons
+                <>
+                  <Button variant="outline" onClick={handlePrevCard}>
+                    Previous
+                  </Button>
+                  <Button variant="outline" onClick={handleNextCard}>
+                    Next
+                  </Button>
+                </>
+              ) : (
+                // In normal mode, only show Next button when answered
+                hasAnswered && (
+                  <Button variant="outline" onClick={handleNextCard}>
+                    Next
+                  </Button>
+                )
+              )}
             </div>
           </>
         ) : (
