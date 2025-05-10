@@ -95,7 +95,7 @@ export default function CardDetailModal({
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
         <DialogContent className="sm:max-w-[600px]">
-          <DialogHeader className="flex flex-row items-center justify-between">
+          <DialogHeader className="flex flex-row items-center justify-between pr-8">
             <DialogTitle>Card Details</DialogTitle>
             <div className="flex gap-2">
               <Popover>
@@ -171,6 +171,7 @@ export default function CardDetailModal({
                 multiline
                 rows={8}
                 required
+                markdown={true} // Enable markdown for question
               />
             </TabsContent>
             <TabsContent value="answer" className="space-y-4 py-4">
@@ -185,6 +186,7 @@ export default function CardDetailModal({
                 multiline
                 rows={8}
                 required
+                markdown={true} // Enable markdown for answer
               />
             </TabsContent>
           </Tabs>

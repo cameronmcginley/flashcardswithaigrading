@@ -47,7 +47,10 @@ interface SidebarProps {
 
 export default function Sidebar({ onSelectedDecksChange }: SidebarProps) {
   const [categories, setCategories] = useState(initialCategories);
-  const [expandedCategories, setExpandedCategories] = useState<string[]>(["1"]);
+  // Change the expandedCategories initialization to include all category IDs
+  const [expandedCategories, setExpandedCategories] = useState<string[]>(
+    initialCategories.map((cat) => cat.id)
+  );
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
   const [editingDeck, setEditingDeck] = useState<{
     categoryId: string;

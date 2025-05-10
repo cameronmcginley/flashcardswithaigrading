@@ -22,6 +22,9 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
+import ReactMarkdown from "react-markdown";
+import remarkGfm from "remark-gfm";
+import rehypeHighlight from "rehype-highlight";
 
 interface FlashcardProps {
   card: {
@@ -308,8 +311,13 @@ Can you help me understand this feedback better and suggest how I can improve my
                     </div>
                   </div>
                 ) : (
-                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1">
-                    {card.question}
+                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1 prose prose-sm dark:prose-invert">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeHighlight]}
+                    >
+                      {card.question}
+                    </ReactMarkdown>
                   </div>
                 )}
               </div>
@@ -357,8 +365,13 @@ Can you help me understand this feedback better and suggest how I can improve my
                     </div>
                   </div>
                 ) : (
-                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1">
-                    {card.answer}
+                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1 prose prose-sm dark:prose-invert">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeHighlight]}
+                    >
+                      {card.answer}
+                    </ReactMarkdown>
                   </div>
                 )}
               </div>

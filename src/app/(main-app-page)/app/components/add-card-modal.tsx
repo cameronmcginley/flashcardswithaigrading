@@ -256,6 +256,7 @@ export default function AddCardModal({
               multiline
               rows={4}
               required
+              markdown={true} // Enable markdown for question
             />
 
             <TextInputWithLimit
@@ -269,6 +270,7 @@ export default function AddCardModal({
               multiline
               rows={4}
               required
+              markdown={true} // Enable markdown only for answer
             />
 
             <DialogFooter>
@@ -298,6 +300,7 @@ export default function AddCardModal({
               helperText="Enter your cards in JSON format with question and answer fields. You can add multiple cards as an array."
               required
               formatOnBlur
+              markdown={true} // Keep markdown enabled for JSON view
             />
 
             <DialogFooter>

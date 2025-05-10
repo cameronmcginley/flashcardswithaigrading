@@ -124,6 +124,7 @@ export default function AddDeckModal({
             rows={10}
             helperText="Enter your cards in JSON format. Each card should have a question and answer field."
             formatOnBlur
+            markdown={true}
           />
         </div>
         <DialogFooter>
