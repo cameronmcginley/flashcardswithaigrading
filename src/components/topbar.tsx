@@ -1,15 +1,19 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings } from "lucide-react";
+import { Settings, Menu } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SettingsModal from "./settings-modal";
 
 interface TopbarProps {
   onDebugModeChange?: (debugMode: boolean) => void;
+  onSidebarToggle?: () => void;
 }
 
-export default function Topbar({ onDebugModeChange }: TopbarProps) {
+export default function Topbar({
+  onDebugModeChange,
+  onSidebarToggle,
+}: TopbarProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [settings, setSettings] = useState({
     apiKey: "",
@@ -46,12 +50,23 @@ export default function Topbar({ onDebugModeChange }: TopbarProps) {
 
   return (
     <div className="h-14 border-b bg-white dark:bg-gray-800 flex items-center justify-between px-4 py-2">
-      <div className="font-semibold text-lg">EZ Anki</div>
+      <div className="flex items-center gap-3">
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={onSidebarToggle}
+          className="p-0"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <div className="font-semibold text-lg">EZ Anki</div>
+      </div>
       <div>
         <Button
           variant="ghost"
           size="icon"
           onClick={() => setIsSettingsOpen(true)}
+          className="p-0"
         >
           <Settings className="h-5 w-5" />
         </Button>

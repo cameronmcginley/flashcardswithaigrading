@@ -11,12 +11,19 @@ export default function FlashcardApp() {
     { deckId: string; cardCount: number }[]
   >([]);
   const [debugMode, setDebugMode] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(true);
 
   return (
     <Layout>
-      <Topbar onDebugModeChange={setDebugMode} />
+      <Topbar
+        onDebugModeChange={setDebugMode}
+        onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
+      />
       <div className="flex flex-1 overflow-hidden">
-        <Sidebar onSelectedDecksChange={setSelectedDecks} />
+        <Sidebar
+          onSelectedDecksChange={setSelectedDecks}
+          isOpen={sidebarOpen}
+        />
         <MainArea selectedDecks={selectedDecks} debugMode={debugMode} />
       </div>
     </Layout>

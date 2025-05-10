@@ -9,6 +9,7 @@ import AddDeckModal from "./add-deck-modal";
 import AddCardModal from "./add-card-modal";
 import AddCategoryModal from "./add-category-modal";
 import DeckInfoModal from "./deck-info-modal";
+import { cn } from "@/lib/utils";
 
 // Mock data for categories and decks
 const initialCategories = [
@@ -43,9 +44,13 @@ interface SidebarProps {
   onSelectedDecksChange: (
     selectedDecks: { deckId: string; cardCount: number }[]
   ) => void;
+  isOpen?: boolean;
 }
 
-export default function Sidebar({ onSelectedDecksChange }: SidebarProps) {
+export default function Sidebar({
+  onSelectedDecksChange,
+  isOpen = true,
+}: SidebarProps) {
   const [categories, setCategories] = useState(initialCategories);
   // Change the expandedCategories initialization to include all category IDs
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
@@ -217,7 +222,12 @@ export default function Sidebar({ onSelectedDecksChange }: SidebarProps) {
     setSelectedCategoryForNewDeck(null);
   };
 
-  const handleAddCard = (question: string, answer: string) => {
+  const handleAddCard = (
+    question: string,
+    answer: string,
+    deckId: string,
+    difficulty?: "beginner" | "adept" | "master"
+  ) => {
     if (addingToCategoryId && addingToDeckId) {
       // Update the card count for the deck
       const updatedCategories = categories.map((category) => {
@@ -244,7 +254,12 @@ export default function Sidebar({ onSelectedDecksChange }: SidebarProps) {
   };
 
   const handleAddMultipleCards = (
-    cards: Array<{ question: string; answer: string }>
+    cards: Array<{
+      question: string;
+      answer: string;
+      difficulty?: "beginner" | "adept" | "master";
+    }>,
+    deckId: string
   ) => {
     if (addingToCategoryId && addingToDeckId) {
       // Update the card count for the deck
@@ -340,7 +355,12 @@ export default function Sidebar({ onSelectedDecksChange }: SidebarProps) {
   };
 
   return (
-    <div className="w-64 border-r bg-white dark:bg-gray-800 flex flex-col h-full">
+    <div
+      className={cn(
+        "border-r bg-white dark:bg-gray-800 flex flex-col h-full transition-all duration-300 ease-in-out",
+        isOpen ? "w-64" : "w-0 overflow-hidden"
+      )}
+    >
       <div className="p-4 flex-1 overflow-y-auto">
         <h2 className="font-semibold mb-4">Categories</h2>
         <div className="space-y-2">

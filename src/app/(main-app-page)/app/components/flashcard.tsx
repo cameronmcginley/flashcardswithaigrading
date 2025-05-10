@@ -31,8 +31,13 @@ interface FlashcardProps {
     id: string;
     question: string;
     answer: string;
+    difficulty?: "beginner" | "adept" | "master";
   };
-  onUpdate: (question: string, answer: string) => void;
+  onUpdate: (
+    question: string,
+    answer: string,
+    difficulty?: "beginner" | "adept" | "master"
+  ) => void;
   onDelete: () => void;
   resetGradingOnCardChange?: boolean;
   onAnswered?: () => void;
@@ -113,11 +118,28 @@ export default function Flashcard({
 
     // Simulate API call to grade the answer
     setTimeout(() => {
-      // Mock AI response
+      // Mock AI response based on difficulty
+      let baseScore;
+      switch (card.difficulty) {
+        case "master":
+          baseScore = Math.floor(Math.random() * 20) + 60; // 60-79 for master
+          break;
+        case "adept":
+          baseScore = Math.floor(Math.random() * 20) + 70; // 70-89 for adept
+          break;
+        case "beginner":
+        default:
+          baseScore = Math.floor(Math.random() * 20) + 75; // 75-94 for beginner
+      }
+
       const mockGrade = {
-        grade: Math.floor(Math.random() * 30) + 70, // Random score between 70-99
+        grade: baseScore,
         response:
-          "Your answer captures the main concept but lacks some important details. You correctly identified the key points, but missed some nuances in the explanation. Consider reviewing the complete definition for a more comprehensive understanding.",
+          card.difficulty === "master"
+            ? "Your answer covers some key points but lacks precision and depth. A more comprehensive explanation would include additional details and examples."
+            : card.difficulty === "adept"
+            ? "Your answer captures the main concept but lacks some important details. Consider reviewing the complete definition for a more comprehensive understanding."
+            : "Good attempt! You've grasped the basic concept, though there's room to expand your understanding with more details.",
       };
 
       setAiGrade(mockGrade);
@@ -285,8 +307,24 @@ Can you help me understand this feedback better and suggest how I can improve my
 
       <Card className="w-full shadow-lg">
         <CardContent className="p-6">
-          <div className="text-sm font-medium text-muted-foreground mb-4">
-            {isFlipped ? "Answer" : "Question"}
+          {/* Add this right after the "Question"/"Answer" text at the top of the card */}
+          <div className="text-sm font-medium text-muted-foreground mb-4 flex justify-between items-center">
+            <span>{isFlipped ? "Answer" : "Question"}</span>
+            {card.difficulty && (
+              <span
+                className={cn(
+                  "text-xs px-2 py-0.5 rounded-full",
+                  card.difficulty === "beginner"
+                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
+                    : card.difficulty === "adept"
+                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
+                    : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
+                )}
+              >
+                {card.difficulty.charAt(0).toUpperCase() +
+                  card.difficulty.slice(1)}
+              </span>
+            )}
           </div>
 
           {!isFlipped ? (
