@@ -13,6 +13,10 @@ import {
   Info,
   Copy,
   ExternalLink,
+  ChevronLeft,
+  ChevronRight,
+  ThumbsUp,
+  ThumbsDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -36,6 +40,10 @@ interface FlashcardProps {
   onDelete: () => void;
   resetGradingOnCardChange?: boolean;
   onAnswered?: () => void;
+  onPrevious?: () => void;
+  onNext?: () => void;
+  onCorrect?: () => void;
+  onWrong?: () => void;
 }
 
 export default function Flashcard({
@@ -44,6 +52,10 @@ export default function Flashcard({
   onDelete,
   resetGradingOnCardChange = true,
   onAnswered,
+  onPrevious,
+  onNext,
+  onCorrect,
+  onWrong,
 }: FlashcardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
@@ -453,6 +465,49 @@ Can you help me understand this feedback better and suggest how I can improve my
           )}
         </CardContent>
       </Card>
+
+      {/* Navigation and Grading Buttons */}
+      <div className="flex justify-between mt-6">
+        <Button
+          variant="outline"
+          onClick={onPrevious}
+          className="flex items-center"
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Previous
+        </Button>
+
+        <div className="flex gap-2">
+          {isFlipped && (
+            <>
+              <Button
+                variant="outline"
+                onClick={onWrong}
+                className="flex items-center text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
+              >
+                <ThumbsDown className="h-4 w-4 mr-1" />
+                Wrong
+              </Button>
+              <Button
+                variant="outline"
+                onClick={onCorrect}
+                className="flex items-center text-green-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
+              >
+                <ThumbsUp className="h-4 w-4 mr-1" />
+                Correct
+              </Button>
+            </>
+          )}
+          <Button
+            variant="outline"
+            onClick={onNext}
+            className="flex items-center"
+          >
+            Skip
+            <ChevronRight className="h-4 w-4 ml-1" />
+          </Button>
+        </div>
+      </div>
 
       {/* AI Feedback Bubble */}
       <AnimatePresence>

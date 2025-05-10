@@ -4,7 +4,7 @@ import { useState, useEffect } from "react";
 import Flashcard from "./flashcard";
 import AddCardModal from "./add-card-modal";
 import DeleteConfirmationModal from "./delete-confirmation-modal";
-import { Button } from "@/components/ui/button";
+import { toast } from "sonner";
 
 // Mock flashcard data with deck associations
 const initialCards = [
@@ -209,6 +209,16 @@ export default function MainArea({
     ];
   };
 
+  const handleCorrect = () => {
+    toast.success("Marked as correct");
+    handleNextCard();
+  };
+
+  const handleWrong = () => {
+    toast.error("Marked as wrong");
+    handleNextCard();
+  };
+
   return (
     <div className="flex-1 p-6 flex flex-col">
       <div className="flex-1 flex flex-col items-center justify-start pt-8">
@@ -233,11 +243,14 @@ export default function MainArea({
               onUpdate={handleUpdateCard}
               onDelete={() => setIsDeleteModalOpen(true)}
               onAnswered={handleAnswered}
+              onPrevious={handlePrevCard}
+              onNext={handleNextCard}
+              onCorrect={handleCorrect}
+              onWrong={handleWrong}
             />
-            <div className="flex gap-4 mt-6">
-              {/* Show navigation buttons based on debug mode or answered state */}
+            {/* Remove the existing navigation buttons since they're now in the Flashcard component */}
+            {/* <div className="flex gap-4 mt-6">
               {debugMode ? (
-                // In debug mode, show both buttons
                 <>
                   <Button variant="outline" onClick={handlePrevCard}>
                     Previous
@@ -247,14 +260,13 @@ export default function MainArea({
                   </Button>
                 </>
               ) : (
-                // In normal mode, only show Next button when answered
                 hasAnswered && (
                   <Button variant="outline" onClick={handleNextCard}>
                     Next
                   </Button>
                 )
               )}
-            </div>
+            </div> */}
           </>
         ) : (
           <div className="text-center text-gray-500">
