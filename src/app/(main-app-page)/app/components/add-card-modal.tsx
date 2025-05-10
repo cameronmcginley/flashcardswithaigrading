@@ -32,24 +32,14 @@ interface Deck {
 interface Card {
   question: string;
   answer: string;
-  difficulty?: "beginner" | "adept" | "master";
 }
 
 interface AddCardModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCard: (
-    question: string,
-    answer: string,
-    deckId: string,
-    difficulty?: "beginner" | "adept" | "master"
-  ) => void;
+  onAddCard: (question: string, answer: string, deckId: string) => void;
   onAddMultipleCards?: (
-    cards: Array<{
-      question: string;
-      answer: string;
-      difficulty?: "beginner" | "adept" | "master";
-    }>,
+    cards: Array<{ question: string; answer: string }>,
     deckId: string
   ) => void;
   deckName?: string;
@@ -82,9 +72,6 @@ export default function AddCardModal({
   );
   const [activeTab, setActiveTab] = useState("form");
   const [selectedDeckId, setSelectedDeckId] = useState<string>("");
-  const [difficulty, setDifficulty] = useState<"beginner" | "adept" | "master">(
-    "adept"
-  );
 
   const [isQuestionValid, setIsQuestionValid] = useState(true);
   const [isAnswerValid, setIsAnswerValid] = useState(true);
@@ -117,7 +104,7 @@ export default function AddCardModal({
     }
 
     if (question.trim() && answer.trim()) {
-      onAddCard(question, answer, selectedDeckId, difficulty);
+      onAddCard(question, answer, selectedDeckId);
       resetForm();
     } else {
       toast.error("Validation Error", {
@@ -157,12 +144,7 @@ export default function AddCardModal({
 
         // If we have a handler for multiple cards, use it
         if (onAddMultipleCards) {
-          // Add difficulty to each card
-          const cardsWithDifficulty = parsed.map((card) => ({
-            ...card,
-            difficulty: card.difficulty || difficulty,
-          }));
-          onAddMultipleCards(cardsWithDifficulty, selectedDeckId);
+          onAddMultipleCards(parsed, selectedDeckId);
           toast.success("Success", {
             description: `Added ${parsed.length} cards to the deck.`,
           });
@@ -170,12 +152,7 @@ export default function AddCardModal({
           // Otherwise, add just the first card
           if (parsed.length > 0) {
             const firstCard = parsed[0];
-            onAddCard(
-              firstCard.question,
-              firstCard.answer,
-              selectedDeckId,
-              firstCard.difficulty || difficulty
-            );
+            onAddCard(firstCard.question, firstCard.answer, selectedDeckId);
             if (parsed.length > 1) {
               toast.warning("Warning", {
                 description:
@@ -192,12 +169,7 @@ export default function AddCardModal({
         resetForm();
       } else if (parsed.question && parsed.answer) {
         // Handle single object case for backward compatibility
-        onAddCard(
-          parsed.question,
-          parsed.answer,
-          selectedDeckId,
-          parsed.difficulty || difficulty
-        );
+        onAddCard(parsed.question, parsed.answer, selectedDeckId);
         resetForm();
       } else {
         toast.error("Validation Error", {
@@ -216,14 +188,12 @@ export default function AddCardModal({
   const resetForm = () => {
     setQuestion("");
     setAnswer("");
-    setDifficulty("adept");
     setJsonContent(
       JSON.stringify(
         [
           {
             question: "Example question?",
             answer: "Example answer.",
-            difficulty: "adept",
           },
         ],
         null,
@@ -308,64 +278,6 @@ export default function AddCardModal({
               required
               markdown={true} // Enable markdown only for answer
             />
-
-            <div className="space-y-2 mt-8 pt-4 border-t">
-              <div className="flex items-center justify-between">
-                <Label htmlFor="difficulty" className="text-base">
-                  Grading Difficulty
-                </Label>
-                <div className="flex items-center">
-                  <Info className="h-4 w-4 mr-1 text-muted-foreground" />
-                  <span className="text-xs text-muted-foreground">
-                    Determines how strictly the AI will grade your answers
-                  </span>
-                </div>
-              </div>
-
-              <div className="grid grid-cols-3 gap-4 mt-2">
-                <div className="flex flex-col items-center">
-                  <Button
-                    type="button"
-                    variant={difficulty === "beginner" ? "default" : "outline"}
-                    className="w-full"
-                    onClick={() => setDifficulty("beginner")}
-                  >
-                    Beginner
-                  </Button>
-                  <span className="text-xs text-center mt-2 text-muted-foreground">
-                    Lenient grading for new topics
-                  </span>
-                </div>
-
-                <div className="flex flex-col items-center">
-                  <Button
-                    type="button"
-                    variant={difficulty === "adept" ? "default" : "outline"}
-                    className="w-full"
-                    onClick={() => setDifficulty("adept")}
-                  >
-                    Adept
-                  </Button>
-                  <span className="text-xs text-center mt-2 text-muted-foreground">
-                    Balanced grading for practice
-                  </span>
-                </div>
-
-                <div className="flex flex-col items-center">
-                  <Button
-                    type="button"
-                    variant={difficulty === "master" ? "default" : "outline"}
-                    className="w-full"
-                    onClick={() => setDifficulty("master")}
-                  >
-                    Master
-                  </Button>
-                  <span className="text-xs text-center mt-2 text-muted-foreground">
-                    Strict grading for mastery
-                  </span>
-                </div>
-              </div>
-            </div>
 
             <DialogFooter>
               <Button variant="outline" onClick={() => onOpenChange(false)}>

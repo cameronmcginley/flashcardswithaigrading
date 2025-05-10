@@ -9,12 +9,19 @@ export const gradeAnswer = async (data: {
   question: string;
   answer: string;
   userAnswer: string;
+  gradingDifficulty: number;
 }) => {
-  const { question, answer, userAnswer } = data;
+  const { question, answer, userAnswer, gradingDifficulty } = data;
 
   if (!userAnswer || userAnswer.length > MAX_ANSWER_LENGTH) {
     throw new Error("Answer is missing or exceeds max length.");
   }
+
+  const gradingDifficulties: Record<number, string> = {
+    1: "Beginner: Lenient grading for new topics",
+    2: "Adept: Balanced grading for practice",
+    3: "Expert: Strict grading for mastery ",
+  };
 
   const prompt = `
 You are grading a student's flashcard answer.
@@ -22,6 +29,7 @@ You are grading a student's flashcard answer.
 Question: ${question}
 Correct Answer: ${answer}
 Your Answer: ${userAnswer}
+Selected Grading Difficulty: ${gradingDifficulties[gradingDifficulty]}
 
 Grade the answer:
 - Speak directly to the student (avoid "the user" or third-person language).

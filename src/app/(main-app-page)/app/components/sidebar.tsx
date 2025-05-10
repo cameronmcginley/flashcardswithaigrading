@@ -75,6 +75,7 @@ export default function Sidebar({
   const [addingToDeckId, setAddingToDeckId] = useState<string | null>(null);
   const [currentDeckName, setCurrentDeckName] = useState<string>("");
   const [currentCategoryName, setCurrentCategoryName] = useState<string>("");
+
   const [selectedDeckInfo, setSelectedDeckInfo] = useState<{
     deckId: string;
     deckName: string;
@@ -222,12 +223,7 @@ export default function Sidebar({
     setSelectedCategoryForNewDeck(null);
   };
 
-  const handleAddCard = (
-    question: string,
-    answer: string,
-    deckId: string,
-    difficulty?: "beginner" | "adept" | "master"
-  ) => {
+  const handleAddCard = (question: string, answer: string, deckId: string) => {
     if (addingToCategoryId && addingToDeckId) {
       // Update the card count for the deck
       const updatedCategories = categories.map((category) => {
@@ -254,11 +250,7 @@ export default function Sidebar({
   };
 
   const handleAddMultipleCards = (
-    cards: Array<{
-      question: string;
-      answer: string;
-      difficulty?: "beginner" | "adept" | "master";
-    }>,
+    cards: Array<{ question: string; answer: string }>,
     deckId: string
   ) => {
     if (addingToCategoryId && addingToDeckId) {

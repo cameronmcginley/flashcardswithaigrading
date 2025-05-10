@@ -112,18 +112,12 @@ export default function MainArea({
     setHasAnswered(true);
   };
 
-  const handleAddCard = (
-    question: string,
-    answer: string,
-    deckId: string,
-    difficulty: "beginner" | "adept" | "master" = "beginner"
-  ) => {
+  const handleAddCard = (question: string, answer: string, deckId: string) => {
     const newCard = {
       id: `${Date.now()}`, // Use timestamp for unique ID
       deckId,
       question,
       answer,
-      difficulty,
     };
 
     const updatedCards = [...cards, newCard];
@@ -139,11 +133,7 @@ export default function MainArea({
   };
 
   const handleAddMultipleCards = (
-    newCards: Array<{
-      question: string;
-      answer: string;
-      difficulty?: "beginner" | "adept" | "master";
-    }>,
+    newCards: Array<{ question: string; answer: string }>,
     deckId: string
   ) => {
     const cardsToAdd = newCards.map((card, index) => ({
@@ -151,7 +141,6 @@ export default function MainArea({
       deckId,
       question: card.question,
       answer: card.answer,
-      difficulty: card.difficulty || "beginner",
     }));
 
     const updatedCards = [...cards, ...cardsToAdd];

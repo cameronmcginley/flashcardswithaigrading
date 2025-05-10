@@ -22,6 +22,7 @@ export default function Topbar({
     darkMode: false,
     autoFlip: false,
     debugMode: false,
+    gradingDifficulty: "adept" as "beginner" | "adept" | "master",
   });
 
   // Load settings from localStorage on mount
@@ -29,7 +30,11 @@ export default function Topbar({
     const savedSettings = localStorage.getItem("ez-anki-settings");
     if (savedSettings) {
       const parsedSettings = JSON.parse(savedSettings);
-      setSettings(parsedSettings);
+      setSettings({
+        ...settings,
+        ...parsedSettings,
+        gradingDifficulty: parsedSettings.gradingDifficulty || "adept",
+      });
 
       // Notify parent about debug mode
       if (onDebugModeChange) {

@@ -13,7 +13,15 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Switch } from "@/components/ui/switch";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
+import { Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface SettingsModalProps {
   open: boolean;
@@ -24,6 +32,7 @@ interface SettingsModalProps {
     darkMode: boolean;
     autoFlip: boolean;
     debugMode: boolean;
+    gradingDifficulty: "beginner" | "adept" | "master";
   };
   onSettingsChange?: (settings: {
     apiKey: string;
@@ -31,6 +40,7 @@ interface SettingsModalProps {
     darkMode: boolean;
     autoFlip: boolean;
     debugMode: boolean;
+    gradingDifficulty: "beginner" | "adept" | "master";
   }) => void;
 }
 
@@ -47,6 +57,7 @@ export default function SettingsModal({
     darkMode: false,
     autoFlip: false,
     debugMode: false,
+    gradingDifficulty: "adept" as "beginner" | "adept" | "master",
   });
 
   // Update local state when initialSettings changes
@@ -56,7 +67,10 @@ export default function SettingsModal({
     }
   }, [initialSettings]);
 
-  const handleChange = (field: string, value: string | boolean) => {
+  const handleChange = (
+    field: string,
+    value: string | boolean | "beginner" | "adept" | "master"
+  ) => {
     setSettings({
       ...settings,
       [field]: value,
@@ -109,6 +123,80 @@ export default function SettingsModal({
             <p className="text-xs text-gray-500">
               Customize how the AI evaluates and responds to your answers
             </p>
+          </div>
+
+          <div className="grid gap-2 pt-2 border-t">
+            <div className="flex items-center justify-between">
+              <Label htmlFor="gradingDifficulty" className="text-base">
+                Grading Difficulty
+              </Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center cursor-help">
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="end"
+                    className="max-w-[300px]"
+                  >
+                    <p className="text-sm">
+                      Determines how strictly the AI will grade your answers
+                      across all cards.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+
+            <RadioGroup
+              value={settings.gradingDifficulty}
+              onValueChange={(value) =>
+                handleChange(
+                  "gradingDifficulty",
+                  value as "beginner" | "adept" | "master"
+                )
+              }
+              className="grid grid-cols-1 gap-2"
+            >
+              <div className="flex items-center space-x-2 rounded-md border p-3">
+                <RadioGroupItem value="beginner" id="difficulty-beginner" />
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="difficulty-beginner" className="font-medium">
+                    Beginner
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Lenient grading for new topics
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 rounded-md border p-3">
+                <RadioGroupItem value="adept" id="difficulty-adept" />
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="difficulty-adept" className="font-medium">
+                    Adept
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Balanced grading for practice
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center space-x-2 rounded-md border p-3">
+                <RadioGroupItem value="master" id="difficulty-master" />
+                <div className="grid gap-1.5 leading-none">
+                  <Label htmlFor="difficulty-master" className="font-medium">
+                    Master
+                  </Label>
+                  <p className="text-xs text-muted-foreground">
+                    Strict grading for mastery
+                  </p>
+                </div>
+              </div>
+            </RadioGroup>
           </div>
 
           <div className="flex items-center justify-between">

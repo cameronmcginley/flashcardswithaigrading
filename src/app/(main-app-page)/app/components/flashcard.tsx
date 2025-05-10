@@ -31,13 +31,8 @@ interface FlashcardProps {
     id: string;
     question: string;
     answer: string;
-    difficulty?: "beginner" | "adept" | "master";
   };
-  onUpdate: (
-    question: string,
-    answer: string,
-    difficulty?: "beginner" | "adept" | "master"
-  ) => void;
+  onUpdate: (question: string, answer: string) => void;
   onDelete: () => void;
   resetGradingOnCardChange?: boolean;
   onAnswered?: () => void;
@@ -116,11 +111,26 @@ export default function Flashcard({
     // Then start new grading process
     setIsGrading(true);
 
+    // Get the global difficulty setting from localStorage
+    const savedSettings = localStorage.getItem("ez-anki-settings");
+    let gradingDifficulty = "adept"; // Default to adept if not found
+
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        if (settings.gradingDifficulty) {
+          gradingDifficulty = settings.gradingDifficulty;
+        }
+      } catch (e) {
+        console.error("Error parsing settings:", e);
+      }
+    }
+
     // Simulate API call to grade the answer
     setTimeout(() => {
-      // Mock AI response based on difficulty
+      // Mock AI response based on global difficulty setting
       let baseScore;
-      switch (card.difficulty) {
+      switch (gradingDifficulty) {
         case "master":
           baseScore = Math.floor(Math.random() * 20) + 60; // 60-79 for master
           break;
@@ -135,9 +145,9 @@ export default function Flashcard({
       const mockGrade = {
         grade: baseScore,
         response:
-          card.difficulty === "master"
+          gradingDifficulty === "master"
             ? "Your answer covers some key points but lacks precision and depth. A more comprehensive explanation would include additional details and examples."
-            : card.difficulty === "adept"
+            : gradingDifficulty === "adept"
             ? "Your answer captures the main concept but lacks some important details. Consider reviewing the complete definition for a more comprehensive understanding."
             : "Good attempt! You've grasped the basic concept, though there's room to expand your understanding with more details.",
       };
@@ -307,24 +317,8 @@ Can you help me understand this feedback better and suggest how I can improve my
 
       <Card className="w-full shadow-lg">
         <CardContent className="p-6">
-          {/* Add this right after the "Question"/"Answer" text at the top of the card */}
-          <div className="text-sm font-medium text-muted-foreground mb-4 flex justify-between items-center">
+          <div className="text-sm font-medium text-muted-foreground mb-4">
             <span>{isFlipped ? "Answer" : "Question"}</span>
-            {card.difficulty && (
-              <span
-                className={cn(
-                  "text-xs px-2 py-0.5 rounded-full",
-                  card.difficulty === "beginner"
-                    ? "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300"
-                    : card.difficulty === "adept"
-                    ? "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300"
-                    : "bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-300"
-                )}
-              >
-                {card.difficulty.charAt(0).toUpperCase() +
-                  card.difficulty.slice(1)}
-              </span>
-            )}
           </div>
 
           {!isFlipped ? (
