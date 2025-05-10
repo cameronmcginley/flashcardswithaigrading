@@ -83,6 +83,11 @@ export default function DeckInfoModal({
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [cardToDelete, setCardToDelete] = useState<string | null>(null);
 
+  // Add a state for editing JSON
+  const [isEditingJson, setIsEditingJson] = useState(false);
+  const [editedJson, setEditedJson] = useState("");
+  const [jsonError, setJsonError] = useState<string | null>(null);
+
   // Mock cards data - in a real app, this would be fetched based on deckId
   const [cards, setCards] = useState<Card[]>([
     {
@@ -210,6 +215,57 @@ export default function DeckInfoModal({
         toast.error("Failed to copy JSON");
       }
     );
+  };
+
+  const startEditingJson = () => {
+    setEditedJson(cardsJson);
+    setIsEditingJson(true);
+    setJsonError(null);
+  };
+
+  const cancelEditingJson = () => {
+    setIsEditingJson(false);
+    setJsonError(null);
+  };
+
+  const saveEditedJson = () => {
+    try {
+      const parsedCards = JSON.parse(editedJson);
+
+      // Validate the structure
+      if (!Array.isArray(parsedCards)) {
+        setJsonError("JSON must be an array of cards");
+        return;
+      }
+
+      // Check if each card has question and answer
+      const isValid = parsedCards.every(
+        (card) =>
+          typeof card === "object" &&
+          card !== null &&
+          typeof card.question === "string" &&
+          typeof card.answer === "string"
+      );
+
+      if (!isValid) {
+        setJsonError("Each card must have 'question' and 'answer' fields");
+        return;
+      }
+
+      // Update the cards in the local state
+      const updatedCards = parsedCards.map((card, index) => ({
+        id: cards[index]?.id || `new-${Date.now()}-${index}`,
+        question: card.question,
+        answer: card.answer,
+      }));
+
+      setCards(updatedCards);
+      setIsEditingJson(false);
+      setJsonError(null);
+      toast.success("Cards updated successfully");
+    } catch (error) {
+      setJsonError("Invalid JSON format");
+    }
   };
 
   return (
@@ -368,24 +424,94 @@ export default function DeckInfoModal({
 
               <TabsContent value="json" className="mt-0">
                 <div className="relative">
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="absolute right-2 top-2 flex items-center gap-1"
-                    onClick={copyJsonToClipboard}
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    {jsonCopied ? "Copied!" : "Copy"}
-                  </Button>
-                  <pre
-                    className={cn(
-                      "p-4 rounded-md bg-gray-50 dark:bg-gray-900 font-mono text-sm overflow-auto",
-                      "border border-gray-200 dark:border-gray-700",
-                      "max-h-[400px] mt-2"
-                    )}
-                  >
-                    {cardsJson}
-                  </pre>
+                  {isEditingJson ? (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 p-3 bg-yellow-50 dark:bg-yellow-900/30 border border-yellow-200 dark:border-yellow-800 rounded-md text-yellow-800 dark:text-yellow-200">
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="16"
+                          height="16"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                          className="flex-shrink-0"
+                        >
+                          <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"></path>
+                          <path d="M12 9v4"></path>
+                          <path d="M12 17h.01"></path>
+                        </svg>
+                        <span className="text-sm">
+                          Warning: Bulk editing will reset all card statistics
+                          (ease factor, review history, etc.)
+                        </span>
+                      </div>
+                      <div className="relative">
+                        <textarea
+                          value={editedJson}
+                          onChange={(e) => setEditedJson(e.target.value)}
+                          className={cn(
+                            "w-full h-[400px] p-4 font-mono text-sm rounded-md border",
+                            "bg-gray-50 dark:bg-gray-900",
+                            jsonError
+                              ? "border-red-500"
+                              : "border-gray-200 dark:border-gray-700"
+                          )}
+                        />
+                        {jsonError && (
+                          <p className="text-sm text-red-500 mt-1">
+                            {jsonError}
+                          </p>
+                        )}
+                      </div>
+                      <div className="flex justify-end gap-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          onClick={cancelEditingJson}
+                        >
+                          Cancel
+                        </Button>
+                        <Button size="sm" onClick={saveEditedJson}>
+                          Save Changes
+                        </Button>
+                      </div>
+                    </div>
+                  ) : (
+                    <>
+                      <div className="flex gap-2 absolute right-2 top-2">
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1"
+                          onClick={startEditingJson}
+                        >
+                          <Edit className="h-3.5 w-3.5" />
+                          Edit
+                        </Button>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1"
+                          onClick={copyJsonToClipboard}
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                          {jsonCopied ? "Copied!" : "Copy"}
+                        </Button>
+                      </div>
+                      <pre
+                        className={cn(
+                          "p-4 rounded-md bg-gray-50 dark:bg-gray-900 font-mono text-sm overflow-auto",
+                          "border border-gray-200 dark:border-gray-700",
+                          "max-h-[400px] mt-2"
+                        )}
+                      >
+                        {cardsJson}
+                      </pre>
+                    </>
+                  )}
                 </div>
               </TabsContent>
             </Tabs>

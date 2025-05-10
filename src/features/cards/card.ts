@@ -103,6 +103,64 @@ export const deleteCard = async (cardId: string) => {
   return data;
 };
 
+/** Soft-delete all cards in a deck */
+export const deleteAllCardsInDeck = async (deckId: string) => {
+  const { data, error } = await supabase
+    .from("cards")
+    .update({ deleted_at: new Date() })
+    .eq("deck_id", deckId)
+    .select();
+  if (error) throw error;
+  return data;
+};
+
+/** Restore  soft-deleted cards */
+export const restoreCards = async (cardIds: string[]) => {
+  if (!cardIds || cardIds.length === 0) {
+    throw new Error("No card IDs provided");
+  }
+
+  const { data, error } = await supabase
+    .from("cards")
+    .update({ deleted_at: null })
+    .in("id", cardIds)
+    .select();
+  if (error) throw error;
+  return data;
+};
+
+/**
+ * Currently, bulk editing deletes all cards and re-inserts the new set
+ *
+ * TODO: Avoid this by trying to match the new cards with existing ones
+ * and only update the ones that are different or add new ones
+ * */
+export const bulkEditDeckCards = async (
+  deckId: string,
+  cards: { front: string; back: string }[]
+) => {
+  if (!deckId || !cards || cards.length === 0) {
+    throw new Error("Missing required fields");
+  }
+
+  for (const card of cards) {
+    if (!isValidCardFrontAndBack(card.front, card.back)) {
+      throw new Error(INVALID_CARD_FRONT_AND_BACK_ERROR);
+    }
+  }
+
+  const deletedCards = await deleteAllCardsInDeck(deckId);
+
+  try {
+    const insertedCards = await createManyCards(deckId, cards);
+    return insertedCards;
+  } catch {
+    const deletedCardIds = deletedCards.map((card) => card.id);
+    await restoreCards(deletedCardIds);
+    throw new Error("Insert failed, rollback attempted");
+  }
+};
+
 /** Get all cards in a specific deck */
 export const getAllCardsInDeck = async (deckId: string) => {
   const { data, error } = await supabase
