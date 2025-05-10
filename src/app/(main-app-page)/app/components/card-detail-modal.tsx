@@ -94,7 +94,7 @@ export default function CardDetailModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[600px]">
+        <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
           <DialogHeader className="flex flex-row items-center justify-between pr-8">
             <DialogTitle>Card Details</DialogTitle>
             <div className="flex gap-2">
@@ -172,6 +172,7 @@ export default function CardDetailModal({
                 rows={8}
                 required
                 markdown={true} // Enable markdown for question
+                className="resize-y"
               />
             </TabsContent>
             <TabsContent value="answer" className="space-y-4 py-4">
@@ -187,6 +188,7 @@ export default function CardDetailModal({
                 rows={8}
                 required
                 markdown={true} // Enable markdown for answer
+                className="resize-y"
               />
             </TabsContent>
           </Tabs>

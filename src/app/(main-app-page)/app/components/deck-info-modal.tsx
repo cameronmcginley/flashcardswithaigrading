@@ -215,7 +215,7 @@ export default function DeckInfoModal({
   return (
     <>
       <Dialog open={open} onOpenChange={onOpenChange}>
-        <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col">
+        <DialogContent className="sm:max-w-[700px] max-h-[90vh] flex flex-col overflow-hidden">
           <DialogHeader className="flex flex-row items-center justify-between">
             <div className="flex items-center gap-2">
               {editingName ? (

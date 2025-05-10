@@ -155,7 +155,7 @@ export function TextInputWithLimit({
             {isPreview ? (
               <div
                 className="border rounded-md p-3 overflow-auto prose bg-muted/20"
-                style={{ height: textareaHeight }}
+                style={{ minHeight: textareaHeight, maxHeight: "400px" }}
               >
                 {value ? (
                   <ReactMarkdown
@@ -171,39 +171,31 @@ export function TextInputWithLimit({
                 )}
               </div>
             ) : (
-              <div className="relative" style={{ height: textareaHeight }}>
-                <Textarea
-                  ref={textareaRef}
-                  id={id}
-                  value={value}
-                  onChange={handleChange}
-                  onKeyDown={handleKeyDown}
-                  placeholder={placeholder}
-                  className={cn(
-                    inputClasses,
-                    "absolute inset-0 resize-none overflow-auto font-mono"
-                  )}
-                  disabled={disabled}
-                />
-              </div>
+              <Textarea
+                ref={textareaRef}
+                id={id}
+                value={value}
+                onChange={handleChange}
+                onKeyDown={handleKeyDown}
+                placeholder={placeholder}
+                className={cn(inputClasses, "font-mono min-h-[100px]")}
+                disabled={disabled}
+                style={{ minHeight: textareaHeight }}
+              />
             )}
           </div>
         ) : (
-          <div className="relative" style={{ height: textareaHeight }}>
-            <Textarea
-              ref={textareaRef}
-              id={id}
-              value={value}
-              onChange={handleChange}
-              onKeyDown={handleKeyDown}
-              placeholder={placeholder}
-              className={cn(
-                inputClasses,
-                "absolute inset-0 resize-none overflow-auto"
-              )}
-              disabled={disabled}
-            />
-          </div>
+          <Textarea
+            ref={textareaRef}
+            id={id}
+            value={value}
+            onChange={handleChange}
+            onKeyDown={handleKeyDown}
+            placeholder={placeholder}
+            className={cn(inputClasses)}
+            disabled={disabled}
+            style={{ minHeight: textareaHeight }}
+          />
         )
       ) : (
         <Input

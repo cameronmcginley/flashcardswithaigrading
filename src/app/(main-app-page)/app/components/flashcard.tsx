@@ -287,11 +287,11 @@ Can you help me understand this feedback better and suggest how I can improve my
               <div className="group relative">
                 {editingQuestion ? (
                   <div className="space-y-2">
-                    <div className="relative h-[150px]">
+                    <div>
                       <Textarea
                         value={tempQuestion}
                         onChange={(e) => setTempQuestion(e.target.value)}
-                        className="absolute inset-0 resize-none overflow-auto"
+                        className="min-h-[150px] w-full"
                         autoFocus
                       />
                     </div>
@@ -323,12 +323,12 @@ Can you help me understand this feedback better and suggest how I can improve my
               </div>
 
               <div className="space-y-4">
-                <div className="relative h-[150px]">
+                <div>
                   <Textarea
                     placeholder="Type your answer here..."
                     value={userAnswer}
                     onChange={(e) => setUserAnswer(e.target.value)}
-                    className="absolute inset-0 resize-none overflow-auto"
+                    className="min-h-[150px] w-full"
                   />
                 </div>
                 <div className="flex gap-2">
@@ -341,11 +341,11 @@ Can you help me understand this feedback better and suggest how I can improve my
               <div className="group relative">
                 {editingAnswer ? (
                   <div className="space-y-2">
-                    <div className="relative h-[150px]">
+                    <div>
                       <Textarea
                         value={tempAnswer}
                         onChange={(e) => setTempAnswer(e.target.value)}
-                        className="absolute inset-0 resize-none overflow-auto"
+                        className="min-h-[150px] w-full"
                         autoFocus
                       />
                     </div>
