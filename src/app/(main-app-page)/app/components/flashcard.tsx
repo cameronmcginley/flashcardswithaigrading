@@ -226,31 +226,31 @@ Can you help me understand this feedback better and suggest how I can improve my
             <div className="space-y-4">
               <h4 className="font-medium text-sm">Card Statistics</h4>
               <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <div className="text-gray-500">Ease Factor:</div>
+                <div className="text-muted-foreground">Ease Factor:</div>
                 <div>{cardStats.easeFactor}</div>
 
-                <div className="text-gray-500">Interval:</div>
+                <div className="text-muted-foreground">Interval:</div>
                 <div>{cardStats.interval} days</div>
 
-                <div className="text-gray-500">Reviews:</div>
+                <div className="text-muted-foreground">Reviews:</div>
                 <div>{cardStats.reviews}</div>
 
-                <div className="text-gray-500">Lapses:</div>
+                <div className="text-muted-foreground">Lapses:</div>
                 <div>{cardStats.lapses}</div>
 
-                <div className="text-gray-500">Last Reviewed:</div>
+                <div className="text-muted-foreground">Last Reviewed:</div>
                 <div>{cardStats.lastReviewed}</div>
 
-                <div className="text-gray-500">Next Review:</div>
+                <div className="text-muted-foreground">Next Review:</div>
                 <div>{cardStats.nextReview}</div>
 
-                <div className="text-gray-500">Streak:</div>
+                <div className="text-muted-foreground">Streak:</div>
                 <div>{cardStats.streak}</div>
 
-                <div className="text-gray-500">Average Time:</div>
+                <div className="text-muted-foreground">Average Time:</div>
                 <div>{cardStats.averageTime}</div>
               </div>
-              <div className="pt-2 text-xs text-gray-500">
+              <div className="pt-2 text-xs text-muted-foreground">
                 Based on the SM-2 spaced repetition algorithm
               </div>
             </div>
@@ -278,7 +278,7 @@ Can you help me understand this feedback better and suggest how I can improve my
 
       <Card className="w-full shadow-lg">
         <CardContent className="p-6">
-          <div className="text-sm font-medium text-gray-500 mb-4">
+          <div className="text-sm font-medium text-muted-foreground mb-4">
             {isFlipped ? "Answer" : "Question"}
           </div>
 
@@ -311,7 +311,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                     </div>
                   </div>
                 ) : (
-                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1 prose prose-sm dark:prose-invert">
+                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1 prose">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeHighlight]}
@@ -365,7 +365,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                     </div>
                   </div>
                 ) : (
-                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1 prose prose-sm dark:prose-invert">
+                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1 prose">
                     <ReactMarkdown
                       remarkPlugins={[remarkGfm]}
                       rehypePlugins={[rehypeHighlight]}
@@ -377,8 +377,8 @@ Can you help me understand this feedback better and suggest how I can improve my
               </div>
 
               <div className="mt-4">
-                <div className="p-4 bg-gray-50 dark:bg-gray-800 rounded-lg mb-4 max-h-[150px] overflow-y-auto">
-                  <div className="text-sm font-medium text-gray-500 mb-2">
+                <div className="p-4 bg-muted/20 rounded-lg mb-4 max-h-[150px] overflow-y-auto">
+                  <div className="text-sm font-medium text-muted-foreground mb-2">
                     Your Answer:
                   </div>
                   <div>{userAnswer || "(No answer provided)"}</div>
@@ -425,21 +425,21 @@ Can you help me understand this feedback better and suggest how I can improve my
             transition={{ duration: 0.4, delay: 0.2 }}
             className="mt-8"
           >
-            <Card className="p-6 border-2 border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-800 relative">
+            <Card className="p-6 border-2 border-border bg-muted/20 relative">
               {/* Close button */}
               <Button
                 variant="ghost"
                 size="icon"
-                className="absolute right-2 top-2 h-6 w-6 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-300"
+                className="absolute right-2 top-2 h-6 w-6 text-muted-foreground hover:text-foreground"
                 onClick={resetGrading}
               >
                 <X className="h-4 w-4" />
               </Button>
 
-              <div className="absolute -top-3 left-10 w-6 h-6 bg-gray-50 dark:bg-gray-800 border-t-2 border-l-2 border-gray-200 dark:border-gray-700 transform rotate-45"></div>
+              <div className="absolute -top-3 left-10 w-6 h-6 bg-muted/20 border-t-2 border-l-2 border-border transform rotate-45"></div>
               <div className="flex items-start gap-4">
-                <div className="bg-gray-200 dark:bg-gray-700 p-2 rounded-full">
-                  <Brain className="h-6 w-6 text-gray-700 dark:text-gray-300" />
+                <div className="bg-muted p-2 rounded-full">
+                  <Brain className="h-6 w-6 text-foreground" />
                 </div>
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
@@ -452,7 +452,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                   </div>
 
                   {/* Progress Bar */}
-                  <div className="w-full h-2 bg-gray-200 dark:bg-gray-700 rounded-full mb-4 overflow-hidden">
+                  <div className="w-full h-2 bg-muted rounded-full mb-4 overflow-hidden">
                     <motion.div
                       className={cn(
                         "h-full rounded-full",
@@ -464,9 +464,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                     />
                   </div>
 
-                  <p className="text-gray-700 dark:text-gray-300 mb-4">
-                    {aiGrade.response}
-                  </p>
+                  <p className="text-foreground mb-4">{aiGrade.response}</p>
 
                   {/* Ask ChatGPT Button */}
                   <Button

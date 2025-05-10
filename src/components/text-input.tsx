@@ -154,10 +154,7 @@ export function TextInputWithLimit({
           <div>
             {isPreview ? (
               <div
-                className={cn(
-                  "border rounded-md p-3 overflow-auto prose prose-sm dark:prose-invert max-w-none",
-                  "bg-gray-50 dark:bg-gray-900"
-                )}
+                className="border rounded-md p-3 overflow-auto prose bg-muted/20"
                 style={{ height: textareaHeight }}
               >
                 {value ? (
@@ -168,7 +165,7 @@ export function TextInputWithLimit({
                     {value}
                   </ReactMarkdown>
                 ) : (
-                  <p className="text-gray-400 dark:text-gray-500 italic">
+                  <p className="text-muted-foreground italic">
                     No content to preview
                   </p>
                 )}
