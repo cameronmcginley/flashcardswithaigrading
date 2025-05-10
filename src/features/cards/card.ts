@@ -166,7 +166,8 @@ export const getAllCardsInDeck = async (deckId: string) => {
   const { data, error } = await supabase
     .from("cards")
     .select("*")
-    .eq("deck_id", deckId);
+    .eq("deck_id", deckId)
+    .is("deleted_at", null);
 
   if (error) throw error;
   return data;
@@ -177,7 +178,8 @@ export const getAllCardsInCategory = async (categoryId: string) => {
   const { data, error } = await supabase
     .from("cards")
     .select("*, deck!inner(category_id)")
-    .eq("deck.category_id", categoryId);
+    .eq("deck.category_id", categoryId)
+    .is("deleted_at", null);
 
   if (error) throw error;
   return data;
