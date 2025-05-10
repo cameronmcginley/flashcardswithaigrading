@@ -58,6 +58,9 @@ export default function Sidebar({ onSelectedDecksChange }: SidebarProps) {
   } | null>(null);
   const [editName, setEditName] = useState("");
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
+  const [selectedCategoryForNewDeck, setSelectedCategoryForNewDeck] = useState<
+    string | null
+  >(null);
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [isDeckInfoModalOpen, setIsDeckInfoModalOpen] = useState(false);
@@ -175,11 +178,6 @@ export default function Sidebar({ onSelectedDecksChange }: SidebarProps) {
     setEditingDeck(null);
   };
 
-  const openAddDeckModal = (categoryId: string) => {
-    setAddingToCategoryId(categoryId);
-    setIsAddDeckModalOpen(true);
-  };
-
   const openAddCardModal = (
     categoryId: string,
     deckId: string,
@@ -192,9 +190,9 @@ export default function Sidebar({ onSelectedDecksChange }: SidebarProps) {
   };
 
   const handleAddDeck = (deckName: string) => {
-    if (addingToCategoryId && deckName.trim()) {
+    if (selectedCategoryForNewDeck && deckName.trim()) {
       const updatedCategories = categories.map((category) => {
-        if (category.id === addingToCategoryId) {
+        if (category.id === selectedCategoryForNewDeck) {
           const newDeckId = `${category.id}-${category.decks.length + 1}`;
           return {
             ...category,
@@ -216,7 +214,7 @@ export default function Sidebar({ onSelectedDecksChange }: SidebarProps) {
       updateSelectedDecks(updatedCategories);
     }
     setIsAddDeckModalOpen(false);
-    setAddingToCategoryId(null);
+    setSelectedCategoryForNewDeck(null);
   };
 
   const handleAddCard = (question: string, answer: string) => {
@@ -331,6 +329,14 @@ export default function Sidebar({ onSelectedDecksChange }: SidebarProps) {
         categoryName: category.name,
       }))
     );
+  };
+
+  const openAddDeckModal = () => {
+    // If there are categories, default to the first one
+    if (categories.length > 0) {
+      setSelectedCategoryForNewDeck(categories[0].id);
+    }
+    setIsAddDeckModalOpen(true);
   };
 
   return (
@@ -466,7 +472,25 @@ export default function Sidebar({ onSelectedDecksChange }: SidebarProps) {
       </div>
 
       {/* Add Category Button at the bottom */}
-      <div className="p-4 border-t">
+      <div className="p-4 border-t space-y-2">
+        <Button
+          variant="outline"
+          className="w-full flex items-center justify-center"
+          onClick={() => setIsAddCardModalOpen(true)}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Card
+        </Button>
+
+        <Button
+          variant="outline"
+          className="w-full flex items-center justify-center"
+          onClick={() => openAddDeckModal()}
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Add Deck
+        </Button>
+
         <Button
           variant="outline"
           className="w-full flex items-center justify-center"
@@ -481,11 +505,18 @@ export default function Sidebar({ onSelectedDecksChange }: SidebarProps) {
       <AddDeckModal
         open={isAddDeckModalOpen}
         onOpenChange={setIsAddDeckModalOpen}
-        onAddDeck={handleAddDeck}
-        categoryId={addingToCategoryId}
+        onAddDeck={(name) => {
+          if (selectedCategoryForNewDeck) {
+            handleAddDeck(name);
+          }
+        }}
+        categoryId={selectedCategoryForNewDeck}
         categoryName={
-          categories.find((c) => c.id === addingToCategoryId)?.name || ""
+          categories.find((c) => c.id === selectedCategoryForNewDeck)?.name ||
+          ""
         }
+        categories={categories}
+        onCategoryChange={setSelectedCategoryForNewDeck}
       />
 
       <AddCardModal

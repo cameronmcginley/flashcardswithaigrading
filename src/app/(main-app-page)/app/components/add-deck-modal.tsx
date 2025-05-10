@@ -11,7 +11,20 @@ import {
 import { Button } from "@/components/ui/button";
 import { TextInputWithLimit } from "@/components/text-input";
 import { JsonTextInput } from "@/components/json-text-input";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+
+interface Category {
+  id: string;
+  name: string;
+}
 
 interface AddDeckModalProps {
   open: boolean;
@@ -19,6 +32,8 @@ interface AddDeckModalProps {
   onAddDeck: (name: string) => void;
   categoryId: string | null;
   categoryName: string;
+  categories: Category[];
+  onCategoryChange: (categoryId: string) => void;
 }
 
 export default function AddDeckModal({
@@ -27,6 +42,8 @@ export default function AddDeckModal({
   onAddDeck,
   categoryId,
   categoryName,
+  categories,
+  onCategoryChange,
 }: AddDeckModalProps) {
   const [deckName, setDeckName] = useState("");
   const [jsonContent, setJsonContent] = useState(
@@ -49,6 +66,13 @@ export default function AddDeckModal({
     if (!isDeckNameValid || !isJsonValid) {
       toast.error("Validation Error", {
         description: "Please fix the validation errors before saving.",
+      });
+      return;
+    }
+
+    if (!categoryId) {
+      toast.error("Validation Error", {
+        description: "Please select a category.",
       });
       return;
     }
@@ -100,9 +124,28 @@ export default function AddDeckModal({
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[600px]">
         <DialogHeader>
-          <DialogTitle>Add New Deck to {categoryName}</DialogTitle>
+          <DialogTitle>Add New Deck</DialogTitle>
         </DialogHeader>
         <div className="grid gap-4 py-4">
+          <div className="grid gap-2">
+            <Label htmlFor="category-select">Category</Label>
+            <Select
+              value={categoryId || ""}
+              onValueChange={(value) => onCategoryChange(value)}
+            >
+              <SelectTrigger id="category-select">
+                <SelectValue placeholder="Select a category" />
+              </SelectTrigger>
+              <SelectContent>
+                {categories.map((category) => (
+                  <SelectItem key={category.id} value={category.id}>
+                    {category.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
           <TextInputWithLimit
             id="deckName"
             label="Deck Name"

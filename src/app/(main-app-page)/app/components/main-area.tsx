@@ -5,7 +5,6 @@ import Flashcard from "./flashcard";
 import AddCardModal from "./add-card-modal";
 import DeleteConfirmationModal from "./delete-confirmation-modal";
 import { Button } from "@/components/ui/button";
-import { Plus } from "lucide-react";
 
 // Mock flashcard data with deck associations
 const initialCards = [
@@ -199,14 +198,6 @@ export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
 
   return (
     <div className="flex-1 p-6 flex flex-col">
-      <div className="flex justify-between items-center mb-6">
-        <div className="text-xl font-semibold">Flashcards</div>
-        <Button onClick={() => setIsAddCardModalOpen(true)}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Card
-        </Button>
-      </div>
-
       <div className="flex-1 flex flex-col items-center justify-center">
         {selectedDecks.length === 0 ? (
           <div className="text-center text-gray-500">
@@ -241,13 +232,6 @@ export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
               No cards available in the selected decks. Add a new card to get
               started.
             </p>
-            <Button
-              className="mt-4"
-              onClick={() => setIsAddCardModalOpen(true)}
-            >
-              <Plus className="h-4 w-4 mr-2" />
-              Add Card
-            </Button>
           </div>
         )}
       </div>
