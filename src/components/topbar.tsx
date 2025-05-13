@@ -1,20 +1,20 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, Menu } from "lucide-react";
+import { Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SettingsModal from "./settings-modal";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
 
 interface TopbarProps {
   onDebugModeChange?: (debugMode: boolean) => void;
-  onSidebarToggle?: () => void;
 }
 
-export default function Topbar({
-  onDebugModeChange,
-  onSidebarToggle,
-}: TopbarProps) {
+export default function Topbar({ onDebugModeChange }: TopbarProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const pathname = usePathname();
+
   const [settings, setSettings] = useState({
     apiKey: "",
     aiPrompt:
@@ -55,16 +55,42 @@ export default function Topbar({
 
   return (
     <div className="h-14 border-b bg-white dark:bg-gray-800 flex items-center justify-between px-4 py-2">
-      <div className="flex items-center gap-3">
-        <Button
-          variant="ghost"
-          size="icon"
-          onClick={onSidebarToggle}
-          className="p-0"
+      <div className="flex items-center gap-6">
+        <Link
+          href="/"
+          className="font-semibold text-lg hover:text-gray-600 transition-colors"
         >
-          <Menu className="h-5 w-5" />
-        </Button>
-        <div className="font-semibold text-lg">EZ Anki</div>
+          EZ Anki
+        </Link>
+
+        <div className="flex items-center gap-2">
+          <Link href="/app" passHref>
+            <Button
+              variant={pathname === "/app" ? "default" : "ghost"}
+              size="sm"
+              className={
+                pathname === "/app"
+                  ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  : ""
+              }
+            >
+              App
+            </Button>
+          </Link>
+          <Link href="/insights" passHref>
+            <Button
+              variant={pathname === "/insights" ? "default" : "ghost"}
+              size="sm"
+              className={
+                pathname === "/insights"
+                  ? "bg-gray-200 hover:bg-gray-300 text-gray-800"
+                  : ""
+              }
+            >
+              Insights
+            </Button>
+          </Link>
+        </div>
       </div>
       <div>
         <Button

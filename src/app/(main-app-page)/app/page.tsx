@@ -1,31 +1,38 @@
 "use client";
 
 import { useState } from "react";
-import Layout from "./layout";
-import Sidebar from "./components/sidebar";
 import Topbar from "@/components/topbar";
+import Sidebar from "./components/sidebar";
 import MainArea from "./components/main-area";
 
-export default function FlashcardApp() {
+export default function Home() {
   const [selectedDecks, setSelectedDecks] = useState<
     { deckId: string; cardCount: number }[]
   >([]);
   const [debugMode, setDebugMode] = useState(false);
-  const [sidebarOpen, setSidebarOpen] = useState(true);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
+
+  const handleSelectedDecksChange = (
+    decks: { deckId: string; cardCount: number }[]
+  ) => {
+    setSelectedDecks(decks);
+  };
+
+  const toggleSidebar = () => {
+    setIsSidebarOpen(!isSidebarOpen);
+  };
 
   return (
-    <Layout>
-      <Topbar
-        onDebugModeChange={setDebugMode}
-        onSidebarToggle={() => setSidebarOpen(!sidebarOpen)}
-      />
+    <div className="flex flex-col h-screen">
+      <Topbar onDebugModeChange={setDebugMode} />
       <div className="flex flex-1 overflow-hidden">
         <Sidebar
-          onSelectedDecksChange={setSelectedDecks}
-          isOpen={sidebarOpen}
+          onSelectedDecksChange={handleSelectedDecksChange}
+          isOpen={isSidebarOpen}
+          onToggle={toggleSidebar}
         />
         <MainArea selectedDecks={selectedDecks} debugMode={debugMode} />
       </div>
-    </Layout>
+    </div>
   );
 }
