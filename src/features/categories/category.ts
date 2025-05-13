@@ -2,18 +2,6 @@ import { supabase } from "@/lib/supabase";
 import { isValidCategoryName } from "./utils";
 import { INVALID_CATEGORY_NAME_ERROR } from "./constants";
 
-/** Fetch a single card by its ID */
-export const getCard = async (cardId: string) => {
-  const { data, error } = await supabase
-    .from("cards")
-    .select("*")
-    .eq("id", cardId)
-    .single();
-
-  if (error) throw error;
-  return data;
-};
-
 export const getAllCategoriesWithDecks = async () => {
   const { data, error } = await supabase
     .from("categories")

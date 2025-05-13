@@ -42,6 +42,9 @@ create table
         deleted_at timestamptz default null,
     );
 
+-- Create enum for grading difficulty
+create type grading_difficulty_type as enum ('beginner', 'adept', 'master');
+
 -- ========== INSIGHTS ==========
 create table
     review_logs (
@@ -58,6 +61,7 @@ create table
         new_ease_factor float not null, -- New ease factor after this review
         -- Additional useful fields
         correct boolean not null, -- Whether the user marked the card as correct
+        grading_difficulty grading_difficulty_type not null default 'adept', -- The difficulty level used for grading
         -- Timestamps
         reviewed_at timestamptz not null default now (),
         -- Indexes for faster queries
@@ -74,6 +78,8 @@ create index review_logs_card_id_idx on review_logs (card_id);
 create index review_logs_deck_id_idx on review_logs (deck_id);
 
 create index review_logs_reviewed_at_idx on review_logs (reviewed_at);
+
+create index review_logs_grading_difficulty_idx on review_logs (grading_difficulty);
 
 -- ========== RLS ==========
 -- Enable row-level security

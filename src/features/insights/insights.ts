@@ -11,6 +11,7 @@ export const insertReviewLog = async (log: {
   previous_ease_factor: number;
   new_ease_factor: number;
   correct: boolean;
+  grading_difficulty: "beginner" | "adept" | "master";
 }) => {
   const { data, error } = await supabase
     .from("review_logs")
