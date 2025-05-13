@@ -1,15 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import {
-  ChevronRight,
-  ChevronDown,
-  ChevronLeft,
-  Edit,
-  Plus,
-  Check,
-  X,
-} from "lucide-react";
+import { ChevronRight, ChevronDown, Edit, Plus, Check, X } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Input } from "@/components/ui/input";
@@ -53,24 +45,17 @@ interface SidebarProps {
     selectedDecks: { deckId: string; cardCount: number }[]
   ) => void;
   isOpen?: boolean;
-  onToggle: () => void;
 }
 
 export default function Sidebar({
   onSelectedDecksChange,
   isOpen = true,
-  onToggle,
 }: SidebarProps) {
   const [categories, setCategories] = useState(initialCategories);
-  // Change the expandedCategories initialization to include all category IDs
   const [expandedCategories, setExpandedCategories] = useState<string[]>(
     initialCategories.map((cat) => cat.id)
   );
   const [editingCategory, setEditingCategory] = useState<string | null>(null);
-  const [editingDeck, setEditingDeck] = useState<{
-    categoryId: string;
-    deckId: string;
-  } | null>(null);
   const [editName, setEditName] = useState("");
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
   const [selectedCategoryForNewDeck, setSelectedCategoryForNewDeck] = useState<
@@ -84,7 +69,6 @@ export default function Sidebar({
   );
   const [addingToDeckId, setAddingToDeckId] = useState<string | null>(null);
   const [currentDeckName, setCurrentDeckName] = useState<string>("");
-  const [currentCategoryName, setCurrentCategoryName] = useState<string>("");
   const [contentVisible, setContentVisible] = useState(isOpen);
 
   const [selectedDeckInfo, setSelectedDeckInfo] = useState<{
@@ -96,13 +80,11 @@ export default function Sidebar({
   // Update content visibility based on sidebar state
   useEffect(() => {
     if (isOpen) {
-      // Small delay to ensure the sidebar has started expanding before showing content
       const timer = setTimeout(() => {
         setContentVisible(true);
       }, 50);
       return () => clearTimeout(timer);
     } else {
-      // Hide content immediately when closing
       setContentVisible(false);
     }
   }, [isOpen]);
@@ -206,7 +188,6 @@ export default function Sidebar({
 
   const cancelEditing = () => {
     setEditingCategory(null);
-    setEditingDeck(null);
   };
 
   const openAddCardModal = (
@@ -248,7 +229,7 @@ export default function Sidebar({
     setSelectedCategoryForNewDeck(null);
   };
 
-  const handleAddCard = (question: string, answer: string, deckId: string) => {
+  const handleAddCard = () => {
     if (addingToCategoryId && addingToDeckId) {
       // Update the card count for the deck
       const updatedCategories = categories.map((category) => {
@@ -275,8 +256,7 @@ export default function Sidebar({
   };
 
   const handleAddMultipleCards = (
-    cards: Array<{ question: string; answer: string }>,
-    deckId: string
+    cards: Array<{ question: string; answer: string }>
   ) => {
     if (addingToCategoryId && addingToDeckId) {
       // Update the card count for the deck
@@ -321,7 +301,7 @@ export default function Sidebar({
     setIsAddCategoryModalOpen(false);
   };
 
-  const handleDeleteCard = (cardId: string) => {
+  const handleDeleteCard = () => {
     // In a real app, you would call an API to delete the card
     // For now, we'll just update the card count
     if (selectedDeckInfo) {
@@ -364,37 +344,18 @@ export default function Sidebar({
   };
 
   const openAddDeckModal = () => {
-    // If there are categories, default to the first one
     if (categories.length > 0) {
       setSelectedCategoryForNewDeck(categories[0].id);
+      setIsAddDeckModalOpen(true);
     }
-    setIsAddDeckModalOpen(true);
   };
 
   return (
     <div className="relative h-full">
-      {/* Sidebar toggle button */}
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={onToggle}
-        className={cn(
-          "absolute top-3 z-10 transition-all duration-300 ease-in-out hover:bg-gray-100 dark:hover:bg-gray-700",
-          isOpen ? "right-3" : "left-3"
-        )}
-        aria-label={isOpen ? "Close sidebar" : "Open sidebar"}
-      >
-        {isOpen ? (
-          <ChevronLeft className="h-5 w-5" />
-        ) : (
-          <ChevronRight className="h-5 w-5" />
-        )}
-      </Button>
-
       <div
         className={cn(
           "border-r bg-white dark:bg-gray-800 flex flex-col h-full transition-all duration-300 ease-in-out",
-          isOpen ? "w-64" : "w-0"
+          isOpen ? "w-full" : "w-0"
         )}
       >
         <div
@@ -409,11 +370,11 @@ export default function Sidebar({
               {categories.map((category) => (
                 <div key={category.id} className="space-y-1">
                   <div className="flex items-center justify-between group">
-                    <div className="flex items-center flex-1">
+                    <div className="flex items-center flex-1 min-w-0">
                       <Button
                         variant="ghost"
                         size="icon"
-                        className="h-6 w-6"
+                        className="h-6 w-6 shrink-0"
                         onClick={() => toggleCategory(category.id)}
                       >
                         {expandedCategories.includes(category.id) ? (
@@ -423,7 +384,7 @@ export default function Sidebar({
                         )}
                       </Button>
                       {editingCategory === category.id ? (
-                        <div className="flex items-center flex-1">
+                        <div className="flex items-center flex-1 min-w-0">
                           <Input
                             value={editName}
                             onChange={(e) => setEditName(e.target.value)}
@@ -433,7 +394,7 @@ export default function Sidebar({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6 ml-1"
+                            className="h-6 w-6 ml-1 shrink-0"
                             onClick={saveEditingCategory}
                           >
                             <Check className="h-4 w-4" />
@@ -441,18 +402,18 @@ export default function Sidebar({
                           <Button
                             variant="ghost"
                             size="icon"
-                            className="h-6 w-6"
+                            className="h-6 w-6 shrink-0"
                             onClick={cancelEditing}
                           >
                             <X className="h-4 w-4" />
                           </Button>
                         </div>
                       ) : (
-                        <span className="ml-1">{category.name}</span>
+                        <span className="ml-1 truncate">{category.name}</span>
                       )}
                     </div>
                     {editingCategory !== category.id && (
-                      <div className="opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className="opacity-0 group-hover:opacity-100 transition-opacity flex shrink-0">
                         <Button
                           variant="ghost"
                           size="icon"
@@ -465,7 +426,7 @@ export default function Sidebar({
                           variant="ghost"
                           size="icon"
                           className="h-6 w-6"
-                          onClick={() => openAddDeckModal(category.id)}
+                          onClick={() => openAddDeckModal()}
                         >
                           <Plus className="h-3 w-3" />
                         </Button>
@@ -479,26 +440,26 @@ export default function Sidebar({
                           key={deck.id}
                           className="flex items-center justify-between group"
                         >
-                          <div className="flex items-center flex-1">
+                          <div className="flex items-center flex-1 min-w-0">
                             <Checkbox
                               id={`deck-${deck.id}`}
                               checked={deck.selected}
                               onCheckedChange={() =>
                                 toggleDeckSelection(category.id, deck.id)
                               }
-                              className="mr-2 h-4 w-4"
+                              className="mr-2 h-4 w-4 shrink-0"
                             />
-                            <div className="flex items-center justify-between flex-1">
+                            <div className="flex items-center justify-between flex-1 min-w-0">
                               <label
                                 htmlFor={`deck-${deck.id}`}
-                                className="text-sm cursor-pointer"
+                                className="text-sm cursor-pointer truncate flex-1 min-w-0"
                               >
-                                {deck.name}{" "}
-                                <span className="text-xs text-gray-500">
+                                <span className="truncate">{deck.name}</span>{" "}
+                                <span className="text-xs text-gray-500 shrink-0 ml-1">
                                   ({deck.cardCount})
                                 </span>
                               </label>
-                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex">
+                              <div className="opacity-0 group-hover:opacity-100 transition-opacity flex shrink-0 ml-2">
                                 <Button
                                   variant="ghost"
                                   size="icon"
