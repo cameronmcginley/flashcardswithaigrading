@@ -3,12 +3,35 @@ import { isValidCategoryName } from "./utils";
 import { INVALID_CATEGORY_NAME_ERROR } from "./constants";
 
 export const getAllCategoriesWithDecks = async () => {
-  const { data, error } = await supabase
+  const { data: rawData, error } = await supabase
     .from("categories")
-    .select("*, decks(*)")
+    .select(
+      `
+      id,
+      name,
+      decks (
+        id,
+        name,
+        cards (count)
+      )
+    `
+    )
+    .is("deleted_at", null)
     .order("name", { ascending: true });
 
   if (error) throw error;
+
+  // Transform the nested structure into the expected format
+  const data = rawData?.map((category) => ({
+    id: category.id,
+    name: category.name,
+    decks: category.decks.map((deck) => ({
+      id: deck.id,
+      name: deck.name,
+      card_count: deck.cards?.[0]?.count || 0,
+    })),
+  }));
+
   return data;
 };
 

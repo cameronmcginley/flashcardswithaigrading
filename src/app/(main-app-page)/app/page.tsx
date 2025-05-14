@@ -16,7 +16,7 @@ import { toast } from "sonner";
 interface DatabaseDeck {
   id: string;
   name: string;
-  num_cards: number;
+  card_count: number;
 }
 
 interface DatabaseCategory {
@@ -70,7 +70,7 @@ export default function Page() {
               id: deck.id,
               name: deck.name,
               selected: false,
-              cardCount: deck.num_cards || 0,
+              cardCount: deck.card_count || 0,
             })),
           })
         );
