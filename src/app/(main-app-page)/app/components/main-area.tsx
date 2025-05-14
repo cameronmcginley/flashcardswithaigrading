@@ -5,53 +5,23 @@ import Flashcard from "./flashcard";
 import AddCardModal from "./add-card-modal";
 import DeleteConfirmationModal from "./delete-confirmation-modal";
 import { toast } from "sonner";
+import {
+  getAllCardsInDeck,
+  markCardCorrect,
+  markCardIncorrect,
+} from "@/features/cards/card";
+import { sortCardsToReview } from "@/features/cards/sorting";
 
-// Mock flashcard data with deck associations
-const initialCards = [
-  {
-    id: "1",
-    deckId: "1-1", // JavaScript
-    question: "What is a closure in JavaScript?",
-    answer:
-      "A closure is a function that has access to its own scope, the scope of the outer function, and the global scope.",
-  },
-  {
-    id: "2",
-    deckId: "1-1", // JavaScript
-    question: "What is the difference between let and var?",
-    answer:
-      "let is block-scoped while var is function-scoped. let was introduced in ES6.",
-  },
-  {
-    id: "3",
-    deckId: "1-2", // Python
-    question: "What are Python decorators?",
-    answer:
-      "Decorators are functions that modify the functionality of another function.",
-  },
-  {
-    id: "4",
-    deckId: "1-3", // React
-    question: "What is JSX?",
-    answer:
-      "JSX is a syntax extension for JavaScript that looks similar to HTML and is used with React to describe the UI.",
-  },
-  {
-    id: "5",
-    deckId: "2-1", // Spanish
-    question: "¿Cómo estás?",
-    answer: "How are you?",
-  },
-  {
-    id: "6",
-    deckId: "3-1", // Physics
-    question: "What is Newton's First Law?",
-    answer:
-      "An object at rest stays at rest, and an object in motion stays in motion unless acted upon by an external force.",
-  },
-];
+interface UICard {
+  id: string;
+  deckId: string;
+  question: string;
+  answer: string;
+  ease: number;
+  review_count: number;
+  last_reviewed: Date;
+}
 
-// Update the MainArea component to respect debug mode
 interface MainAreaProps {
   selectedDecks?: { deckId: string; cardCount: number }[];
   debugMode?: boolean;
@@ -61,39 +31,68 @@ export default function MainArea({
   selectedDecks = [],
   debugMode = false,
 }: MainAreaProps) {
-  const [cards, setCards] = useState(initialCards);
-  const [filteredCards, setFilteredCards] = useState<typeof initialCards>([]);
+  const [cards, setCards] = useState<UICard[]>([]);
+  const [filteredCards, setFilteredCards] = useState<UICard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [cardKey, setCardKey] = useState(0);
-  const [hasAnswered, setHasAnswered] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
 
-  // Filter cards based on selected decks
+  // Load and sort cards when selected decks change
   useEffect(() => {
-    if (selectedDecks.length === 0) {
-      setFilteredCards([]);
-      return;
-    }
+    const loadCards = async () => {
+      if (selectedDecks.length === 0) {
+        setCards([]);
+        setFilteredCards([]);
+        return;
+      }
 
-    const selectedDeckIds = selectedDecks.map((deck) => deck.deckId);
-    const filtered = cards.filter((card) =>
-      selectedDeckIds.includes(card.deckId)
-    );
-    setFilteredCards(filtered);
-    setCurrentCardIndex(0); // Reset to first card when selection changes
-    setHasAnswered(false); // Reset answered state
-  }, [selectedDecks, cards]);
+      setIsLoading(true);
+      try {
+        // Fetch cards for all selected decks
+        const allCards = await Promise.all(
+          selectedDecks.map((deck) => getAllCardsInDeck(deck.deckId))
+        );
+
+        // Transform and combine all cards
+        const transformedCards: UICard[] = allCards.flat().map((card) => ({
+          id: card.id,
+          deckId: card.deck_id,
+          question: card.front,
+          answer: card.back,
+          ease: card.ease,
+          review_count: card.review_count,
+          last_reviewed: card.last_reviewed,
+        }));
+
+        // Sort cards by priority
+        const sortedCards = sortCardsToReview(transformedCards);
+
+        setCards(transformedCards);
+        setFilteredCards(sortedCards);
+        setCurrentCardIndex(0);
+      } catch (error) {
+        console.error("Error loading cards:", error);
+        toast.error("Failed to load cards");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadCards();
+  }, [selectedDecks]);
 
   const currentCard = filteredCards[currentCardIndex];
 
   const handleNextCard = () => {
     if (filteredCards.length > 0) {
-      setCurrentCardIndex(
-        (prevIndex) => (prevIndex + 1) % filteredCards.length
-      );
-      setCardKey((prev) => prev + 1); // Force reset grading on card change
-      setHasAnswered(false); // Reset answered state
+      // Sort all cards again - the jitter in the sorting algorithm
+      // helps prevent the same card from appearing first twice in a row
+      const sortedCards = sortCardsToReview(filteredCards);
+      setFilteredCards(sortedCards);
+      setCurrentCardIndex(0);
+      setCardKey((prev) => prev + 1);
     }
   };
 
@@ -103,30 +102,31 @@ export default function MainArea({
         (prevIndex) =>
           (prevIndex - 1 + filteredCards.length) % filteredCards.length
       );
-      setCardKey((prev) => prev + 1); // Force reset grading on card change
-      setHasAnswered(false); // Reset answered state
+      setCardKey((prev) => prev + 1);
     }
   };
 
   const handleAnswered = () => {
-    setHasAnswered(true);
+    // This is called when a card is flipped, but we don't need to do anything
   };
 
   const handleAddCard = (question: string, answer: string, deckId: string) => {
     const newCard = {
-      id: `${Date.now()}`, // Use timestamp for unique ID
+      id: `${Date.now()}`,
       deckId,
       question,
       answer,
+      ease: 2.5,
+      review_count: 0,
+      last_reviewed: new Date(),
     };
 
     const updatedCards = [...cards, newCard];
     setCards(updatedCards);
 
-    // Update filtered cards if the new card's deck is selected
     if (selectedDecks.some((deck) => deck.deckId === deckId)) {
       setFilteredCards([...filteredCards, newCard]);
-      setCurrentCardIndex(filteredCards.length); // Move to the new card
+      setCurrentCardIndex(filteredCards.length);
     }
 
     setIsAddCardModalOpen(false);
@@ -137,28 +137,28 @@ export default function MainArea({
     deckId: string
   ) => {
     const cardsToAdd = newCards.map((card, index) => ({
-      id: `${Date.now()}-${index}`, // Use timestamp with index for unique IDs
+      id: `${Date.now()}-${index}`,
       deckId,
       question: card.question,
       answer: card.answer,
+      ease: 2.5,
+      review_count: 0,
+      last_reviewed: new Date(),
     }));
 
     const updatedCards = [...cards, ...cardsToAdd];
     setCards(updatedCards);
 
-    // Update filtered cards if the new cards' deck is selected
     if (selectedDecks.some((deck) => deck.deckId === deckId)) {
       setFilteredCards([...filteredCards, ...cardsToAdd]);
-      setCurrentCardIndex(filteredCards.length); // Move to the first new card
+      setCurrentCardIndex(filteredCards.length);
     }
 
     setIsAddCardModalOpen(false);
   };
 
   const handleDeleteCard = () => {
-    if (filteredCards.length <= 1) {
-      return; // Don't delete the last card
-    }
+    if (filteredCards.length <= 1) return;
 
     const updatedFilteredCards = filteredCards.filter(
       (_, index) => index !== currentCardIndex
@@ -195,29 +195,103 @@ export default function MainArea({
     setFilteredCards(updatedFilteredCards);
   };
 
-  // Get all available decks for the dropdown in AddCardModal
   const getAvailableDecks = () => {
-    // In a real app, you would get this from your global state or API
-    return [
-      { id: "1-1", name: "JavaScript", categoryName: "Programming" },
-      { id: "1-2", name: "Python", categoryName: "Programming" },
-      { id: "1-3", name: "React", categoryName: "Programming" },
-      { id: "2-1", name: "Spanish", categoryName: "Languages" },
-      { id: "2-2", name: "French", categoryName: "Languages" },
-      { id: "3-1", name: "Physics", categoryName: "Science" },
-      { id: "3-2", name: "Chemistry", categoryName: "Science" },
-    ];
+    return selectedDecks.map((deck) => ({
+      id: deck.deckId,
+      name: "Selected Deck", // TODO: Get actual deck names
+      categoryName: "Category", // TODO: Get actual category names
+    }));
   };
 
-  const handleCorrect = () => {
-    toast.success("Marked as correct");
-    handleNextCard();
+  const handleCorrect = async () => {
+    if (!currentCard) return;
+
+    try {
+      // Update card stats in the database
+      const updatedCard = await markCardCorrect(currentCard.id);
+
+      // Update the card in our local state with the new stats
+      const updatedCards = cards.map((card) =>
+        card.id === currentCard.id
+          ? {
+              ...card,
+              ease: updatedCard.ease,
+              review_count: updatedCard.review_count,
+              last_reviewed: updatedCard.last_reviewed,
+            }
+          : card
+      );
+      setCards(updatedCards);
+
+      // Also update the card in filteredCards to ensure proper sorting
+      const updatedFilteredCards = filteredCards.map((card) =>
+        card.id === currentCard.id
+          ? {
+              ...card,
+              ease: updatedCard.ease,
+              review_count: updatedCard.review_count,
+              last_reviewed: updatedCard.last_reviewed,
+            }
+          : card
+      );
+      setFilteredCards(updatedFilteredCards);
+
+      toast.success("Marked as correct");
+      handleNextCard();
+    } catch (error) {
+      console.error("Error marking card as correct:", error);
+      toast.error("Failed to update card");
+    }
   };
 
-  const handleWrong = () => {
-    toast.error("Marked as wrong");
-    handleNextCard();
+  const handleWrong = async () => {
+    if (!currentCard) return;
+
+    try {
+      // Update card stats in the database
+      const updatedCard = await markCardIncorrect(currentCard.id);
+
+      // Update the card in our local state with the new stats
+      const updatedCards = cards.map((card) =>
+        card.id === currentCard.id
+          ? {
+              ...card,
+              ease: updatedCard.ease,
+              review_count: updatedCard.review_count,
+              last_reviewed: updatedCard.last_reviewed,
+            }
+          : card
+      );
+      setCards(updatedCards);
+
+      // Also update the card in filteredCards to ensure proper sorting
+      const updatedFilteredCards = filteredCards.map((card) =>
+        card.id === currentCard.id
+          ? {
+              ...card,
+              ease: updatedCard.ease,
+              review_count: updatedCard.review_count,
+              last_reviewed: updatedCard.last_reviewed,
+            }
+          : card
+      );
+      setFilteredCards(updatedFilteredCards);
+
+      toast.error("Marked as wrong");
+      handleNextCard();
+    } catch (error) {
+      console.error("Error marking card as incorrect:", error);
+      toast.error("Failed to update card");
+    }
   };
+
+  if (isLoading) {
+    return (
+      <div className="flex-1 flex items-center justify-center">
+        <div className="text-center text-gray-500">Loading cards...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex-1 p-6 flex flex-col">
@@ -231,7 +305,6 @@ export default function MainArea({
           </div>
         ) : filteredCards.length > 0 ? (
           <>
-            {/* Only show card count when debug mode is enabled */}
             {debugMode && (
               <div className="text-sm text-gray-500 mb-2">
                 Card {currentCardIndex + 1} of {filteredCards.length}
@@ -248,25 +321,6 @@ export default function MainArea({
               onCorrect={handleCorrect}
               onWrong={handleWrong}
             />
-            {/* Remove the existing navigation buttons since they're now in the Flashcard component */}
-            {/* <div className="flex gap-4 mt-6">
-              {debugMode ? (
-                <>
-                  <Button variant="outline" onClick={handlePrevCard}>
-                    Previous
-                  </Button>
-                  <Button variant="outline" onClick={handleNextCard}>
-                    Next
-                  </Button>
-                </>
-              ) : (
-                hasAnswered && (
-                  <Button variant="outline" onClick={handleNextCard}>
-                    Next
-                  </Button>
-                )
-              )}
-            </div> */}
           </>
         ) : (
           <div className="text-center text-gray-500">
