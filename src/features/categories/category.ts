@@ -2,25 +2,40 @@ import { supabase } from "@/lib/supabase";
 import { isValidCategoryName } from "./utils";
 import { INVALID_CATEGORY_NAME_ERROR } from "./constants";
 
-/** Fetch a single card by its ID */
-export const getCard = async (cardId: string) => {
-  const { data, error } = await supabase
-    .from("cards")
-    .select("*")
-    .eq("id", cardId)
-    .single();
-
-  if (error) throw error;
-  return data;
-};
-
 export const getAllCategoriesWithDecks = async () => {
-  const { data, error } = await supabase
+  const { data: rawData, error } = await supabase
     .from("categories")
-    .select("*, decks(*)")
+    .select(
+      `
+      id,
+      name,
+      decks!inner (
+        id,
+        name,
+        cards!inner (
+          count
+        )
+      )
+    `
+    )
+    .is("deleted_at", null)
+    .is("decks.deleted_at", null)
+    .is("decks.cards.deleted_at", null)
     .order("name", { ascending: true });
 
   if (error) throw error;
+
+  // Transform the nested structure into the expected format
+  const data = rawData?.map((category) => ({
+    id: category.id,
+    name: category.name,
+    decks: category.decks.map((deck) => ({
+      id: deck.id,
+      name: deck.name,
+      card_count: deck.cards?.[0]?.count || 0,
+    })),
+  }));
+
   return data;
 };
 

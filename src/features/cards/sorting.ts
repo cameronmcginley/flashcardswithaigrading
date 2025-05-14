@@ -19,13 +19,15 @@ const scoreCard = (card: {
   return easeWeight - recencyBoost + seenWeight + jitter();
 };
 
-export const sortCardsToReview = (
-  cards: Array<{
-    id: string;
+/** Sort cards by review priority (lower score = higher priority) */
+export const sortCardsToReview = <
+  T extends {
     ease: number;
     last_reviewed: Date;
     review_count: number;
-  }>
-): typeof cards => {
+  }
+>(
+  cards: T[]
+): T[] => {
   return [...cards].sort((a, b) => scoreCard(a) - scoreCard(b));
 };

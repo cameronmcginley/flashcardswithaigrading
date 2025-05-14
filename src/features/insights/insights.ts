@@ -11,6 +11,7 @@ export const insertReviewLog = async (log: {
   previous_ease_factor: number;
   new_ease_factor: number;
   correct: boolean;
+  grading_difficulty: "beginner" | "adept" | "master";
 }) => {
   const { data, error } = await supabase
     .from("review_logs")
@@ -249,3 +250,26 @@ function findMostCommonHour(timestamps: string[]) {
     minute: "2-digit",
   });
 }
+
+export interface CategoryStatsResponse {
+  id: string;
+  name: string;
+  deck_count: number;
+  card_count: number;
+  total_reviews: number;
+  correct_reviews: number;
+  incorrect_reviews: number;
+  accuracy: number;
+  average_ease: number;
+}
+
+export const getCategoryStats = async (
+  timeRange: string
+): Promise<CategoryStatsResponse[]> => {
+  const { data, error } = await supabase.rpc("get_category_stats", {
+    time_range: timeRange,
+  });
+
+  if (error) throw error;
+  return data;
+};

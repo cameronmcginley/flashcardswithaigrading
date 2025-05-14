@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { AppSidebar } from "@/components/app-sidebar";
 import MainArea from "./components/main-area";
 import {
@@ -9,41 +9,42 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import DeckInfoModal from "./components/deck-info-modal";
+import { getAllCategoriesWithDecks } from "@/features/categories/category";
+import { toast } from "sonner";
 
-// Mock data for categories and decks
-const initialCategories = [
-  {
-    id: "1",
-    name: "Programming",
-    decks: [
-      { id: "1-1", name: "JavaScript", selected: false, cardCount: 25 },
-      { id: "1-2", name: "Python", selected: false, cardCount: 18 },
-      { id: "1-3", name: "React", selected: false, cardCount: 30 },
-    ],
-  },
-  {
-    id: "2",
-    name: "Languages",
-    decks: [
-      { id: "2-1", name: "Spanish", selected: false, cardCount: 40 },
-      { id: "2-2", name: "French", selected: false, cardCount: 35 },
-    ],
-  },
-  {
-    id: "3",
-    name: "Science",
-    decks: [
-      { id: "3-1", name: "Physics", selected: false, cardCount: 22 },
-      { id: "3-2", name: "Chemistry", selected: false, cardCount: 28 },
-    ],
-  },
-];
+// Define interfaces that match the database schema
+interface DatabaseDeck {
+  id: string;
+  name: string;
+  card_count: number;
+}
+
+interface DatabaseCategory {
+  id: string;
+  name: string;
+  decks: DatabaseDeck[];
+}
+
+// Define interfaces for the UI components
+interface UIDeck {
+  id: string;
+  name: string;
+  selected: boolean;
+  cardCount: number;
+}
+
+interface UICategory {
+  id: string;
+  name: string;
+  decks: UIDeck[];
+}
 
 export default function Page() {
   const [selectedDecks, setSelectedDecks] = useState<
     { deckId: string; cardCount: number }[]
   >([]);
-  const [categories, setCategories] = useState(initialCategories);
+  const [categories, setCategories] = useState<UICategory[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   // State for DeckInfoModal
   const [isDeckInfoModalOpen, setIsDeckInfoModalOpen] = useState(false);
@@ -52,6 +53,39 @@ export default function Page() {
     deckName: string;
     categoryName: string;
   } | null>(null);
+
+  // Fetch categories and decks on mount
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getAllCategoriesWithDecks();
+
+        // Transform the data to match our UI interface
+        const transformedCategories: UICategory[] = data.map(
+          (category: DatabaseCategory) => ({
+            id: category.id,
+            name: category.name,
+            decks: category.decks.map((deck: DatabaseDeck) => ({
+              id: deck.id,
+              name: deck.name,
+              selected: false,
+              cardCount: deck.card_count || 0,
+            })),
+          })
+        );
+
+        setCategories(transformedCategories);
+      } catch (error) {
+        console.error("Error fetching categories:", error);
+        toast.error("Failed to load categories and decks");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, []);
 
   const handleSelectedDecksChange = (categoryId: string, deckId: string) => {
     const updatedCategories = categories.map((category) => {
@@ -99,6 +133,19 @@ export default function Page() {
     setIsDeckInfoModalOpen(true);
   };
 
+  const handleCardCountChange = (deckId: string, change: number) => {
+    setCategories((prevCategories) =>
+      prevCategories.map((category) => ({
+        ...category,
+        decks: category.decks.map((deck) =>
+          deck.id === deckId
+            ? { ...deck, cardCount: deck.cardCount + change }
+            : deck
+        ),
+      }))
+    );
+  };
+
   const handleDeleteDeck = (categoryId: string, deckId: string) => {
     const updatedCategories = categories.map((category) => {
       if (category.id === categoryId) {
@@ -123,6 +170,10 @@ export default function Page() {
     }));
     setCategories(updatedCategories);
   };
+
+  if (isLoading) {
+    return <div>Loading...</div>;
+  }
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
@@ -166,9 +217,7 @@ export default function Page() {
             deckName={selectedDeckInfo.deckName}
             categoryName={selectedDeckInfo.categoryName}
             onUpdateDeckName={handleUpdateDeckName}
-            onDeleteCard={() => {}} // TODO: Implement these handlers
-            onUpdateCard={() => {}}
-            onAddCard={() => {}}
+            onCardCountChange={handleCardCountChange}
           />
         )}
       </SidebarProvider>

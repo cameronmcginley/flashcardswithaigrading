@@ -1,5 +1,5 @@
 insert into
-    decks (user_id, category_id, name)
+    decks (profile_id, category_id, name)
 values
     (
         '00000000-0000-0000-0000-000000000000',
