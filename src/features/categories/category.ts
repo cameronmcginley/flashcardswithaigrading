@@ -9,14 +9,18 @@ export const getAllCategoriesWithDecks = async () => {
       `
       id,
       name,
-      decks (
+      decks!inner (
         id,
         name,
-        cards (count)
+        cards!inner (
+          count
+        )
       )
     `
     )
     .is("deleted_at", null)
+    .is("decks.deleted_at", null)
+    .is("decks.cards.deleted_at", null)
     .order("name", { ascending: true });
 
   if (error) throw error;

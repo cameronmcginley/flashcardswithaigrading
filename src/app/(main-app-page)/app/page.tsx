@@ -133,6 +133,19 @@ export default function Page() {
     setIsDeckInfoModalOpen(true);
   };
 
+  const handleCardCountChange = (deckId: string, change: number) => {
+    setCategories((prevCategories) =>
+      prevCategories.map((category) => ({
+        ...category,
+        decks: category.decks.map((deck) =>
+          deck.id === deckId
+            ? { ...deck, cardCount: deck.cardCount + change }
+            : deck
+        ),
+      }))
+    );
+  };
+
   const handleDeleteDeck = (categoryId: string, deckId: string) => {
     const updatedCategories = categories.map((category) => {
       if (category.id === categoryId) {
@@ -204,6 +217,7 @@ export default function Page() {
             deckName={selectedDeckInfo.deckName}
             categoryName={selectedDeckInfo.categoryName}
             onUpdateDeckName={handleUpdateDeckName}
+            onCardCountChange={handleCardCountChange}
           />
         )}
       </SidebarProvider>

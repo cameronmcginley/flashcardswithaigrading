@@ -76,6 +76,7 @@ interface DeckInfoModalProps {
   deckName: string;
   categoryName: string;
   onUpdateDeckName: (newName: string) => void;
+  onCardCountChange?: (deckId: string, change: number) => void;
 }
 
 export default function DeckInfoModal({
@@ -85,6 +86,7 @@ export default function DeckInfoModal({
   deckName,
   categoryName,
   onUpdateDeckName,
+  onCardCountChange,
 }: DeckInfoModalProps) {
   const [editingName, setEditingName] = useState(false);
   const [tempDeckName, setTempDeckName] = useState(deckName);
@@ -152,6 +154,7 @@ export default function DeckInfoModal({
     try {
       await deleteCard(cardId);
       setCards(cards.filter((card) => card.id !== cardId));
+      onCardCountChange?.(deckId, -1);
       toast.success("Card deleted successfully");
       setIsDeleteDialogOpen(false);
       setCardToDelete(null);
@@ -189,6 +192,7 @@ export default function DeckInfoModal({
     try {
       const newCard = await createCard(deckId, front, back);
       setCards([...cards, newCard]);
+      onCardCountChange?.(deckId, 1);
       toast.success("Card added successfully");
       setIsAddCardModalOpen(false);
     } catch (err) {
