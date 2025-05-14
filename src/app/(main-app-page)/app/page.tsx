@@ -204,9 +204,6 @@ export default function Page() {
             deckName={selectedDeckInfo.deckName}
             categoryName={selectedDeckInfo.categoryName}
             onUpdateDeckName={handleUpdateDeckName}
-            onDeleteCard={() => {}}
-            onUpdateCard={() => {}}
-            onAddCard={() => {}}
           />
         )}
       </SidebarProvider>
