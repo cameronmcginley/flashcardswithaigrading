@@ -27,6 +27,43 @@ interface MainAreaProps {
   debugMode?: boolean;
 }
 
+// Circular queue to store card history
+class CardHistory {
+  private items: UICard[];
+  private maxSize: number;
+  private currentIndex: number;
+  private size: number;
+
+  constructor(maxSize: number) {
+    this.items = new Array(maxSize);
+    this.maxSize = maxSize;
+    this.currentIndex = -1;
+    this.size = 0;
+  }
+
+  push(card: UICard) {
+    this.currentIndex = (this.currentIndex + 1) % this.maxSize;
+    this.items[this.currentIndex] = card;
+    this.size = Math.min(this.size + 1, this.maxSize);
+  }
+
+  previous(): UICard | undefined {
+    if (this.size <= 1) return undefined;
+    this.currentIndex = (this.currentIndex - 1 + this.maxSize) % this.maxSize;
+    return this.items[this.currentIndex];
+  }
+
+  canGoBack(): boolean {
+    return this.size > 1 && this.currentIndex > 0;
+  }
+
+  clear() {
+    this.items = new Array(this.maxSize);
+    this.currentIndex = -1;
+    this.size = 0;
+  }
+}
+
 export default function MainArea({
   selectedDecks = [],
   debugMode = false,
@@ -38,6 +75,7 @@ export default function MainArea({
   const [isDeleteModalOpen, setIsDeleteModalOpen] = useState(false);
   const [cardKey, setCardKey] = useState(0);
   const [isLoading, setIsLoading] = useState(false);
+  const [cardHistory] = useState(() => new CardHistory(10));
 
   // Load and sort cards when selected decks change
   useEffect(() => {
@@ -45,6 +83,7 @@ export default function MainArea({
       if (selectedDecks.length === 0) {
         setCards([]);
         setFilteredCards([]);
+        cardHistory.clear();
         return;
       }
 
@@ -72,6 +111,10 @@ export default function MainArea({
         setCards(transformedCards);
         setFilteredCards(sortedCards);
         setCurrentCardIndex(0);
+        cardHistory.clear();
+        if (sortedCards.length > 0) {
+          cardHistory.push(sortedCards[0]);
+        }
       } catch (error) {
         console.error("Error loading cards:", error);
         toast.error("Failed to load cards");
@@ -93,16 +136,21 @@ export default function MainArea({
       setFilteredCards(sortedCards);
       setCurrentCardIndex(0);
       setCardKey((prev) => prev + 1);
+      cardHistory.push(sortedCards[0]);
     }
   };
 
   const handlePrevCard = () => {
-    if (filteredCards.length > 0) {
-      setCurrentCardIndex(
-        (prevIndex) =>
-          (prevIndex - 1 + filteredCards.length) % filteredCards.length
+    const previousCard = cardHistory.previous();
+    if (previousCard) {
+      // Find the index of the previous card in the current filtered cards
+      const index = filteredCards.findIndex(
+        (card) => card.id === previousCard.id
       );
-      setCardKey((prev) => prev + 1);
+      if (index !== -1) {
+        setCurrentCardIndex(index);
+        setCardKey((prev) => prev + 1);
+      }
     }
   };
 
@@ -316,7 +364,7 @@ export default function MainArea({
               onUpdate={handleUpdateCard}
               onDelete={() => setIsDeleteModalOpen(true)}
               onAnswered={handleAnswered}
-              onPrevious={handlePrevCard}
+              onPrevious={cardHistory.canGoBack() ? handlePrevCard : undefined}
               onNext={handleNextCard}
               onCorrect={handleCorrect}
               onWrong={handleWrong}
