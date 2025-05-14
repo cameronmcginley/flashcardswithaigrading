@@ -161,6 +161,17 @@ export const bulkEditDeckCards = async (
   }
 };
 
+/** Get all cards */
+export const getAllCards = async () => {
+  const { data, error } = await supabase
+    .from("cards")
+    .select("*")
+    .is("deleted_at", null);
+
+  if (error) throw error;
+  return data;
+};
+
 /** Get all cards in a specific deck */
 export const getAllCardsInDeck = async (deckId: string) => {
   const { data, error } = await supabase

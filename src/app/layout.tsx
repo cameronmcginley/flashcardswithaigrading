@@ -4,6 +4,7 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import "./markdown-styles.css"; // Import the markdown styles
 import { Toaster } from "sonner";
+import { AuthProvider } from "@/lib/auth-context";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -20,7 +21,7 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        {children}
+        <AuthProvider>{children}</AuthProvider>
         <Toaster position="top-right" richColors />
       </body>
     </html>

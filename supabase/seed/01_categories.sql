@@ -1,5 +1,5 @@
 insert into
-    categories (user_id, name)
+    categories (profile_id, name)
 values
     (
         '00000000-0000-0000-0000-000000000000',

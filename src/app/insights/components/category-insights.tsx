@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import {
   Card,
   CardContent,
@@ -35,77 +35,68 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
+import { getCategoryStats } from "@/features/insights/insights";
+import type { CategoryStatsResponse } from "@/features/insights/insights";
+import { toast } from "sonner";
 
 interface CategoryInsightsProps {
   timeRange: string;
+}
+
+interface CategoryStats {
+  id: string;
+  name: string;
+  decks: number;
+  cards: number;
+  reviews: number;
+  correct: number;
+  incorrect: number;
+  accuracy: number;
+  avgEase: number;
 }
 
 export default function CategoryInsights({ timeRange }: CategoryInsightsProps) {
   const [searchQuery, setSearchQuery] = useState("");
   const [sortColumn, setSortColumn] = useState("reviews");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
+  const [categoryStats, setCategoryStats] = useState<CategoryStats[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
-  // Mock data for categories
-  const categoriesData = [
-    {
-      id: "1",
-      name: "Programming",
-      decks: 5,
-      cards: 120,
-      reviews: 450,
-      correct: 380,
-      incorrect: 70,
-      accuracy: 84.4,
-      avgEase: 2.4,
-    },
-    {
-      id: "2",
-      name: "Languages",
-      decks: 3,
-      cards: 85,
-      reviews: 320,
-      correct: 240,
-      incorrect: 80,
-      accuracy: 75.0,
-      avgEase: 2.1,
-    },
-    {
-      id: "3",
-      name: "Science",
-      decks: 4,
-      cards: 95,
-      reviews: 280,
-      correct: 210,
-      incorrect: 70,
-      accuracy: 75.0,
-      avgEase: 2.2,
-    },
-    {
-      id: "4",
-      name: "History",
-      decks: 2,
-      cards: 45,
-      reviews: 120,
-      correct: 90,
-      incorrect: 30,
-      accuracy: 75.0,
-      avgEase: 2.3,
-    },
-    {
-      id: "5",
-      name: "Mathematics",
-      decks: 3,
-      cards: 60,
-      reviews: 180,
-      correct: 130,
-      incorrect: 50,
-      accuracy: 72.2,
-      avgEase: 2.0,
-    },
-  ];
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        setIsLoading(true);
+        const data = await getCategoryStats(timeRange);
+
+        // Transform data to match our interface
+        const transformedData: CategoryStats[] = data.map(
+          (stat: CategoryStatsResponse) => ({
+            id: stat.id,
+            name: stat.name,
+            decks: stat.deck_count,
+            cards: stat.card_count,
+            reviews: stat.total_reviews,
+            correct: stat.correct_reviews,
+            incorrect: stat.incorrect_reviews,
+            accuracy: stat.accuracy,
+            avgEase: stat.average_ease,
+          })
+        );
+
+        setCategoryStats(transformedData);
+      } catch (error) {
+        console.error("Error fetching category stats:", error);
+        toast.error("Failed to load category insights");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    fetchData();
+  }, [timeRange]);
 
   // Filter categories based on search query
-  const filteredCategories = categoriesData.filter((category) =>
+  const filteredCategories = categoryStats.filter((category) =>
     category.name.toLowerCase().includes(searchQuery.toLowerCase())
   );
 
@@ -128,13 +119,13 @@ export default function CategoryInsights({ timeRange }: CategoryInsightsProps) {
   });
 
   // Prepare data for charts
-  const reviewsChartData = categoriesData.map((category) => ({
+  const reviewsChartData = categoryStats.map((category) => ({
     category: category.name,
     correct: category.correct,
     incorrect: category.incorrect,
   }));
 
-  const accuracyChartData = categoriesData.map((category) => ({
+  const accuracyChartData = categoryStats.map((category) => ({
     id: category.name,
     label: category.name,
     value: category.accuracy,
@@ -158,6 +149,10 @@ export default function CategoryInsights({ timeRange }: CategoryInsightsProps) {
       <ArrowDown className="h-4 w-4" />
     );
   };
+
+  if (isLoading) {
+    return <div>Loading insights...</div>;
+  }
 
   return (
     <div className="space-y-6">
