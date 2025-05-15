@@ -15,8 +15,6 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
-  ThumbsUp,
-  ThumbsDown,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -42,8 +40,6 @@ interface FlashcardProps {
   onAnswered?: () => void;
   onPrevious?: () => void;
   onNext?: () => void;
-  onCorrect?: () => void;
-  onWrong?: () => void;
 }
 
 export default function Flashcard({
@@ -54,8 +50,6 @@ export default function Flashcard({
   onAnswered,
   onPrevious,
   onNext,
-  onCorrect,
-  onWrong,
 }: FlashcardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
@@ -107,8 +101,25 @@ export default function Flashcard({
     averageTime: "45s",
   };
 
-  const handleFlip = () => {
+  const handleFlip = async () => {
     setIsFlipped(!isFlipped);
+
+    // Get auto-grade setting from localStorage
+    const savedSettings = localStorage.getItem("ez-anki-settings");
+    let autoGrade = false;
+    if (savedSettings) {
+      try {
+        const settings = JSON.parse(savedSettings);
+        autoGrade = settings.autoGrade || false;
+      } catch (e) {
+        console.error("Error parsing settings:", e);
+      }
+    }
+
+    // If flipping to answer and auto-grade is enabled and not already graded, trigger grading
+    if (!isFlipped && autoGrade && userAnswer.trim() && !isGraded) {
+      await handleGradeWithAI();
+    }
 
     // Notify parent that user has answered (viewed the answer)
     if (!isFlipped && onAnswered) {
@@ -117,6 +128,14 @@ export default function Flashcard({
   };
 
   const handleGradeWithAI = async () => {
+    // Don't grade if answer is empty
+    if (!userAnswer.trim()) {
+      toast.error("Cannot grade empty answer", {
+        description: "Please provide an answer before grading.",
+      });
+      return;
+    }
+
     // Reset any previous grading first
     resetGrading();
 
@@ -442,28 +461,19 @@ Can you help me understand this feedback better and suggest how I can improve my
                   <Button onClick={handleFlip}>Back to Question</Button>
                   <Button
                     variant="outline"
-                    onClick={
-                      isGraded
-                        ? resetGrading
-                        : () => {
-                            handleGradeWithAI().catch((error) => {
-                              console.error(
-                                "Error in handleGradeWithAI:",
-                                error
-                              );
-                              toast.error("Failed to grade answer", {
-                                description:
-                                  "Please try again or grade manually.",
-                              });
-                            });
-                          }
-                    }
-                    disabled={isGrading}
+                    onClick={() => {
+                      handleGradeWithAI().catch((error) => {
+                        console.error("Error in handleGradeWithAI:", error);
+                        toast.error("Failed to grade answer", {
+                          description: "Please try again or grade manually.",
+                        });
+                      });
+                    }}
+                    disabled={isGrading || isGraded}
                     className="relative"
                   >
                     <Brain className="h-4 w-4 mr-1" />
-                    {isGraded ? "Reset Grading" : "Grade with AI"}
-
+                    {isGraded ? "Already Graded" : "Grade with AI"}
                     {isGrading && (
                       <span className="absolute inset-0 flex items-center justify-center">
                         <motion.div
@@ -485,49 +495,6 @@ Can you help me understand this feedback better and suggest how I can improve my
         </CardContent>
       </Card>
 
-      {/* Navigation and Grading Buttons */}
-      <div className="flex justify-between mt-6">
-        <Button
-          variant="outline"
-          onClick={onPrevious}
-          className="flex items-center"
-        >
-          <ChevronLeft className="h-4 w-4 mr-1" />
-          Previous
-        </Button>
-
-        <div className="flex gap-2">
-          {isFlipped && (
-            <>
-              <Button
-                variant="outline"
-                onClick={onWrong}
-                className="flex items-center text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/20"
-              >
-                <ThumbsDown className="h-4 w-4 mr-1" />
-                Wrong
-              </Button>
-              <Button
-                variant="outline"
-                onClick={onCorrect}
-                className="flex items-center text-green-500 hover:text-green-600 hover:bg-green-50 dark:hover:bg-green-900/20"
-              >
-                <ThumbsUp className="h-4 w-4 mr-1" />
-                Correct
-              </Button>
-            </>
-          )}
-          <Button
-            variant="outline"
-            onClick={onNext}
-            className="flex items-center"
-          >
-            Skip
-            <ChevronRight className="h-4 w-4 ml-1" />
-          </Button>
-        </div>
-      </div>
-
       {/* AI Feedback Bubble */}
       <AnimatePresence>
         {isGraded && aiGrade && (
@@ -539,16 +506,6 @@ Can you help me understand this feedback better and suggest how I can improve my
             className="mt-8"
           >
             <Card className="p-6 border-2 border-border bg-muted/20 relative">
-              {/* Close button */}
-              <Button
-                variant="ghost"
-                size="icon"
-                className="absolute right-2 top-2 h-6 w-6 text-muted-foreground hover:text-foreground"
-                onClick={resetGrading}
-              >
-                <X className="h-4 w-4" />
-              </Button>
-
               <div className="absolute -top-3 left-10 w-6 h-6 bg-muted/20 border-t-2 border-l-2 border-border transform rotate-45"></div>
               <div className="flex items-start gap-4">
                 <div className="bg-muted p-2 rounded-full">
@@ -577,7 +534,14 @@ Can you help me understand this feedback better and suggest how I can improve my
                     />
                   </div>
 
-                  <p className="text-foreground mb-4">{aiGrade.response}</p>
+                  <div className="text-foreground mb-4 prose">
+                    <ReactMarkdown
+                      remarkPlugins={[remarkGfm]}
+                      rehypePlugins={[rehypeHighlight]}
+                    >
+                      {aiGrade.response}
+                    </ReactMarkdown>
+                  </div>
 
                   {/* Ask ChatGPT Button */}
                   <Button
@@ -596,6 +560,33 @@ Can you help me understand this feedback better and suggest how I can improve my
           </motion.div>
         )}
       </AnimatePresence>
+
+      {/* Navigation Buttons */}
+      <div className="flex justify-between mt-6">
+        <Button
+          variant="outline"
+          onClick={() => {
+            resetGrading();
+            onPrevious?.();
+          }}
+          className="flex items-center"
+        >
+          <ChevronLeft className="h-4 w-4 mr-1" />
+          Previous
+        </Button>
+
+        <Button
+          variant="outline"
+          onClick={() => {
+            resetGrading();
+            onNext?.();
+          }}
+          className="flex items-center"
+        >
+          {isFlipped ? "Next" : "Skip"}
+          <ChevronRight className="h-4 w-4 ml-1" />
+        </Button>
+      </div>
     </div>
   );
 }

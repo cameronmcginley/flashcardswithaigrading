@@ -25,10 +25,20 @@ interface SettingsModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   initialSettings?: {
+    apiKey: string;
+    aiPrompt: string;
+    darkMode: boolean;
+    autoFlip: boolean;
+    autoGrade: boolean;
     debugMode: boolean;
     gradingDifficulty: "beginner" | "adept" | "master";
   };
   onSettingsChange?: (settings: {
+    apiKey: string;
+    aiPrompt: string;
+    darkMode: boolean;
+    autoFlip: boolean;
+    autoGrade: boolean;
     debugMode: boolean;
     gradingDifficulty: "beginner" | "adept" | "master";
   }) => void;
@@ -41,6 +51,12 @@ export default function SettingsModal({
   onSettingsChange,
 }: SettingsModalProps) {
   const [settings, setSettings] = useState({
+    apiKey: "",
+    aiPrompt:
+      "Evaluate the answer based on accuracy and completeness. Provide specific feedback on what was correct and what needs improvement.",
+    darkMode: false,
+    autoFlip: false,
+    autoGrade: false,
     debugMode: false,
     gradingDifficulty: "adept" as "beginner" | "adept" | "master",
   });
@@ -154,6 +170,36 @@ export default function SettingsModal({
                 </div>
               </div>
             </RadioGroup>
+          </div>
+
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <Label htmlFor="autoGrade">Auto-grade Answers</Label>
+              <TooltipProvider>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <div className="flex items-center cursor-help">
+                      <Info className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent
+                    side="top"
+                    align="start"
+                    className="max-w-[300px]"
+                  >
+                    <p className="text-sm">
+                      Automatically grade answers when flipping cards to see the
+                      answer.
+                    </p>
+                  </TooltipContent>
+                </Tooltip>
+              </TooltipProvider>
+            </div>
+            <Switch
+              id="autoGrade"
+              checked={settings.autoGrade}
+              onCheckedChange={(checked) => handleChange("autoGrade", checked)}
+            />
           </div>
 
           <div className="flex items-center justify-between">

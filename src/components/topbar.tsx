@@ -21,6 +21,7 @@ export default function Topbar({ onDebugModeChange }: TopbarProps) {
       "Evaluate the answer based on accuracy and completeness. Provide specific feedback on what was correct and what needs improvement.",
     darkMode: false,
     autoFlip: false,
+    autoGrade: false,
     debugMode: false,
     gradingDifficulty: "adept" as "beginner" | "adept" | "master",
   });
