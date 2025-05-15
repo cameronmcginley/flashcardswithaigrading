@@ -1,7 +1,8 @@
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import { type NextRequest } from "next/server";
-import { createClient } from "@/utils/supabase/server";
+import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -134,6 +135,9 @@ export async function POST(request: NextRequest) {
       await supabase.from("decks").delete().eq("id", deck.id);
       throw new Error("Failed to create cards");
     }
+
+    // On success, invalidate getCategoriesWithDecks
+    revalidatePath("/categories");
 
     return NextResponse.json({
       success: true,

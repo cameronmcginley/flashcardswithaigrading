@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { isValidCategoryName } from "./utils";
 import { INVALID_CATEGORY_NAME_ERROR } from "./constants";
 

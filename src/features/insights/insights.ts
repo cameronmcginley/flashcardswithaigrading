@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 
 /** Create a new review log entry */
 export const insertReviewLog = async (log: {

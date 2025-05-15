@@ -1,4 +1,4 @@
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import { INVALID_CARD_FRONT_AND_BACK_ERROR } from "./constants";
 import { isValidCardFrontAndBack } from "./utils";
 
