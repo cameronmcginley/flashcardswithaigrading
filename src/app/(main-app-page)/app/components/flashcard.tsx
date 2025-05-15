@@ -24,9 +24,7 @@ import {
   PopoverTrigger,
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
-import ReactMarkdown from "react-markdown";
-import remarkGfm from "remark-gfm";
-import rehypeHighlight from "rehype-highlight";
+import { MarkdownContent } from "@/components/markdown-content";
 
 interface FlashcardProps {
   card: {
@@ -385,13 +383,8 @@ Can you help me understand this feedback better and suggest how I can improve my
                     </div>
                   </div>
                 ) : (
-                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1 prose">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeHighlight]}
-                    >
-                      {card.question}
-                    </ReactMarkdown>
+                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1">
+                    <MarkdownContent content={card.question} />
                   </div>
                 )}
               </div>
@@ -439,13 +432,8 @@ Can you help me understand this feedback better and suggest how I can improve my
                     </div>
                   </div>
                 ) : (
-                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1 prose">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeHighlight]}
-                    >
-                      {card.answer}
-                    </ReactMarkdown>
+                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1">
+                    <MarkdownContent content={card.answer} />
                   </div>
                 )}
               </div>
@@ -534,13 +522,8 @@ Can you help me understand this feedback better and suggest how I can improve my
                     />
                   </div>
 
-                  <div className="text-foreground mb-4 prose">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm]}
-                      rehypePlugins={[rehypeHighlight]}
-                    >
-                      {aiGrade.response}
-                    </ReactMarkdown>
+                  <div className="text-foreground mb-4">
+                    <MarkdownContent content={aiGrade.response} />
                   </div>
 
                   {/* Ask ChatGPT Button */}

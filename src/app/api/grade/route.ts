@@ -37,17 +37,17 @@ export async function POST(req: NextRequest) {
        • Expert → require full precision and relevant nuance.
     
     2. **Feedback**  
-       • ≤35 words total.  
+       • Usually ≤35 words total. For complex questions, feel free to increase or make short paragraphs.
        • Speak directly to the student.  
        • Highlight *one* thing correct (if any) and *one–two* specific gaps.  
        • Provide a concrete study tip; **do not** say “just answer the question.”  
        • **Never quote the entire CorrectAnswer.** Paraphrase or hint instead.
-       • Free to use Markdown formatting inside the response.
+       • Free to use Markdown formatting inside the response, use code blocks as necessary.
        • Feel free to add onto the correctAnswer that was provided if needed.
     
     3. **Format**  
     \`\`\`json
-    { "grade": <number>, "response": "<string (≤35 words)>" }
+    { "grade": <number>, "response": "response text" }
     \`\`\`
     `.trim();
 
