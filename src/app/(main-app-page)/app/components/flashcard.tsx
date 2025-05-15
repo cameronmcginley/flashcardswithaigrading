@@ -116,7 +116,7 @@ export default function Flashcard({
     }
   };
 
-  const handleGradeWithAI = () => {
+  const handleGradeWithAI = async () => {
     // Reset any previous grading first
     resetGrading();
 
@@ -125,53 +125,57 @@ export default function Flashcard({
 
     // Get the global difficulty setting from localStorage
     const savedSettings = localStorage.getItem("ez-anki-settings");
-    let gradingDifficulty = "adept"; // Default to adept if not found
+    let gradingDifficulty = 2; // Default to adept (2) if not found
 
     if (savedSettings) {
       try {
         const settings = JSON.parse(savedSettings);
         if (settings.gradingDifficulty) {
-          gradingDifficulty = settings.gradingDifficulty;
+          gradingDifficulty =
+            settings.gradingDifficulty === "beginner"
+              ? 1
+              : settings.gradingDifficulty === "master"
+              ? 3
+              : 2;
         }
       } catch (e) {
         console.error("Error parsing settings:", e);
       }
     }
 
-    // Simulate API call to grade the answer
-    setTimeout(() => {
-      // Mock AI response based on global difficulty setting
-      let baseScore;
-      switch (gradingDifficulty) {
-        case "master":
-          baseScore = Math.floor(Math.random() * 20) + 60; // 60-79 for master
-          break;
-        case "adept":
-          baseScore = Math.floor(Math.random() * 20) + 70; // 70-89 for adept
-          break;
-        case "beginner":
-        default:
-          baseScore = Math.floor(Math.random() * 20) + 75; // 75-94 for beginner
+    try {
+      const response = await fetch("/api/grade", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          question: card.question,
+          answer: card.answer,
+          userAnswer: userAnswer,
+          gradingDifficulty,
+        }),
+      });
+
+      if (!response.ok) {
+        const error = await response.json();
+        throw new Error(error.error || "Failed to grade answer");
       }
 
-      const mockGrade = {
-        grade: baseScore,
-        response:
-          gradingDifficulty === "master"
-            ? "Your answer covers some key points but lacks precision and depth. A more comprehensive explanation would include additional details and examples."
-            : gradingDifficulty === "adept"
-            ? "Your answer captures the main concept but lacks some important details. Consider reviewing the complete definition for a more comprehensive understanding."
-            : "Good attempt! You've grasped the basic concept, though there's room to expand your understanding with more details.",
-      };
-
-      setAiGrade(mockGrade);
+      const result = await response.json();
+      setAiGrade(result);
       setIsGraded(true);
-      setIsGrading(false);
-
       toast.success("AI Grading Complete", {
-        description: `Your answer has been graded. Score: ${mockGrade.grade}%`,
+        description: `Your answer has been graded. Score: ${result.grade}%`,
       });
-    }, 1500);
+    } catch (error) {
+      console.error("Error grading answer:", error);
+      toast.error("Failed to grade answer", {
+        description: "Please try again or grade manually.",
+      });
+    } finally {
+      setIsGrading(false);
+    }
   };
 
   const startEditingQuestion = () => {
@@ -438,7 +442,22 @@ Can you help me understand this feedback better and suggest how I can improve my
                   <Button onClick={handleFlip}>Back to Question</Button>
                   <Button
                     variant="outline"
-                    onClick={isGraded ? resetGrading : handleGradeWithAI}
+                    onClick={
+                      isGraded
+                        ? resetGrading
+                        : () => {
+                            handleGradeWithAI().catch((error) => {
+                              console.error(
+                                "Error in handleGradeWithAI:",
+                                error
+                              );
+                              toast.error("Failed to grade answer", {
+                                description:
+                                  "Please try again or grade manually.",
+                              });
+                            });
+                          }
+                    }
                     disabled={isGrading}
                     className="relative"
                   >
