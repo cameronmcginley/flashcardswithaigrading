@@ -44,6 +44,7 @@ export async function POST(req: NextRequest) {
        • **Never quote the entire CorrectAnswer.** Paraphrase or hint instead.
        • Free to use Markdown formatting inside the response, use code blocks as necessary.
        • Feel free to add onto the correctAnswer that was provided if needed.
+       • Don't just say something like "You missed elaborating on the importance of...". Explain more specifically what was missed.
     
     3. **Format**  
     \`\`\`json

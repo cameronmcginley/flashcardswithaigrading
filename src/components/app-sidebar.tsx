@@ -5,6 +5,7 @@ import {
   MoreVertical,
   Check,
   X,
+  Sparkles,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -28,6 +29,7 @@ import {
 } from "@/components/ui/sidebar";
 import AddDeckModal from "@/app/(main-app-page)/app/components/add-deck-modal";
 import { Input } from "@/components/ui/input";
+import MagicDeckModal from "@/components/magic-deck-modal";
 
 interface Deck {
   id: string;
@@ -49,6 +51,7 @@ interface AppSidebarProps {
   onAddCategory: () => void;
   onEditDeck: (deckId: string, deckName: string, categoryName: string) => void;
   onDeleteDeck: (categoryId: string, deckId: string) => void;
+  onMagicDeckGenerate?: () => void;
 }
 
 export function AppSidebar({
@@ -58,9 +61,11 @@ export function AppSidebar({
   onAddCategory,
   onEditDeck,
   onDeleteDeck,
+  onMagicDeckGenerate,
 }: AppSidebarProps) {
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
+  const [isMagicDeckModalOpen, setIsMagicDeckModalOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
@@ -102,6 +107,18 @@ export function AppSidebar({
   const cancelEditing = (e: React.MouseEvent) => {
     e.stopPropagation();
     setEditingCategory(null);
+  };
+
+  const handleMagicDeckGenerate = (
+    categoryId: string,
+    deckName: string,
+    prompt: string
+  ) => {
+    if (onMagicDeckGenerate) {
+      onMagicDeckGenerate();
+      // You might want to pass these parameters to the parent component
+      console.log("Generating deck:", { categoryId, deckName, prompt });
+    }
   };
 
   return (
@@ -272,6 +289,17 @@ export function AppSidebar({
             ))}
           </SidebarMenu>
         </SidebarContent>
+
+        {/* Add Magic Deck Generator button */}
+        <div className="p-4 border-t">
+          <Button
+            onClick={() => setIsMagicDeckModalOpen(true)}
+            className="w-full bg-gradient-to-r from-purple-500 to-indigo-600 hover:from-purple-600 hover:to-indigo-700 text-white font-semibold rounded-lg shadow-lg transform transition-all duration-200 hover:scale-[1.02] hover:shadow-xl flex items-center justify-center gap-2"
+          >
+            <Sparkles className="h-4 w-4" />
+            Magic Deck Generator
+          </Button>
+        </div>
       </div>
 
       {/* Add Deck Modal */}
@@ -290,6 +318,14 @@ export function AppSidebar({
         }
         categories={categories}
         onCategoryChange={setSelectedCategoryId}
+      />
+
+      {/* Magic Deck Modal */}
+      <MagicDeckModal
+        open={isMagicDeckModalOpen}
+        onOpenChange={setIsMagicDeckModalOpen}
+        onGenerate={handleMagicDeckGenerate}
+        categories={categories}
       />
     </Sidebar>
   );
