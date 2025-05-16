@@ -42,7 +42,7 @@ export default function QuizPage() {
     };
 
     fetchCards();
-  }, [params.id, toast]);
+  }, [params.id]);
 
   const handleSubmitAnswer = async () => {
     if (!userAnswer.trim()) {
@@ -52,42 +52,41 @@ export default function QuizPage() {
 
     setIsSubmitting(true);
     try {
-      const response = await fetch("/api/grade", {
+      const response = await fetch(`/api/quiz/${params.id}/submit`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
-          question: cards[currentIndex].front,
-          answer: cards[currentIndex].back,
-          userAnswer: userAnswer,
-          gradingDifficulty: 2, // Medium difficulty
+          answers: [userAnswer], // Send as array since API expects array of answers
         }),
       });
 
       if (!response.ok) throw new Error("Failed to grade answer");
 
-      const { grade, response: feedback } = await response.json();
+      const result = await response.json();
+      const feedback = result.feedback[0]; // Get first feedback since we're submitting one answer
 
-      const result: QuizResult = {
+      const quizResult: QuizResult = {
         questionNumber: currentIndex + 1,
         question: cards[currentIndex].front,
         correctAnswer: cards[currentIndex].back,
         userAnswer,
-        grade,
-        feedback,
+        grade: feedback.score * 10, // Convert 0-10 score to percentage
+        feedback: feedback.feedback,
       };
 
-      setResults([...results, result]);
+      setResults([...results, quizResult]);
 
       if (currentIndex === cards.length - 1) {
         // Quiz complete
-        await saveQuizResults(params.id as string, [...results, result]);
+        await saveQuizResults(params.id as string, [...results, quizResult]);
         setIsComplete(true);
       } else {
         // Next question
         setCurrentIndex(currentIndex + 1);
         setUserAnswer("");
       }
-    } catch {
+    } catch (error) {
+      console.error("Error submitting answer:", error);
       toast.error("Failed to submit answer");
     } finally {
       setIsSubmitting(false);

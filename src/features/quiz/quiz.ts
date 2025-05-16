@@ -1,7 +1,16 @@
 import { supabase } from "@/lib/supabase/client";
 import { openai } from "@/lib/openai";
+import { z } from "zod"; // Add zod for schema validation
 
 const QUIZ_CATEGORY_NAME = "Quizzes";
+
+// Define schema for OpenAI response
+const QuestionSchema = z.object({
+  question: z.string(),
+  answer: z.string(),
+});
+
+const QuestionsArraySchema = z.array(QuestionSchema);
 
 export interface QuizResult {
   questionNumber: number;
@@ -22,11 +31,16 @@ export interface QuizSummary {
 
 async function ensureQuizCategory() {
   // Check if Quiz category exists
-  const { data: categories } = await supabase
+  const { data: categories, error: categoryError } = await supabase
     .from("categories")
     .select("id")
     .eq("name", QUIZ_CATEGORY_NAME)
     .single();
+
+  if (categoryError) {
+    console.error("Error checking quiz category:", categoryError);
+    throw new Error("Failed to check quiz category");
+  }
 
   if (categories) return categories.id;
 
@@ -37,7 +51,10 @@ async function ensureQuizCategory() {
     .select()
     .single();
 
-  if (error) throw error;
+  if (error) {
+    console.error("Error creating quiz category:", error);
+    throw new Error("Failed to create quiz category");
+  }
   return newCategory.id;
 }
 
@@ -96,7 +113,19 @@ Generate exactly ${numQuestions} questions for this quiz in this JSON format:
   const response = completion.choices[0].message.content;
   if (!response) throw new Error("No response from OpenAI");
 
-  const questions = JSON.parse(response);
+  let questions;
+  try {
+    const parsedResponse = JSON.parse(response);
+    // Validate the parsed response against our schema
+    questions = QuestionsArraySchema.parse(parsedResponse);
+  } catch (error) {
+    console.error("Error parsing OpenAI response:", error);
+    if (error instanceof z.ZodError) {
+      throw new Error("Invalid response format from OpenAI");
+    } else {
+      throw new Error("Failed to parse OpenAI response");
+    }
+  }
 
   // Create a new deck for the quiz
   const timestamp = new Date().toISOString().split("T")[0];
@@ -114,21 +143,28 @@ Generate exactly ${numQuestions} questions for this quiz in this JSON format:
     .select()
     .single();
 
-  if (deckError) throw deckError;
+  if (deckError) {
+    console.error("Error creating quiz deck:", deckError);
+    throw new Error("Failed to create quiz deck");
+  }
 
   // Create the quiz cards
-  const { error: cardsError } = await supabase.from("cards").insert(
-    questions.map((q: { question: string; answer: string }) => ({
-      deck_id: quizDeck.id,
-      front: q.question,
-      back: q.answer,
-    }))
-  );
+  const { data: cards, error: cardsError } = await supabase
+    .from("cards")
+    .insert(
+      questions.map((q) => ({
+        deck_id: quizDeck.id,
+        front: q.question,
+        back: q.answer,
+      }))
+    )
+    .select();
 
-  if (cardsError) throw cardsError;
+  if (cardsError) {
+    console.error("Error creating quiz cards:", cardsError);
+    throw new Error("Failed to create quiz cards");
+  }
 
-  //   return quizDeck;
-  // return set of cards
   return cards;
 }
 

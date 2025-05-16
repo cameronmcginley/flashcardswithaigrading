@@ -26,17 +26,17 @@ interface Category {
   decks: Deck[];
 }
 
-interface QuizModalProps {
+interface GenerateQuizModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   categories: Category[];
 }
 
-export default function QuizModal({
+export default function GenerateQuizModal({
   open,
   onOpenChange,
   categories,
-}: QuizModalProps) {
+}: GenerateQuizModalProps) {
   const router = useRouter();
   const [selectedDecks, setSelectedDecks] = useState<string[]>([]);
   const [questionCount, setQuestionCount] = useState("5");

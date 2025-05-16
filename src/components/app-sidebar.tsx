@@ -31,7 +31,7 @@ import {
 import AddDeckModal from "@/app/(main-app-page)/app/components/add-deck-modal";
 import { Input } from "@/components/ui/input";
 import MagicDeckModal from "@/components/magic-deck-modal";
-import QuizModal from "@/components/quiz-modal";
+import GenerateQuizModal from "@/components/quiz-modal";
 
 interface Deck {
   id: string;
@@ -333,7 +333,7 @@ export function AppSidebar({
         </Button>
       </div>
 
-      <QuizModal
+      <GenerateQuizModal
         open={isQuizModalOpen}
         onOpenChange={setIsQuizModalOpen}
         categories={categories}

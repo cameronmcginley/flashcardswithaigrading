@@ -28,6 +28,7 @@ export default async function QuizResultsPage({
     .from("quizzes")
     .select("*")
     .eq("id", params.quizId)
+    .eq("user_id", session.user.id)
     .single();
 
   if (quizError || !quiz) {
@@ -36,6 +37,21 @@ export default async function QuizResultsPage({
 
   if (quiz.status !== "completed") {
     redirect(`/app/quiz/${params.quizId}`);
+  }
+
+  if (
+    !quiz.feedback ||
+    !quiz.questions ||
+    !quiz.answers ||
+    quiz.feedback.length !== quiz.questions.length ||
+    quiz.answers.length !== quiz.questions.length
+  ) {
+    console.error("Invalid quiz data structure:", {
+      feedbackLength: quiz.feedback?.length,
+      questionsLength: quiz.questions?.length,
+      answersLength: quiz.answers?.length,
+    });
+    redirect("/app");
   }
 
   return (
@@ -64,9 +80,11 @@ export default async function QuizResultsPage({
         <div className="space-y-8">
           {quiz.questions.map((question: string, index: number) => {
             const feedback = quiz.feedback[index] as FeedbackItem;
+            const uniqueKey = `${quiz.id}-question-${index + 1}`;
+
             return (
               <div
-                key={index}
+                key={uniqueKey}
                 className="border rounded-lg p-4 space-y-4 bg-background"
               >
                 <div className="flex items-center justify-between">
