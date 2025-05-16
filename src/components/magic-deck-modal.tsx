@@ -40,23 +40,22 @@ interface MagicDeckModalProps {
   categories: Category[];
 }
 
-const DEFAULT_PROMPT = `Generate 10 flashcards that are concise, practical, and highly relevant for learning and review.
+const DEFAULT_PROMPT = `Generate 10 flashcards that keep a mid‑level software engineer current with very recent (≈ last month) technology shifts **without relying on patch‑level trivia**.
 
-Each flashcard should:
-- Be phrased as a clear question with a specific answer
-- Focus on practical knowledge and real-world application
-- Have an answer that fits in 1-2 sentences or a small code snippet
-- Be technical and actionable, not just theoretical
-- Be suitable for spaced repetition learning
+Flashcard rules
+- Each card is a clear, specific question followed by a concise, unambiguous answer (≤ 2 sentences or a tiny code snippet).
+- Focus on fundamentals and practical implications rather than “what did version X add?” style questions.
+- If you reference a fresh feature or tool update, briefly note the new capability and then ask about the underlying concept or benefit (e.g. “<Feature> enables zero‑copy streaming—what advantage does zero‑copy provide?”).
+- Keep questions technical, actionable, and suitable for spaced‑repetition learning.
 
-Topic focus:
-- Core concepts and best practices
-- Recent developments and modern approaches
-- Practical techniques and common scenarios
-- Key principles and patterns
-- Common pitfalls and solutions
+Coverage breadth
+- Cloud & serverless infra
+- AI / LLM tooling & operations
+- Programming‑language or framework fundamentals
+- DevOps / observability techniques
+- Database & storage innovations
 
-Make the cards challenging enough to be valuable for learning but clear enough to have unambiguous answers.`;
+Avoid hyper‑niche vendor details that aren’t broadly instructive; prioritise concepts a formal CS curriculum might miss but industry now values.`;
 
 export default function MagicDeckModal({
   open,

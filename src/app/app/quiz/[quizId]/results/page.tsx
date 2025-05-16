@@ -1,135 +1,86 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import Link from "next/link";
+"use client";
+
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { toast } from "sonner";
+import { type QuizResult, getQuizResults } from "@/features/quiz/quiz";
 
-interface FeedbackItem {
-  score: number;
-  feedback: string;
-}
+export default function QuizResultsPage() {
+  const params = useParams();
+  const router = useRouter();
+  const [results, setResults] = useState<QuizResult[]>([]);
+  const [averageGrade, setAverageGrade] = useState(0);
 
-export default async function QuizResultsPage({
-  params,
-}: {
-  params: { quizId: string };
-}) {
-  const supabase = createServerComponentClient({ cookies });
-  const {
-    data: { session },
-    error: authError,
-  } = await supabase.auth.getSession();
+  useEffect(() => {
+    const fetchResults = async () => {
+      try {
+        const data = await getQuizResults(params.quizId as string);
+        setResults(data.results);
+        setAverageGrade(data.average_grade);
+      } catch {
+        toast.error("Failed to load quiz results");
+      }
+    };
 
-  if (authError || !session) {
-    redirect("/login");
-  }
+    fetchResults();
+  }, [params.quizId]);
 
-  const { data: quiz, error: quizError } = await supabase
-    .from("quizzes")
-    .select("*")
-    .eq("id", params.quizId)
-    .eq("user_id", session.user.id)
-    .single();
-
-  if (quizError || !quiz) {
-    redirect("/app");
-  }
-
-  if (quiz.status !== "completed") {
-    redirect(`/app/quiz/${params.quizId}`);
-  }
-
-  if (
-    !quiz.feedback ||
-    !quiz.questions ||
-    !quiz.answers ||
-    quiz.feedback.length !== quiz.questions.length ||
-    quiz.answers.length !== quiz.questions.length
-  ) {
-    console.error("Invalid quiz data structure:", {
-      feedbackLength: quiz.feedback?.length,
-      questionsLength: quiz.questions?.length,
-      answersLength: quiz.answers?.length,
-    });
-    redirect("/app");
-  }
+  const handleReturnToApp = () => {
+    router.push("/app");
+  };
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
-      <div className="bg-card rounded-lg shadow-lg p-6">
-        <div className="flex items-center justify-between mb-6">
-          <h1 className="text-2xl font-bold">Quiz Results</h1>
-          <div className="text-right">
-            <p className="text-lg font-semibold">
-              Overall Score:{" "}
-              <span
-                className={
-                  quiz.score >= 8
-                    ? "text-green-600"
-                    : quiz.score >= 6
-                    ? "text-yellow-600"
-                    : "text-red-600"
-                }
-              >
-                {Math.round(quiz.score * 10)}%
-              </span>
-            </p>
-          </div>
-        </div>
+    <div className="container max-w-3xl py-8">
+      <div className="flex items-center justify-between mb-8">
+        <h1 className="text-2xl font-bold">Quiz Results</h1>
+        <Button onClick={handleReturnToApp}>Return to App</Button>
+      </div>
 
-        <div className="space-y-8">
-          {quiz.questions.map((question: string, index: number) => {
-            const feedback = quiz.feedback[index] as FeedbackItem;
-            const uniqueKey = `${quiz.id}-question-${index + 1}`;
+      <div className="mb-8">
+        <Card className="p-6">
+          <h2 className="text-xl font-semibold mb-2">Summary</h2>
+          <p className="text-lg">Final Score: {Math.round(averageGrade)}%</p>
+          <p className="text-muted-foreground">
+            Total Questions: {results.length}
+          </p>
+        </Card>
+      </div>
 
-            return (
-              <div
-                key={uniqueKey}
-                className="border rounded-lg p-4 space-y-4 bg-background"
-              >
-                <div className="flex items-center justify-between">
-                  <h3 className="text-lg font-semibold">
-                    Question {index + 1} of {quiz.questions.length}
-                  </h3>
-                  <span
-                    className={
-                      feedback.score >= 8
-                        ? "text-green-600"
-                        : feedback.score >= 6
-                        ? "text-yellow-600"
-                        : "text-red-600"
-                    }
-                  >
-                    Score: {feedback.score}/10
-                  </span>
-                </div>
+      <div className="space-y-6">
+        {results.map((result) => (
+          <Card key={result.questionNumber} className="p-6">
+            <div className="mb-4">
+              <h3 className="text-lg font-semibold mb-2">
+                Question {result.questionNumber}
+              </h3>
+              <p className="text-muted-foreground mb-4">{result.question}</p>
+            </div>
 
-                <div>
-                  <p className="font-medium">Question:</p>
-                  <p className="mt-1">{question}</p>
-                </div>
-
-                <div>
-                  <p className="font-medium">Your Answer:</p>
-                  <p className="mt-1">{quiz.answers[index]}</p>
-                </div>
-
-                <div>
-                  <p className="font-medium">Feedback:</p>
-                  <p className="mt-1 text-muted-foreground">
-                    {feedback.feedback}
-                  </p>
-                </div>
+            <div className="grid gap-4">
+              <div>
+                <p className="font-medium">Your Answer:</p>
+                <p className="mt-1">{result.userAnswer}</p>
               </div>
-            );
-          })}
-        </div>
 
-        <div className="mt-8 flex justify-end">
-          <Link href="/app">
-            <Button>Return to Dashboard</Button>
-          </Link>
-        </div>
+              <div>
+                <p className="font-medium">Correct Answer:</p>
+                <p className="mt-1">{result.correctAnswer}</p>
+              </div>
+
+              <div>
+                <p className="font-medium">Grade:</p>
+                <p className="mt-1">{result.grade}%</p>
+              </div>
+
+              <div>
+                <p className="font-medium">Feedback:</p>
+                <p className="mt-1">{result.feedback}</p>
+              </div>
+            </div>
+          </Card>
+        ))}
       </div>
     </div>
   );

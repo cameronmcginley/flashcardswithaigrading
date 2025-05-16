@@ -1,51 +1,156 @@
-import { createServerComponentClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
-import { redirect } from "next/navigation";
-import QuizForm from "@/components/quiz-form";
+"use client";
 
-export default async function QuizPage({
-  params,
-}: {
-  params: { quizId: string };
-}) {
-  const supabase = createServerComponentClient({ cookies });
-  const {
-    data: { session },
-    error: authError,
-  } = await supabase.auth.getSession();
+import { useState, useEffect } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
+import { Textarea } from "@/components/ui/textarea";
+import { toast } from "sonner";
+import { type QuizResult, saveQuizResults } from "@/features/quiz/quiz";
+import { supabase } from "@/lib/supabase/client";
 
-  if (authError || !session) {
-    redirect("/login");
+interface QuizCard {
+  id: string;
+  front: string;
+  back: string;
+}
+
+export default function QuizPage() {
+  const params = useParams();
+  const router = useRouter();
+  const [cards, setCards] = useState<QuizCard[]>([]);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [userAnswer, setUserAnswer] = useState("");
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [results, setResults] = useState<QuizResult[]>([]);
+  const [isComplete, setIsComplete] = useState(false);
+
+  useEffect(() => {
+    const fetchCards = async () => {
+      const { data, error } = await supabase
+        .from("cards")
+        .select("id, front, back")
+        .eq("deck_id", params.quizId)
+        .order("created_at", { ascending: true });
+
+      if (error) {
+        toast.error("Failed to load quiz questions");
+        return;
+      }
+
+      setCards(data || []);
+    };
+
+    fetchCards();
+  }, [params.quizId]);
+
+  const handleSubmitAnswer = async () => {
+    if (!userAnswer.trim()) {
+      toast.error("Please enter an answer");
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      const response = await fetch(`/api/quiz/${params.quizId}/submit`, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          answers: [userAnswer], // Send as array since API expects array of answers
+        }),
+      });
+
+      if (!response.ok) throw new Error("Failed to grade answer");
+
+      const result = await response.json();
+      const feedback = result.feedback[0]; // Get first feedback since we're submitting one answer
+
+      const quizResult: QuizResult = {
+        questionNumber: currentIndex + 1,
+        question: cards[currentIndex].front,
+        correctAnswer: cards[currentIndex].back,
+        userAnswer,
+        grade: feedback.score * 10, // Convert 0-10 score to percentage
+        feedback: feedback.feedback,
+      };
+
+      setResults([...results, quizResult]);
+
+      if (currentIndex === cards.length - 1) {
+        // Quiz complete
+        await saveQuizResults(params.quizId as string, [
+          ...results,
+          quizResult,
+        ]);
+        setIsComplete(true);
+      } else {
+        // Next question
+        setCurrentIndex(currentIndex + 1);
+        setUserAnswer("");
+      }
+    } catch (error) {
+      console.error("Error submitting answer:", error);
+      toast.error("Failed to submit answer");
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
+  const handleViewResults = () => {
+    router.push(`/app/quiz/${params.quizId}/results`);
+  };
+
+  if (cards.length === 0) {
+    return <div>Loading quiz...</div>;
   }
 
-  const { data: quiz, error: quizError } = await supabase
-    .from("quizzes")
-    .select("*")
-    .eq("id", params.quizId)
-    .single();
+  if (isComplete) {
+    const averageGrade =
+      results.reduce((sum, r) => sum + r.grade, 0) / results.length;
 
-  if (quizError || !quiz) {
-    redirect("/app");
-  }
-
-  if (quiz.status === "pending") {
     return (
-      <div className="flex flex-col items-center justify-center min-h-screen p-4">
-        <div className="animate-spin rounded-full h-12 w-12 border-t-2 border-b-2 border-blue-500 mb-4"></div>
-        <h2 className="text-xl font-semibold mb-2">Generating Your Quiz</h2>
-        <p className="text-muted-foreground text-center">
-          Please wait while we prepare your questions...
+      <div className="container max-w-2xl py-8">
+        <h1 className="text-2xl font-bold mb-4">Quiz Complete!</h1>
+        <p className="text-lg mb-4">
+          Your average score: {Math.round(averageGrade)}%
         </p>
+        <Button onClick={handleViewResults}>View Detailed Results</Button>
       </div>
     );
   }
 
   return (
-    <div className="container max-w-4xl mx-auto py-8 px-4">
-      <div className="bg-card rounded-lg shadow-lg p-6">
-        <h1 className="text-2xl font-bold mb-6">Quiz</h1>
-        <QuizForm quizId={params.quizId} questions={quiz.questions} />
+    <div className="container max-w-2xl py-8">
+      <div className="mb-8">
+        <h2 className="text-lg font-medium text-muted-foreground">
+          Question {currentIndex + 1} of {cards.length}
+        </h2>
       </div>
+
+      <Card className="p-6">
+        <div className="prose dark:prose-invert max-w-none mb-6">
+          <h3 className="text-xl font-semibold mb-4">
+            {cards[currentIndex].front}
+          </h3>
+        </div>
+
+        <div className="space-y-4">
+          <Textarea
+            placeholder="Enter your answer..."
+            value={userAnswer}
+            onChange={(e) => setUserAnswer(e.target.value)}
+            rows={4}
+          />
+
+          <Button
+            className="w-full"
+            onClick={handleSubmitAnswer}
+            disabled={isSubmitting}
+          >
+            {isSubmitting ? "Grading..." : "Submit Answer"}
+          </Button>
+        </div>
+      </Card>
     </div>
   );
 }

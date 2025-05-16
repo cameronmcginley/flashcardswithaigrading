@@ -1,23 +1,31 @@
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
 import OpenAI from "openai";
+import { createAuthErrorResponse } from "@/lib/supabase/error";
 
 const openai = new OpenAI();
 
 export async function POST(
-  request: Request,
+  request: NextRequest,
   { params }: { params: { quizId: string } }
 ) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-    const {
-      data: { session },
-      error: authError,
-    } = await supabase.auth.getSession();
+    // Use server-side Supabase client instead of route handler client
+    const supabase = await createClient();
 
-    if (authError || !session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    // Get the current user's session (middleware ensures this exists)
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (!user || userError) {
+      return createAuthErrorResponse(
+        userError || { message: "No user found" },
+        user
+      );
     }
 
     const { answers } = await request.json();
@@ -27,6 +35,7 @@ export async function POST(
       .from("quizzes")
       .select("*")
       .eq("id", params.quizId)
+      .eq("user_id", user.id) // Ensure user can only access their own quizzes
       .single();
 
     if (quizError || !quiz) {
@@ -125,6 +134,10 @@ export async function POST(
       );
     }
 
+    // Revalidate any paths that might show quiz results
+    revalidatePath(`/app/quiz/${params.quizId}`);
+    revalidatePath(`/app/quiz/${params.quizId}/results`);
+
     return NextResponse.json({
       score: averageScore,
       feedback,
@@ -132,7 +145,10 @@ export async function POST(
   } catch (error) {
     console.error("Error in quiz submission:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

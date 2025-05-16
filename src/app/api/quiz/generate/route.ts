@@ -1,21 +1,24 @@
 import { generateQuizDeck } from "@/features/quiz/quiz";
-import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
-import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { type NextRequest } from "next/server";
+import { createClient } from "@/lib/supabase/server";
+import { revalidatePath } from "next/cache";
+import { createAuthErrorResponse } from "@/lib/supabase/error";
 
-export async function POST(request: Request) {
+export async function POST(request: NextRequest) {
   try {
-    const supabase = createRouteHandlerClient({ cookies });
-    const {
-      data: { session },
-      error: authError,
-    } = await supabase.auth.getSession();
-
-    if (authError || !session) {
-      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    let reqBody;
+    try {
+      reqBody = await request.json();
+    } catch (error) {
+      console.error("Error parsing request body:", error);
+      return NextResponse.json(
+        { error: "Invalid request body" },
+        { status: 400 }
+      );
     }
 
-    const { deckIds, numQuestions } = await request.json();
+    const { deckIds, numQuestions } = reqBody;
 
     if (!deckIds?.length || !numQuestions) {
       return NextResponse.json(
@@ -24,11 +27,27 @@ export async function POST(request: Request) {
       );
     }
 
+    // Create server-side Supabase client
+    const supabase = await createClient();
+
+    // Get the current user's session
+    const {
+      data: { user },
+      error: userError,
+    } = await supabase.auth.getUser();
+
+    if (!user || userError) {
+      return createAuthErrorResponse(
+        userError || { message: "No user found" },
+        user
+      );
+    }
+
     // Create a new quiz record
     const { data: quiz, error: quizError } = await supabase
       .from("quizzes")
       .insert({
-        user_id: session.user.id,
+        user_id: user.id,
         deck_ids: deckIds,
         num_questions: numQuestions,
         status: "pending",
@@ -39,35 +58,41 @@ export async function POST(request: Request) {
     if (quizError) {
       console.error("Error creating quiz:", quizError);
       return NextResponse.json(
-        { error: "Failed to create quiz" },
+        { error: "Failed to create quiz", details: quizError.message },
         { status: 500 }
       );
     }
 
-    let quizQuestions;
     try {
-      quizQuestions = await generateQuizDeck(deckIds, numQuestions);
+      // Generate quiz questions
+      const quizCards = await generateQuizDeck(deckIds, numQuestions, supabase);
 
-      // Store the generated questions in the quiz record
+      // Update the quiz with the generated questions
       const { error: updateError } = await supabase
         .from("quizzes")
         .update({
-          questions: quizQuestions,
+          questions: quizCards,
           status: "ready",
         })
         .eq("id", quiz.id);
 
       if (updateError) {
-        console.error("Error storing quiz questions:", updateError);
-        return NextResponse.json(
-          { error: "Failed to store quiz questions" },
-          { status: 500 }
-        );
+        throw new Error(`Failed to update quiz: ${updateError.message}`);
       }
+
+      // Revalidate paths
+      revalidatePath("/app/quiz");
+      revalidatePath(`/app/quiz/${quiz.id}`);
+
+      return NextResponse.json({
+        quizId: quiz.id,
+        success: true,
+        questionCount: quizCards.length,
+      });
     } catch (error) {
       console.error("Error generating quiz questions:", error);
 
-      // Update quiz status to failed
+      // Mark the quiz as failed
       await supabase
         .from("quizzes")
         .update({
@@ -78,16 +103,20 @@ export async function POST(request: Request) {
         .eq("id", quiz.id);
 
       return NextResponse.json(
-        { error: "Failed to generate quiz questions" },
+        {
+          error: "Failed to generate quiz questions",
+          details: error instanceof Error ? error.message : "Unknown error",
+        },
         { status: 500 }
       );
     }
-
-    return NextResponse.json({ quizId: quiz.id });
   } catch (error) {
     console.error("Error in quiz generation:", error);
     return NextResponse.json(
-      { error: "Internal server error" },
+      {
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
+      },
       { status: 500 }
     );
   }

@@ -3,6 +3,7 @@ import OpenAI from "openai";
 import { type NextRequest } from "next/server";
 import { createClient } from "@/lib/supabase/server";
 import { revalidatePath } from "next/cache";
+import { createAuthErrorResponse } from "@/lib/supabase/error";
 
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY,
@@ -44,14 +45,9 @@ export async function POST(request: NextRequest) {
     } = await supabase.auth.getUser();
 
     if (!user || userError) {
-      return NextResponse.json(
-        {
-          error: "Unauthorized",
-          details: "No valid session found in API route",
-          user,
-          userError,
-        },
-        { status: 401 }
+      return createAuthErrorResponse(
+        userError || { message: "No user found" },
+        user
       );
     }
 
@@ -108,7 +104,7 @@ export async function POST(request: NextRequest) {
         {
           name: deckName,
           category_id: categoryId,
-          profile_id: user.id,
+          user_id: user.id,
           num_cards: cards.length,
         },
       ])
@@ -126,6 +122,7 @@ export async function POST(request: NextRequest) {
         deck_id: deck.id,
         front: card.question,
         back: card.answer,
+        user_id: user.id,
       }))
     );
 
@@ -137,19 +134,20 @@ export async function POST(request: NextRequest) {
     }
 
     // On success, invalidate getCategoriesWithDecks
-    revalidatePath("/categories");
+    revalidatePath("/app/decks");
+    revalidatePath(`/app/categories/${categoryId}`);
 
     return NextResponse.json({
       success: true,
-      deck,
+      deckId: deck.id,
       cardCount: cards.length,
     });
   } catch (error) {
     console.error("Error generating deck:", error);
     return NextResponse.json(
       {
-        error:
-          error instanceof Error ? error.message : "Failed to generate deck",
+        error: "Internal server error",
+        details: error instanceof Error ? error.message : "Unknown error",
       },
       { status: 500 }
     );
