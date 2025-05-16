@@ -91,5 +91,13 @@ SELECT
     review_date as reviewed_at
 FROM card_reviews;
 
+-- Update review logs with verdict field using grade breakpoints
+UPDATE review_logs
+SET verdict = CASE 
+    WHEN grade >= 80 THEN 'correct'
+    WHEN grade >= 60 THEN 'partial'
+    ELSE 'incorrect'
+END;
+
 -- Drop the temporary function
 DROP FUNCTION random_timestamp_last_year(); 

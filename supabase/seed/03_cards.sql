@@ -48,4 +48,13 @@ values
         ),
         'What is the capital of Brazil?',
         'Brasília'
-    ); 
+    );
+
+-- Add some example cards with partial_correct_count
+UPDATE cards 
+SET 
+  partial_correct_count = FLOOR(RANDOM() * 5)::int,
+  review_count = review_count + partial_correct_count
+WHERE id IN (
+  SELECT id FROM cards ORDER BY RANDOM() LIMIT 6
+); 

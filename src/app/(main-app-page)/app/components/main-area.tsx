@@ -8,6 +8,7 @@ import { toast } from "sonner";
 import {
   getAllCardsInDeck,
   markCardCorrect,
+  markCardPartiallyCorrect,
   markCardIncorrect,
 } from "@/features/cards/card";
 import { sortCardsToReview } from "@/features/cards/sorting";
@@ -19,6 +20,9 @@ interface UICard {
   answer: string;
   ease: number;
   review_count: number;
+  correct_count: number;
+  partial_correct_count: number;
+  incorrect_count: number;
   last_reviewed: Date;
 }
 
@@ -102,6 +106,9 @@ export default function MainArea({
           answer: card.back,
           ease: card.ease,
           review_count: card.review_count,
+          correct_count: card.correct_count,
+          partial_correct_count: card.partial_correct_count,
+          incorrect_count: card.incorrect_count,
           last_reviewed: card.last_reviewed,
         }));
 
@@ -158,14 +165,17 @@ export default function MainArea({
     // This is called when a card is flipped, but we don't need to do anything
   };
 
-  const handleAddCard = (question: string, answer: string, deckId: string) => {
+  const handleAddCard = (front: string, back: string, deckId: string) => {
     const newCard = {
       id: `${Date.now()}`,
       deckId,
-      question,
-      answer,
+      question: front,
+      answer: back,
       ease: 2.5,
       review_count: 0,
+      correct_count: 0,
+      partial_correct_count: 0,
+      incorrect_count: 0,
       last_reviewed: new Date(),
     };
 
@@ -181,16 +191,19 @@ export default function MainArea({
   };
 
   const handleAddMultipleCards = (
-    newCards: Array<{ question: string; answer: string }>,
+    newCards: Array<{ front: string; back: string }>,
     deckId: string
   ) => {
     const cardsToAdd = newCards.map((card, index) => ({
       id: `${Date.now()}-${index}`,
       deckId,
-      question: card.question,
-      answer: card.answer,
+      question: card.front,
+      answer: card.back,
       ease: 2.5,
       review_count: 0,
+      correct_count: 0,
+      partial_correct_count: 0,
+      incorrect_count: 0,
       last_reviewed: new Date(),
     }));
 
@@ -265,6 +278,8 @@ export default function MainArea({
               ...card,
               ease: updatedCard.ease,
               review_count: updatedCard.review_count,
+              correct_count: updatedCard.correct_count,
+              incorrect_count: updatedCard.incorrect_count,
               last_reviewed: updatedCard.last_reviewed,
             }
           : card
@@ -278,6 +293,8 @@ export default function MainArea({
               ...card,
               ease: updatedCard.ease,
               review_count: updatedCard.review_count,
+              correct_count: updatedCard.correct_count,
+              incorrect_count: updatedCard.incorrect_count,
               last_reviewed: updatedCard.last_reviewed,
             }
           : card
@@ -288,6 +305,55 @@ export default function MainArea({
       handleNextCard();
     } catch (error) {
       console.error("Error marking card as correct:", error);
+      toast.error("Failed to update card");
+    }
+  };
+
+  const handlePartiallyCorrect = async () => {
+    if (!currentCard) return;
+
+    try {
+      // Update card stats in the database
+      const updatedCard = await markCardPartiallyCorrect(currentCard.id);
+
+      // Update the card in our local state with the new stats
+      const updatedCards = cards.map((card) =>
+        card.id === currentCard.id
+          ? {
+              ...card,
+              ease: updatedCard.ease,
+              review_count: updatedCard.review_count,
+              correct_count: updatedCard.correct_count,
+              partial_correct_count: updatedCard.partial_correct_count,
+              incorrect_count: updatedCard.incorrect_count,
+              last_reviewed: updatedCard.last_reviewed,
+            }
+          : card
+      );
+      setCards(updatedCards);
+
+      // Also update the card in filteredCards to ensure proper sorting
+      const updatedFilteredCards = filteredCards.map((card) =>
+        card.id === currentCard.id
+          ? {
+              ...card,
+              ease: updatedCard.ease,
+              review_count: updatedCard.review_count,
+              correct_count: updatedCard.correct_count,
+              partial_correct_count: updatedCard.partial_correct_count,
+              incorrect_count: updatedCard.incorrect_count,
+              last_reviewed: updatedCard.last_reviewed,
+            }
+          : card
+      );
+      setFilteredCards(updatedFilteredCards);
+
+      toast.success("Marked as partially correct", {
+        style: { backgroundColor: "#facc15", color: "#422006" },
+      });
+      handleNextCard();
+    } catch (error) {
+      console.error("Error marking card as partially correct:", error);
       toast.error("Failed to update card");
     }
   };
@@ -306,6 +372,8 @@ export default function MainArea({
               ...card,
               ease: updatedCard.ease,
               review_count: updatedCard.review_count,
+              correct_count: updatedCard.correct_count,
+              incorrect_count: updatedCard.incorrect_count,
               last_reviewed: updatedCard.last_reviewed,
             }
           : card
@@ -319,6 +387,8 @@ export default function MainArea({
               ...card,
               ease: updatedCard.ease,
               review_count: updatedCard.review_count,
+              correct_count: updatedCard.correct_count,
+              incorrect_count: updatedCard.incorrect_count,
               last_reviewed: updatedCard.last_reviewed,
             }
           : card
@@ -367,6 +437,7 @@ export default function MainArea({
               onPrevious={cardHistory.canGoBack() ? handlePrevCard : undefined}
               onNext={handleNextCard}
               onCorrect={handleCorrect}
+              onPartiallyCorrect={handlePartiallyCorrect}
               onWrong={handleWrong}
             />
           </>

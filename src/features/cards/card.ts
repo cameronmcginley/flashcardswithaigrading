@@ -207,9 +207,39 @@ export const markCardCorrect = async (cardId: string) => {
   if (error) throw error;
 
   const updated = {
-    ease: Math.min(5.0, (data.ease ?? 2.5) + 0.15),
+    ease: Math.min(5.0, (data.ease ?? 2.5) * 1.05),
+
     review_count: (data.review_count ?? 0) + 1,
     correct_count: (data.correct_count ?? 0) + 1,
+    last_reviewed: new Date(),
+  };
+
+  const { data: updatedCard, error: updateError } = await supabase
+    .from("cards")
+    .update(updated)
+    .eq("id", cardId)
+    .select()
+    .single();
+
+  if (updateError) throw updateError;
+  return updatedCard;
+};
+
+/** Mark a card as partially correct and update ease/stats */
+export const markCardPartiallyCorrect = async (cardId: string) => {
+  const { data, error } = await supabase
+    .from("cards")
+    .select("ease, review_count, partial_correct_count")
+    .eq("id", cardId)
+    .single();
+
+  if (error) throw error;
+
+  const updated = {
+    // Small drop in ease (-5%)
+    ease: Math.max(1.3, (data.ease ?? 2.5) * 0.95),
+    review_count: (data.review_count ?? 0) + 1,
+    partial_correct_count: (data.partial_correct_count ?? 0) + 1,
     last_reviewed: new Date(),
   };
 
@@ -235,7 +265,8 @@ export const markCardIncorrect = async (cardId: string) => {
   if (error) throw error;
 
   const updated = {
-    ease: Math.max(1.3, (data.ease ?? 2.5) - 0.2),
+    // Larger drop in ease (-15%)
+    ease: Math.max(1.3, (data.ease ?? 2.5) * 0.85),
     review_count: (data.review_count ?? 0) + 1,
     incorrect_count: (data.incorrect_count ?? 0) + 1,
     last_reviewed: new Date(),

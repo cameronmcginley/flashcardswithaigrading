@@ -31,6 +31,12 @@ interface FlashcardProps {
     id: string;
     question: string;
     answer: string;
+    ease?: number;
+    review_count?: number;
+    correct_count?: number;
+    partial_correct_count?: number;
+    incorrect_count?: number;
+    last_reviewed?: Date | string | null;
   };
   onUpdate: (question: string, answer: string) => void;
   onDelete: () => void;
@@ -38,6 +44,9 @@ interface FlashcardProps {
   onAnswered?: () => void;
   onPrevious?: () => void;
   onNext?: () => void;
+  onCorrect?: () => void;
+  onPartiallyCorrect?: () => void;
+  onWrong?: () => void;
 }
 
 export default function Flashcard({
@@ -48,6 +57,9 @@ export default function Flashcard({
   onAnswered,
   onPrevious,
   onNext,
+  onCorrect,
+  onPartiallyCorrect,
+  onWrong,
 }: FlashcardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
@@ -87,17 +99,37 @@ export default function Flashcard({
     }
   }, [card.question, card.answer, editingQuestion, editingAnswer]);
 
-  // Mock card statistics - in a real app, these would come from your spaced repetition algorithm
-  const cardStats = {
-    easeFactor: 2.5,
-    interval: 15,
-    reviews: 8,
-    lapses: 2,
-    lastReviewed: "2023-05-08",
-    nextReview: "2023-05-23",
-    streak: 3,
-    averageTime: "45s",
+  // Calculate card statistics from real data
+  const getCardStats = () => {
+    // Use only actual collected data
+    const easeFactor = card.ease ?? 2.5;
+    const reviews = card.review_count ?? 0;
+    const correct = card.correct_count ?? 0;
+    const partial = card.partial_correct_count ?? 0;
+    const incorrect = card.incorrect_count ?? 0;
+
+    // Format dates
+    let lastReviewed = "Never";
+    if (card.last_reviewed) {
+      const date =
+        typeof card.last_reviewed === "string"
+          ? new Date(card.last_reviewed)
+          : card.last_reviewed;
+
+      lastReviewed = date ? date.toLocaleDateString() : "Never";
+    }
+
+    return {
+      easeFactor: easeFactor.toFixed(1),
+      reviews,
+      correct,
+      partial,
+      incorrect,
+      lastReviewed,
+    };
   };
+
+  const cardStats = getCardStats();
 
   const handleFlip = async () => {
     setIsFlipped(!isFlipped);
@@ -301,27 +333,42 @@ Can you help me understand this feedback better and suggest how I can improve my
                 <div className="text-muted-foreground">Ease Factor:</div>
                 <div>{cardStats.easeFactor}</div>
 
-                <div className="text-muted-foreground">Interval:</div>
-                <div>{cardStats.interval} days</div>
-
                 <div className="text-muted-foreground">Reviews:</div>
                 <div>{cardStats.reviews}</div>
 
-                <div className="text-muted-foreground">Lapses:</div>
-                <div>{cardStats.lapses}</div>
+                <div className="text-muted-foreground">Correct Answers:</div>
+                <div>{cardStats.correct}</div>
+
+                <div className="text-muted-foreground">Partial Answers:</div>
+                <div>{cardStats.partial}</div>
+
+                <div className="text-muted-foreground">Incorrect Answers:</div>
+                <div>{cardStats.incorrect}</div>
 
                 <div className="text-muted-foreground">Last Reviewed:</div>
                 <div>{cardStats.lastReviewed}</div>
-
-                <div className="text-muted-foreground">Next Review:</div>
-                <div>{cardStats.nextReview}</div>
-
-                <div className="text-muted-foreground">Streak:</div>
-                <div>{cardStats.streak}</div>
-
-                <div className="text-muted-foreground">Average Time:</div>
-                <div>{cardStats.averageTime}</div>
               </div>
+
+              <div className="border rounded-md p-3 bg-muted/20 text-xs space-y-1">
+                <h5 className="font-medium">Grading System</h5>
+                <ul className="space-y-1">
+                  <li className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                    <strong>Correct:</strong> Solid recall (≥80%)
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                    <strong>Partial:</strong> Knew concept but missed details
+                    (60-79%)
+                  </li>
+                  <li className="flex items-center gap-1">
+                    <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                    <strong>Incorrect:</strong> Didn&apos;t recall properly
+                    (&lt;60%)
+                  </li>
+                </ul>
+              </div>
+
               <div className="pt-2 text-xs text-muted-foreground">
                 Based on the SM-2 spaced repetition algorithm
               </div>
@@ -477,6 +524,41 @@ Can you help me understand this feedback better and suggest how I can improve my
                     )}
                   </Button>
                 </div>
+
+                {/* Manual grading buttons */}
+                {onCorrect && onWrong && (
+                  <div className="flex gap-2 mt-4 border-t pt-4">
+                    <div className="text-sm font-medium text-muted-foreground mb-2 mr-2">
+                      Rate your answer:
+                    </div>
+                    <Button
+                      variant="outline"
+                      onClick={onCorrect}
+                      className="bg-green-100 hover:bg-green-200 text-green-800 border-green-300"
+                    >
+                      <Check className="h-4 w-4 mr-1" />
+                      Correct
+                    </Button>
+                    {onPartiallyCorrect && (
+                      <Button
+                        variant="outline"
+                        onClick={onPartiallyCorrect}
+                        className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border-yellow-300"
+                      >
+                        <Check className="h-4 w-4 mr-1" />
+                        Partial
+                      </Button>
+                    )}
+                    <Button
+                      variant="outline"
+                      onClick={onWrong}
+                      className="bg-red-100 hover:bg-red-200 text-red-800 border-red-300"
+                    >
+                      <X className="h-4 w-4 mr-1" />
+                      Incorrect
+                    </Button>
+                  </div>
+                )}
               </div>
             </div>
           )}
