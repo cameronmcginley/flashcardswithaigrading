@@ -6,6 +6,7 @@ import {
   Check,
   X,
   Sparkles,
+  Brain,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -30,6 +31,7 @@ import {
 import AddDeckModal from "@/app/(main-app-page)/app/components/add-deck-modal";
 import { Input } from "@/components/ui/input";
 import MagicDeckModal from "@/components/magic-deck-modal";
+import QuizModal from "@/components/quiz-modal";
 
 interface Deck {
   id: string;
@@ -66,6 +68,7 @@ export function AppSidebar({
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
   const [isMagicDeckModalOpen, setIsMagicDeckModalOpen] = useState(false);
+  const [isQuizModalOpen, setIsQuizModalOpen] = useState(false);
   const [selectedCategoryId, setSelectedCategoryId] = useState<string | null>(
     null
   );
@@ -318,6 +321,22 @@ export function AppSidebar({
         }
         categories={categories}
         onCategoryChange={setSelectedCategoryId}
+      />
+
+      <div className="p-4 border-t space-y-2">
+        <Button
+          onClick={() => setIsQuizModalOpen(true)}
+          className="w-full bg-gradient-to-r from-blue-500 to-cyan-600 hover:from-blue-600 hover:to-cyan-700 text-white font-semibold rounded-lg shadow-lg transform transition-all duration-200 hover:scale-[1.02] hover:shadow-xl flex items-center justify-center gap-2"
+        >
+          <Brain className="h-4 w-4" />
+          <span>Take a Quiz</span>
+        </Button>
+      </div>
+
+      <QuizModal
+        open={isQuizModalOpen}
+        onOpenChange={setIsQuizModalOpen}
+        categories={categories}
       />
 
       {/* Magic Deck Modal */}
