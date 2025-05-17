@@ -26,6 +26,28 @@ import {
 import { cn } from "@/lib/utils";
 import { MarkdownContent } from "@/components/markdown-content";
 
+// Import the scoreCard function from the sorting module
+const secondsSince = (date?: Date) => {
+  if (!date) return 999999;
+  return (Date.now() - new Date(date).getTime()) / 1000;
+};
+
+// Copy of the scoreCard function from sorting.ts but without jitter for consistent display
+const scoreCard = (card: {
+  ease: number;
+  last_reviewed: Date | string | null;
+  review_count: number;
+}) => {
+  const easeWeight = (card.ease ?? 2.5) * 1000;
+  const recencyBoost =
+    secondsSince(
+      card.last_reviewed ? new Date(card.last_reviewed) : undefined
+    ) * 0.05;
+  const seenWeight = Math.pow(card.review_count ?? 0, 0.7);
+
+  return Math.round(easeWeight - recencyBoost + seenWeight);
+};
+
 interface FlashcardProps {
   card: {
     id: string;
@@ -47,6 +69,13 @@ interface FlashcardProps {
   onCorrect?: () => void;
   onPartiallyCorrect?: () => void;
   onWrong?: () => void;
+  allCards?: Array<{
+    id: string;
+    question: string;
+    ease: number;
+    review_count: number;
+    last_reviewed: Date | string | null;
+  }>;
 }
 
 export default function Flashcard({
@@ -60,6 +89,7 @@ export default function Flashcard({
   onCorrect,
   onPartiallyCorrect,
   onWrong,
+  allCards,
 }: FlashcardProps) {
   const [isFlipped, setIsFlipped] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
@@ -327,88 +357,171 @@ Can you help me understand this feedback better and suggest how I can improve my
 
   return (
     <div className="w-full max-w-2xl">
-      {/* Action buttons above the card - now icon only */}
-      <div className="flex justify-end mb-2 gap-2">
-        <Popover>
-          <PopoverTrigger asChild>
-            <Button variant="ghost" size="icon" className="h-9 w-9 p-0">
-              <Info className="h-4 w-4" />
-            </Button>
-          </PopoverTrigger>
-          <PopoverContent className="w-80" align="end">
-            <div className="space-y-4">
-              <h4 className="font-medium text-sm">Card Statistics</h4>
-              <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                <div className="text-muted-foreground">Ease Factor:</div>
-                <div>{cardStats.easeFactor}</div>
+      {/* Action buttons above the card */}
+      <div className="flex justify-between mb-2">
+        {/* Debug Mode Info Button - only shown when debug mode is on (left side) */}
+        <div>
+          {(() => {
+            // Check if debug mode is enabled
+            const savedSettings = localStorage.getItem("ez-anki-settings");
+            let debugMode = false;
+            if (savedSettings) {
+              try {
+                const settings = JSON.parse(savedSettings);
+                debugMode = settings.debugMode || false;
+              } catch (e) {
+                console.error("Error parsing settings:", e);
+              }
+            }
 
-                <div className="text-muted-foreground">Reviews:</div>
-                <div>{cardStats.reviews}</div>
+            if (debugMode && allCards && allCards.length > 0) {
+              return (
+                <Popover>
+                  <PopoverTrigger asChild>
+                    <Button variant="ghost" size="icon" className="h-9 w-9 p-0">
+                      <Info className="h-4 w-4 text-amber-500" />
+                    </Button>
+                  </PopoverTrigger>
+                  <PopoverContent className="w-80" align="start">
+                    <div className="space-y-2">
+                      <h4 className="font-medium text-sm">
+                        Debug: Cards in Deck
+                      </h4>
+                      <div className="max-h-[400px] overflow-y-auto border rounded-md p-2">
+                        <table className="w-full text-xs">
+                          <thead className="sticky top-0 bg-gray-100">
+                            <tr className="border-b">
+                              <th className="w-10 py-1 text-left font-medium text-gray-600">
+                                No.
+                              </th>
+                              <th className="w-16 py-1 text-left font-medium text-gray-600">
+                                Score
+                              </th>
+                              <th className="py-1 text-left font-medium text-gray-600">
+                                Question
+                              </th>
+                            </tr>
+                          </thead>
+                          <tbody>
+                            {allCards.map((c, index) => {
+                              // Calculate score for sorting
+                              const score = scoreCard(c);
+                              return (
+                                <tr
+                                  key={c.id}
+                                  className="border-b border-gray-100 last:border-0"
+                                >
+                                  <td className="py-1 pr-2 text-gray-500">
+                                    {index + 1}.
+                                  </td>
+                                  <td className="py-1 pr-2 font-mono text-blue-600">
+                                    {score}
+                                  </td>
+                                  <td className="py-1 truncate">
+                                    {c.question.length > 50
+                                      ? c.question.substring(0, 50) + "..."
+                                      : c.question}
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
+                  </PopoverContent>
+                </Popover>
+              );
+            }
+            return null;
+          })()}
+        </div>
 
-                <div className="text-muted-foreground">Correct Answers:</div>
-                <div>{cardStats.correct}</div>
+        {/* Other action buttons (right side) */}
+        <div className="flex gap-2">
+          <Popover>
+            <PopoverTrigger asChild>
+              <Button variant="ghost" size="icon" className="h-9 w-9 p-0">
+                <Info className="h-4 w-4" />
+              </Button>
+            </PopoverTrigger>
+            <PopoverContent className="w-80" align="end">
+              <div className="space-y-4">
+                <h4 className="font-medium text-sm">Card Statistics</h4>
+                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                  <div className="text-muted-foreground">Ease Factor:</div>
+                  <div>{cardStats.easeFactor}</div>
 
-                <div className="text-muted-foreground">Partial Answers:</div>
-                <div>{cardStats.partial}</div>
+                  <div className="text-muted-foreground">Reviews:</div>
+                  <div>{cardStats.reviews}</div>
 
-                <div className="text-muted-foreground">Incorrect Answers:</div>
-                <div>{cardStats.incorrect}</div>
+                  <div className="text-muted-foreground">Correct Answers:</div>
+                  <div>{cardStats.correct}</div>
 
-                <div className="text-muted-foreground">Last Reviewed:</div>
-                <div>{cardStats.lastReviewed}</div>
-              </div>
+                  <div className="text-muted-foreground">Partial Answers:</div>
+                  <div>{cardStats.partial}</div>
 
-              <div className="border rounded-md p-3 bg-muted/20 text-xs space-y-1">
-                <h5 className="font-medium">Grading System</h5>
-                <ul className="space-y-1">
-                  <li className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                    <strong>Correct:</strong> Solid recall (≥80%){" "}
-                    <span className="text-muted-foreground">+5% ease</span>
-                  </li>
-                  <li className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                    <strong>Partial:</strong> Knew concept but missed details
-                    (60-79%){" "}
-                    <span className="text-muted-foreground">-5% ease</span>
-                  </li>
-                  <li className="flex items-center gap-1">
-                    <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                    <strong>Incorrect:</strong> Didn&apos;t recall properly
-                    (&lt;60%){" "}
-                    <span className="text-muted-foreground">-15% ease</span>
-                  </li>
-                </ul>
-                <div className="mt-2 pt-1 border-t text-muted-foreground">
-                  AI grading automatically applies these verdicts based on your
-                  answer.
+                  <div className="text-muted-foreground">
+                    Incorrect Answers:
+                  </div>
+                  <div>{cardStats.incorrect}</div>
+
+                  <div className="text-muted-foreground">Last Reviewed:</div>
+                  <div>{cardStats.lastReviewed}</div>
+                </div>
+
+                <div className="border rounded-md p-3 bg-muted/20 text-xs space-y-1">
+                  <h5 className="font-medium">Grading System</h5>
+                  <ul className="space-y-1">
+                    <li className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-green-500"></span>
+                      <strong>Correct:</strong> Solid recall (≥80%){" "}
+                      <span className="text-muted-foreground">+5% ease</span>
+                    </li>
+                    <li className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
+                      <strong>Partial:</strong> Knew concept but missed details
+                      (60-79%){" "}
+                      <span className="text-muted-foreground">-5% ease</span>
+                    </li>
+                    <li className="flex items-center gap-1">
+                      <span className="w-2 h-2 rounded-full bg-red-500"></span>
+                      <strong>Incorrect:</strong> Didn&apos;t recall properly
+                      (&lt;60%){" "}
+                      <span className="text-muted-foreground">-15% ease</span>
+                    </li>
+                  </ul>
+                  <div className="mt-2 pt-1 border-t text-muted-foreground">
+                    AI grading automatically applies these verdicts based on
+                    your answer.
+                  </div>
+                </div>
+
+                <div className="pt-2 text-xs text-muted-foreground">
+                  Based on the SM-2 spaced repetition algorithm
                 </div>
               </div>
+            </PopoverContent>
+          </Popover>
 
-              <div className="pt-2 text-xs text-muted-foreground">
-                Based on the SM-2 spaced repetition algorithm
-              </div>
-            </div>
-          </PopoverContent>
-        </Popover>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 p-0"
+            onClick={startEditing}
+          >
+            <Edit className="h-4 w-4" />
+          </Button>
 
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 p-0"
-          onClick={startEditing}
-        >
-          <Edit className="h-4 w-4" />
-        </Button>
-
-        <Button
-          variant="ghost"
-          size="icon"
-          className="h-9 w-9 p-0 text-red-500 hover:text-red-600"
-          onClick={onDelete}
-        >
-          <Trash className="h-4 w-4" />
-        </Button>
+          <Button
+            variant="ghost"
+            size="icon"
+            className="h-9 w-9 p-0 text-red-500 hover:text-red-600"
+            onClick={onDelete}
+          >
+            <Trash className="h-4 w-4" />
+          </Button>
+        </div>
       </div>
 
       <Card className="w-full shadow-lg">

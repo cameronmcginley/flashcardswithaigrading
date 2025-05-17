@@ -12,6 +12,7 @@ import {
   markCardIncorrect,
 } from "@/features/cards/card";
 import { sortCardsToReview } from "@/features/cards/sorting";
+import { Button } from "@/components/ui/button";
 
 interface UICard {
   id: string;
@@ -68,10 +69,7 @@ class CardHistory {
   }
 }
 
-export default function MainArea({
-  selectedDecks = [],
-  debugMode = false,
-}: MainAreaProps) {
+export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
   const [cards, setCards] = useState<UICard[]>([]);
   const [filteredCards, setFilteredCards] = useState<UICard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -398,31 +396,32 @@ export default function MainArea({
     }
   };
 
-  if (isLoading) {
+  if (filteredCards.length === 0) {
     return (
-      <div className="flex-1 flex items-center justify-center">
-        <div className="text-center text-gray-500">Loading cards...</div>
+      <div className="flex flex-col items-center justify-center h-full">
+        <h2 className="text-2xl font-bold mb-4">No cards to review</h2>
+        <p className="text-muted-foreground mb-8">
+          Select a deck from the sidebar or add new cards to get started.
+        </p>
+        <Button onClick={() => setIsAddCardModalOpen(true)}>Add Cards</Button>
       </div>
     );
   }
 
   return (
-    <div className="flex-1 p-6 flex flex-col">
-      <div className="flex-1 flex flex-col items-center justify-start pt-8">
-        {selectedDecks.length === 0 ? (
-          <div className="text-center text-gray-500">
-            <p>
-              No decks selected. Please select at least one deck from the
-              sidebar.
-            </p>
-          </div>
-        ) : filteredCards.length > 0 ? (
-          <>
-            {debugMode && (
-              <div className="text-sm text-gray-500 mb-2">
-                Card {currentCardIndex + 1} of {filteredCards.length}
-              </div>
-            )}
+    <div className="flex flex-col gap-6 h-full">
+      <div className="flex justify-between">
+        <h2 className="text-xl font-semibold">Review Cards</h2>
+        <Button onClick={() => setIsAddCardModalOpen(true)}>
+          Add New Card
+        </Button>
+      </div>
+
+      <div className="flex-1 flex flex-col items-center justify-center">
+        {isLoading ? (
+          <div>Loading cards...</div>
+        ) : (
+          currentCard && (
             <Flashcard
               key={cardKey}
               card={currentCard}
@@ -434,15 +433,9 @@ export default function MainArea({
               onCorrect={handleCorrect}
               onPartiallyCorrect={handlePartiallyCorrect}
               onWrong={handleWrong}
+              allCards={filteredCards}
             />
-          </>
-        ) : (
-          <div className="text-center text-gray-500">
-            <p>
-              No cards available in the selected decks. Add a new card to get
-              started.
-            </p>
-          </div>
+          )
         )}
       </div>
 
@@ -456,6 +449,7 @@ export default function MainArea({
           selectedDecks.length > 0 ? selectedDecks[0].deckId : undefined
         }
       />
+
       <DeleteConfirmationModal
         open={isDeleteModalOpen}
         onOpenChange={setIsDeleteModalOpen}

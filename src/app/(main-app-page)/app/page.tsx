@@ -201,7 +201,31 @@ export default function Page() {
                 ? "No decks selected"
                 : `${selectedDecks.length} deck${
                     selectedDecks.length === 1 ? "" : "s"
-                  } selected`}
+                  } selected${(() => {
+                    // Check if debug mode is enabled in localStorage
+                    const savedSettings =
+                      localStorage.getItem("ez-anki-settings");
+                    let debugMode = false;
+                    if (savedSettings) {
+                      try {
+                        const settings = JSON.parse(savedSettings);
+                        debugMode = settings.debugMode || false;
+                      } catch (e) {
+                        console.error("Error parsing settings:", e);
+                      }
+                    }
+
+                    if (debugMode) {
+                      const totalCards = selectedDecks.reduce(
+                        (sum, deck) => sum + deck.cardCount,
+                        0
+                      );
+                      return ` (${totalCards} card${
+                        totalCards === 1 ? "" : "s"
+                      })`;
+                    }
+                    return "";
+                  })()}`}
             </span>
           </header>
           <div className="flex-1 overflow-auto p-4 pt-0">
