@@ -12,7 +12,12 @@ import {
   markCardIncorrect,
 } from "@/features/cards/card";
 import { sortCardsToReview } from "@/features/cards/sorting";
-import { Button } from "@/components/ui/button";
+import {
+  ClipboardList,
+  BookOpen,
+  LayoutGrid,
+  ArrowRightLeft,
+} from "lucide-react";
 
 interface UICard {
   id: string;
@@ -398,25 +403,62 @@ export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
 
   if (filteredCards.length === 0) {
     return (
-      <div className="flex flex-col items-center justify-center h-full">
-        <h2 className="text-2xl font-bold mb-4">No cards to review</h2>
-        <p className="text-muted-foreground mb-8">
-          Select a deck from the sidebar or add new cards to get started.
+      <div className="flex flex-col items-center justify-center h-full max-w-md mx-auto text-center">
+        <div className="w-20 h-20 mb-6 rounded-full bg-muted flex items-center justify-center">
+          <BookOpen
+            className="w-10 h-10 text-muted-foreground"
+            strokeWidth={1.5}
+          />
+        </div>
+        <h2 className="text-2xl font-bold mb-3">Ready to study</h2>
+        <p className="text-muted-foreground mb-10">
+          Select one or more decks from the sidebar to start reviewing
+          flashcards.
         </p>
-        <Button onClick={() => setIsAddCardModalOpen(true)}>Add Cards</Button>
+
+        <div className="grid grid-cols-1 gap-6 w-full max-w-xs">
+          <div className="flex items-start gap-3 text-left">
+            <div className="bg-primary/10 p-2 rounded-md">
+              <LayoutGrid className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-medium text-sm">Select decks</h3>
+              <p className="text-xs text-muted-foreground">
+                Choose flashcard decks from the sidebar categories
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 text-left">
+            <div className="bg-primary/10 p-2 rounded-md">
+              <ClipboardList className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-medium text-sm">Review cards</h3>
+              <p className="text-xs text-muted-foreground">
+                Test your knowledge with spaced repetition
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 text-left">
+            <div className="bg-primary/10 p-2 rounded-md">
+              <ArrowRightLeft className="w-5 h-5 text-primary" />
+            </div>
+            <div>
+              <h3 className="font-medium text-sm">Track progress</h3>
+              <p className="text-xs text-muted-foreground">
+                Build long-term memory with our adaptive algorithm
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     );
   }
 
   return (
     <div className="flex flex-col gap-6 h-full">
-      <div className="flex justify-between">
-        <h2 className="text-xl font-semibold">Review Cards</h2>
-        <Button onClick={() => setIsAddCardModalOpen(true)}>
-          Add New Card
-        </Button>
-      </div>
-
       <div className="flex-1 flex flex-col items-center justify-center">
         {isLoading ? (
           <div>Loading cards...</div>

@@ -152,6 +152,7 @@ interface AppSidebarProps {
   onAddCategory: () => void;
   onEditDeck: (deckId: string, deckName: string, categoryName: string) => void;
   onDeleteDeck: (categoryId: string, deckId: string) => void;
+  onDeleteCategory: (categoryId: string) => void;
   onMagicDeckGenerate?: () => void;
   onAddCard?: (deckId: string, deckName: string, categoryName: string) => void;
   onAddCardGeneral?: () => void;
@@ -165,6 +166,7 @@ export function AppSidebar({
   onAddCategory,
   onEditDeck,
   onDeleteDeck,
+  onDeleteCategory,
   onMagicDeckGenerate,
   onAddCard,
   onAddCardGeneral,
@@ -757,8 +759,7 @@ export function AppSidebar({
                             <DropdownMenuItem
                               onClick={(e) => {
                                 e.stopPropagation();
-                                // TODO: Implement delete category
-                                console.log("Delete category", category.id);
+                                onDeleteCategory(category.id);
                               }}
                               className="text-destructive"
                             >

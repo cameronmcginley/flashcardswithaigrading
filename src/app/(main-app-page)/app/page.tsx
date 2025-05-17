@@ -29,6 +29,7 @@ import {
   DialogFooter,
 } from "@/components/ui/dialog";
 import { LoadingScreen } from "@/components/loading-screen";
+import DeleteConfirmationDialog from "@/components/delete-confirmation-dialog";
 
 // Define interfaces that match the database schema
 interface DatabaseDeck {
@@ -94,6 +95,15 @@ export default function Page() {
   // Rename the magic deck modal state to match its usage
   const [isMagicDeckModalOpen, setIsMagicDeckModalOpen] = useState(false);
 
+  // Add state for delete confirmation
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
+  const [deleteItem, setDeleteItem] = useState<{
+    type: "category" | "deck";
+    id: string;
+    name: string;
+    categoryId?: string;
+  } | null>(null);
+
   // Helper function to toggle simulate delay
   const toggleSimulateDelay = () => {
     try {
@@ -120,11 +130,43 @@ export default function Page() {
     }
   };
 
-  // Add keyboard shortcut to toggle simulate delay (Shift+Alt+D)
+  // Helper function to toggle simulate empty decks
+  const toggleSimulateEmptyDecks = () => {
+    try {
+      // Get current settings
+      const savedSettings = localStorage.getItem("ez-anki-settings") || "{}";
+      const settings = JSON.parse(savedSettings);
+
+      // Toggle the simulate empty decks setting
+      settings.simulateEmptyDecks = !settings.simulateEmptyDecks;
+
+      // Save the updated settings
+      localStorage.setItem("ez-anki-settings", JSON.stringify(settings));
+
+      // Show a toast message
+      toast.success(
+        `Simulate empty decks ${
+          settings.simulateEmptyDecks ? "enabled" : "disabled"
+        }`
+      );
+
+      // Reload the page to apply the change
+      window.location.reload();
+    } catch (error) {
+      console.error("Error toggling simulate empty decks:", error);
+      toast.error("Failed to toggle simulate empty decks setting");
+    }
+  };
+
+  // Add keyboard shortcuts (Shift+Alt+D for delay, Shift+Alt+E for empty decks)
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
-      if (e.shiftKey && e.altKey && e.key.toLowerCase() === "d") {
-        toggleSimulateDelay();
+      if (e.shiftKey && e.altKey) {
+        if (e.key.toLowerCase() === "d") {
+          toggleSimulateDelay();
+        } else if (e.key.toLowerCase() === "e") {
+          toggleSimulateEmptyDecks();
+        }
       }
     };
 
@@ -141,10 +183,13 @@ export default function Page() {
       // This can be toggled with a debug setting
       const savedSettings = localStorage.getItem("ez-anki-settings");
       let simulateDelay = false;
+      let simulateEmptyDecks = false;
+
       if (savedSettings) {
         try {
           const settings = JSON.parse(savedSettings);
           simulateDelay = settings.simulateDelay || false;
+          simulateEmptyDecks = settings.simulateEmptyDecks || false;
         } catch (e) {
           console.error("Error parsing settings:", e);
         }
@@ -152,6 +197,22 @@ export default function Page() {
 
       if (simulateDelay) {
         await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
+
+      // Check if we should simulate empty decks
+      if (simulateEmptyDecks) {
+        // Create a simulated default category with no decks
+        const simulatedData = [
+          {
+            id: "default-category",
+            name: "Default",
+            decks: [],
+          },
+        ];
+
+        setCategories(simulatedData);
+        setIsLoading(false);
+        return;
       }
 
       const data = await getAllCategoriesWithDecks();
@@ -266,17 +327,61 @@ export default function Page() {
     );
   };
 
+  const handleDeleteCategory = (categoryId: string) => {
+    const category = categories.find((c) => c.id === categoryId);
+    if (category) {
+      setDeleteItem({
+        type: "category",
+        id: category.id,
+        name: category.name,
+      });
+      setIsDeleteDialogOpen(true);
+    }
+  };
+
   const handleDeleteDeck = (categoryId: string, deckId: string) => {
-    const updatedCategories = categories.map((category) => {
-      if (category.id === categoryId) {
-        return {
-          ...category,
-          decks: category.decks.filter((deck) => deck.id !== deckId),
-        };
+    const category = categories.find((c) => c.id === categoryId);
+    const deck = category?.decks.find((d) => d.id === deckId);
+    if (category && deck) {
+      setDeleteItem({
+        type: "deck",
+        id: deckId,
+        name: deck.name,
+        categoryId,
+      });
+      setIsDeleteDialogOpen(true);
+    }
+  };
+
+  const handleDeleteConfirm = async () => {
+    if (!deleteItem) return;
+
+    try {
+      if (deleteItem.type === "category") {
+        // TODO: Call API to delete category
+        setCategories((prev) => prev.filter((c) => c.id !== deleteItem.id));
+        toast.success(`Category "${deleteItem.name}" deleted`);
+      } else {
+        // TODO: Call API to delete deck
+        setCategories((prev) =>
+          prev.map((category) => {
+            if (category.id === deleteItem.categoryId) {
+              return {
+                ...category,
+                decks: category.decks.filter(
+                  (deck) => deck.id !== deleteItem.id
+                ),
+              };
+            }
+            return category;
+          })
+        );
+        toast.success(`Deck "${deleteItem.name}" deleted`);
       }
-      return category;
-    });
-    setCategories(updatedCategories);
+    } catch (error) {
+      console.error("Error deleting item:", error);
+      toast.error("Failed to delete item");
+    }
   };
 
   const handleUpdateDeckName = (newName: string) => {
@@ -410,24 +515,126 @@ export default function Page() {
 
   if (isLoading) {
     return (
-      <LoadingScreen
-        isLoading={true}
-        hasContent={true}
-        onAddCategory={handleAddCategory}
-        onOpenMagicDeck={() => setIsMagicDeckModalOpen(true)}
-      />
+      <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
+        <SidebarProvider
+          className="flex-1 flex"
+          style={
+            {
+              "--sidebar-width": "clamp(22rem, 20vw, 30rem)",
+            } as React.CSSProperties
+          }
+        >
+          <AppSidebar
+            categories={categories}
+            onDeckSelect={handleSelectedDecksChange}
+            onAddDeck={handleAddDeck}
+            onAddCategory={handleAddCategory}
+            onEditDeck={handleEditDeck}
+            onDeleteDeck={handleDeleteDeck}
+            onDeleteCategory={handleDeleteCategory}
+            onAddCard={(front, back, deckId) => {
+              // Set up selected deck and open add card modal
+              const deck = categories
+                .flatMap((category) => category.decks)
+                .find((deck) => deck.id === deckId);
+
+              if (deck) {
+                const category = categories.find((c) =>
+                  c.decks.some((d) => d.id === deckId)
+                );
+
+                if (category) {
+                  setSelectedDeckForCard({
+                    deckId,
+                    deckName: deck.name,
+                    categoryName: category.name,
+                  });
+                  setIsAddCardModalOpen(true);
+                }
+              }
+            }}
+            onMagicDeckGenerate={() => setIsMagicDeckModalOpen(true)}
+            onAddCardGeneral={handleAddCardGeneral}
+            onSaveOrder={handleSaveOrder}
+          />
+          <SidebarInset className="flex flex-col pt-0">
+            <LoadingScreen
+              isLoading={true}
+              hasContent={true}
+              onAddCategory={handleAddCategory}
+              onOpenMagicDeck={() => setIsMagicDeckModalOpen(true)}
+            />
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
     );
   }
 
-  // Show empty state when no categories exist
-  if (categories.length === 0) {
+  // Show empty state when there's only a default category with no decks
+  if (
+    categories.length === 1 &&
+    categories[0].name === "Default" &&
+    categories[0].decks.length === 0
+  ) {
     return (
-      <LoadingScreen
-        isLoading={false}
-        hasContent={false}
-        onAddCategory={handleAddCategory}
-        onOpenMagicDeck={() => setIsMagicDeckModalOpen(true)}
-      />
+      <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
+        <SidebarProvider
+          className="flex-1 flex"
+          style={
+            {
+              "--sidebar-width": "clamp(22rem, 20vw, 30rem)",
+            } as React.CSSProperties
+          }
+        >
+          <AppSidebar
+            categories={categories}
+            onDeckSelect={handleSelectedDecksChange}
+            onAddDeck={handleAddDeck}
+            onAddCategory={handleAddCategory}
+            onEditDeck={handleEditDeck}
+            onDeleteDeck={handleDeleteDeck}
+            onDeleteCategory={handleDeleteCategory}
+            onAddCard={(front, back, deckId) => {
+              // Set up selected deck and open add card modal
+              const deck = categories
+                .flatMap((category) => category.decks)
+                .find((deck) => deck.id === deckId);
+
+              if (deck) {
+                const category = categories.find((c) =>
+                  c.decks.some((d) => d.id === deckId)
+                );
+
+                if (category) {
+                  setSelectedDeckForCard({
+                    deckId,
+                    deckName: deck.name,
+                    categoryName: category.name,
+                  });
+                  setIsAddCardModalOpen(true);
+                }
+              }
+            }}
+            onMagicDeckGenerate={() => setIsMagicDeckModalOpen(true)}
+            onAddCardGeneral={handleAddCardGeneral}
+            onSaveOrder={handleSaveOrder}
+          />
+          <SidebarInset className="flex flex-col pt-0">
+            <LoadingScreen
+              isLoading={false}
+              hasContent={false}
+              onAddCategory={() => {
+                // Open add deck modal with default category selected
+                if (categories.length > 0) {
+                  setSelectedCategoryIdForDeck(categories[0].id);
+                  setIsAddDeckFromFabModalOpen(true);
+                }
+              }}
+              onOpenMagicDeck={() => setIsMagicDeckModalOpen(true)}
+            />
+          </SidebarInset>
+        </SidebarProvider>
+      </div>
     );
   }
 
@@ -440,6 +647,23 @@ export default function Page() {
       >
         {isAddCategoryModalOpen && renderAddCategoryModal()}
       </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <DeleteConfirmationDialog
+        open={isDeleteDialogOpen}
+        onOpenChange={setIsDeleteDialogOpen}
+        onConfirm={handleDeleteConfirm}
+        title={`Delete ${
+          deleteItem?.type === "category" ? "Category" : "Deck"
+        }`}
+        description={
+          deleteItem
+            ? deleteItem.type === "category"
+              ? `Are you sure you want to delete "${deleteItem.name}"? This will also delete all decks and cards inside this category.`
+              : `Are you sure you want to delete "${deleteItem.name}"? This will also delete all cards in this deck.`
+            : ""
+        }
+      />
 
       <SidebarProvider
         className="flex-1 flex"
@@ -456,6 +680,7 @@ export default function Page() {
           onAddCategory={handleAddCategory}
           onEditDeck={handleEditDeck}
           onDeleteDeck={handleDeleteDeck}
+          onDeleteCategory={handleDeleteCategory}
           onAddCard={(front, back, deckId) => {
             // Set up selected deck and open add card modal
             const deck = categories

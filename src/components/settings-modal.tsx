@@ -7,19 +7,34 @@ import {
   DialogHeader,
   DialogTitle,
   DialogFooter,
+  DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Label } from "@/components/ui/label";
 import { Switch } from "@/components/ui/switch";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { toast } from "sonner";
-import { Info } from "lucide-react";
+import {
+  Info,
+  ChevronRight,
+  ChevronDown,
+  KeyRound,
+  Bug,
+  Clock,
+  Layers,
+} from "lucide-react";
 import {
   Tooltip,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import {
+  Collapsible,
+  CollapsibleContent,
+  CollapsibleTrigger,
+} from "@/components/ui/collapsible";
+import { Separator } from "@/components/ui/separator";
 
 interface SettingsModalProps {
   open: boolean;
@@ -31,6 +46,8 @@ interface SettingsModalProps {
     autoFlip: boolean;
     autoGrade: boolean;
     debugMode: boolean;
+    simulateDelay?: boolean;
+    simulateEmptyDecks?: boolean;
     gradingDifficulty: "beginner" | "adept" | "master";
   };
   onSettingsChange?: (settings: {
@@ -40,6 +57,8 @@ interface SettingsModalProps {
     autoFlip: boolean;
     autoGrade: boolean;
     debugMode: boolean;
+    simulateDelay?: boolean;
+    simulateEmptyDecks?: boolean;
     gradingDifficulty: "beginner" | "adept" | "master";
   }) => void;
 }
@@ -58,13 +77,20 @@ export default function SettingsModal({
     autoFlip: false,
     autoGrade: false,
     debugMode: false,
+    simulateDelay: false,
+    simulateEmptyDecks: false,
     gradingDifficulty: "adept" as "beginner" | "adept" | "master",
   });
+
+  const [adminPowersOpen, setAdminPowersOpen] = useState(false);
 
   // Update local state when initialSettings changes
   useEffect(() => {
     if (initialSettings) {
-      setSettings(initialSettings);
+      setSettings({
+        ...settings,
+        ...initialSettings,
+      });
     }
   }, [initialSettings]);
 
@@ -89,6 +115,11 @@ export default function SettingsModal({
 
     toast.success("Settings saved successfully");
     onOpenChange(false);
+
+    // If empty decks simulation was changed, reload the page
+    if (initialSettings?.simulateEmptyDecks !== settings.simulateEmptyDecks) {
+      window.location.reload();
+    }
   };
 
   return (
@@ -215,6 +246,108 @@ export default function SettingsModal({
               onCheckedChange={(checked) => handleChange("debugMode", checked)}
             />
           </div>
+
+          {settings.debugMode && (
+            <>
+              <Separator className="my-2" />
+
+              <Collapsible
+                open={adminPowersOpen}
+                onOpenChange={setAdminPowersOpen}
+                className="border rounded-md p-3"
+              >
+                <CollapsibleTrigger className="flex items-center justify-between w-full">
+                  <div className="flex items-center gap-2">
+                    <KeyRound className="h-4 w-4 text-amber-500" />
+                    <h3 className="text-base font-medium">Admin Powers</h3>
+                  </div>
+                  {adminPowersOpen ? (
+                    <ChevronDown className="h-4 w-4" />
+                  ) : (
+                    <ChevronRight className="h-4 w-4" />
+                  )}
+                </CollapsibleTrigger>
+                <CollapsibleContent className="mt-3 space-y-3">
+                  <DialogDescription className="text-xs text-muted-foreground">
+                    These debug features help simulate different app states for
+                    testing purposes.
+                  </DialogDescription>
+
+                  <div className="space-y-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Clock className="h-4 w-4 text-amber-500" />
+                        <div>
+                          <Label htmlFor="simulateDelay" className="text-sm">
+                            Simulate Loading Delay
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            Add 3 second delay on app load
+                          </p>
+                        </div>
+                      </div>
+                      <Switch
+                        id="simulateDelay"
+                        checked={settings.simulateDelay}
+                        onCheckedChange={(checked) =>
+                          handleChange("simulateDelay", checked)
+                        }
+                      />
+                    </div>
+
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Layers className="h-4 w-4 text-amber-500" />
+                        <div>
+                          <Label
+                            htmlFor="simulateEmptyDecks"
+                            className="text-sm"
+                          >
+                            Simulate Empty Decks
+                          </Label>
+                          <p className="text-xs text-muted-foreground">
+                            Show only default category with no decks
+                          </p>
+                        </div>
+                      </div>
+                      <Switch
+                        id="simulateEmptyDecks"
+                        checked={settings.simulateEmptyDecks}
+                        onCheckedChange={(checked) =>
+                          handleChange("simulateEmptyDecks", checked)
+                        }
+                      />
+                    </div>
+
+                    <div className="mt-4 bg-amber-50 p-3 rounded-md">
+                      <h4 className="text-sm font-medium text-amber-800 flex items-center gap-1 mb-2">
+                        <Bug className="h-4 w-4" />
+                        Debug Hotkeys
+                      </h4>
+                      <div className="space-y-2 text-xs">
+                        <div className="flex justify-between">
+                          <span className="text-amber-800">
+                            Toggle Loading Delay
+                          </span>
+                          <code className="bg-amber-100 px-1.5 py-0.5 rounded text-amber-900">
+                            Shift + Alt + D
+                          </code>
+                        </div>
+                        <div className="flex justify-between">
+                          <span className="text-amber-800">
+                            Toggle Empty Decks
+                          </span>
+                          <code className="bg-amber-100 px-1.5 py-0.5 rounded text-amber-900">
+                            Shift + Alt + E
+                          </code>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CollapsibleContent>
+              </Collapsible>
+            </>
+          )}
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={() => onOpenChange(false)}>
