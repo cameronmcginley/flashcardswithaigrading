@@ -9,10 +9,15 @@ import {
   SidebarTrigger,
 } from "@/components/ui/sidebar";
 import DeckInfoModal from "./components/deck-info-modal";
-import { getAllCategoriesWithDecks } from "@/features/categories/category";
+import {
+  getAllCategoriesWithDecks,
+  createCategory,
+  updateItemsOrder,
+} from "@/features/categories/category";
 import { toast } from "sonner";
 import AddCardModal from "./components/add-card-modal";
 import AddDeckModal from "./components/add-deck-modal";
+import MagicDeckModal from "@/components/magic-deck-modal";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -85,37 +90,41 @@ export default function Page() {
     string | null
   >(null);
 
-  // Fetch categories and decks on mount
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        setIsLoading(true);
-        const data = await getAllCategoriesWithDecks();
+  // Rename the magic deck modal state to match its usage
+  const [isMagicDeckModalOpen, setIsMagicDeckModalOpen] = useState(false);
 
-        // Transform the data to match our UI interface
-        const transformedCategories: UICategory[] = data.map(
-          (category: DatabaseCategory) => ({
-            id: category.id,
-            name: category.name,
-            decks: category.decks.map((deck: DatabaseDeck) => ({
+  // Fetch categories and decks on mount
+  const fetchCategories = async () => {
+    try {
+      setIsLoading(true);
+      const data = await getAllCategoriesWithDecks();
+
+      // Transform the data to match our UI interface
+      const transformedCategories: UICategory[] = data.map(
+        (category: DatabaseCategory) => ({
+          id: category.id,
+          name: category.name,
+          decks:
+            category.decks?.map((deck: DatabaseDeck) => ({
               id: deck.id,
               name: deck.name,
               selected: false,
               cardCount: deck.card_count || 0,
-            })),
-          })
-        );
+            })) || [],
+        })
+      );
 
-        setCategories(transformedCategories);
-      } catch (error) {
-        console.error("Error fetching categories:", error);
-        toast.error("Failed to load categories and decks");
-      } finally {
-        setIsLoading(false);
-      }
-    };
+      setCategories(transformedCategories);
+    } catch (error) {
+      console.error("Error fetching categories:", error);
+      toast.error("Failed to load categories and decks");
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
-    fetchData();
+  useEffect(() => {
+    fetchCategories();
   }, []);
 
   const handleSelectedDecksChange = (categoryId: string, deckId: string) => {
@@ -154,19 +163,27 @@ export default function Page() {
     setIsAddCategoryModalOpen(true);
   };
 
-  const handleAddCategorySubmit = () => {
+  const handleAddCategorySubmit = async () => {
     if (newCategoryName.trim()) {
-      // TODO: Implement actual save to database
-      const newCategory: UICategory = {
-        id: `cat-${Date.now()}`,
-        name: newCategoryName,
-        decks: [],
-      };
+      try {
+        const createdCategory = await createCategory(newCategoryName);
 
-      setCategories([...categories, newCategory]);
-      toast.success(`Category "${newCategoryName}" added`);
-      setNewCategoryName("");
-      setIsAddCategoryModalOpen(false);
+        const newCategory: UICategory = {
+          id: createdCategory.id,
+          name: createdCategory.name,
+          decks: [],
+        };
+
+        setCategories([...categories, newCategory]);
+        toast.success(`Category "${newCategoryName}" added`);
+        setNewCategoryName("");
+        setIsAddCategoryModalOpen(false);
+      } catch (error) {
+        console.error("Error creating category:", error);
+        toast.error(
+          error instanceof Error ? error.message : "Failed to create category"
+        );
+      }
     }
   };
 
@@ -177,15 +194,6 @@ export default function Page() {
   ) => {
     setSelectedDeckInfo({ deckId, deckName, categoryName });
     setIsDeckInfoModalOpen(true);
-  };
-
-  const handleAddCard = (
-    deckId: string,
-    deckName: string,
-    categoryName: string
-  ) => {
-    setSelectedDeckForCard({ deckId, deckName, categoryName });
-    setIsAddCardModalOpen(true);
   };
 
   const handleCardCountChange = (deckId: string, change: number) => {
@@ -273,6 +281,44 @@ export default function Page() {
     }
   };
 
+  // Add handler for saving category and deck order
+  const handleSaveOrder = async (updatedCategories: UICategory[]) => {
+    try {
+      // Convert to the format expected by our API
+      const orderUpdates = updatedCategories.flatMap(
+        (category, categoryIndex) => {
+          // Create category order update
+          const categoryUpdate = {
+            id: category.id,
+            type: "category" as const,
+            order: categoryIndex,
+          };
+
+          // Create deck order updates
+          const deckUpdates = category.decks.map((deck, deckIndex) => ({
+            id: deck.id,
+            type: "deck" as const,
+            order: deckIndex,
+          }));
+
+          return [categoryUpdate, ...deckUpdates];
+        }
+      );
+
+      // Call the API to update the orders
+      await updateItemsOrder(orderUpdates);
+
+      // Fetch updated categories to reflect the changes
+      fetchCategories();
+
+      toast.success("Order updated successfully");
+    } catch (error) {
+      console.error("Error saving order:", error);
+      toast.error("Failed to update order");
+      throw error;
+    }
+  };
+
   // Render the Add Category modal content only when needed
   const renderAddCategoryModal = () => (
     <DialogContent className="sm:max-w-[425px]">
@@ -334,8 +380,30 @@ export default function Page() {
           onAddCategory={handleAddCategory}
           onEditDeck={handleEditDeck}
           onDeleteDeck={handleDeleteDeck}
-          onAddCard={handleAddCard}
+          onAddCard={(front, back, deckId) => {
+            // Set up selected deck and open add card modal
+            const deck = categories
+              .flatMap((category) => category.decks)
+              .find((deck) => deck.id === deckId);
+
+            if (deck) {
+              const category = categories.find((c) =>
+                c.decks.some((d) => d.id === deckId)
+              );
+
+              if (category) {
+                setSelectedDeckForCard({
+                  deckId,
+                  deckName: deck.name,
+                  categoryName: category.name,
+                });
+                setIsAddCardModalOpen(true);
+              }
+            }
+          }}
+          onMagicDeckGenerate={() => setIsMagicDeckModalOpen(true)}
           onAddCardGeneral={handleAddCardGeneral}
+          onSaveOrder={handleSaveOrder}
         />
         <SidebarInset className="flex flex-col pt-0">
           <header className="flex h-12 shrink-0 items-center gap-3 px-4">
@@ -425,6 +493,25 @@ export default function Page() {
           categories={categories}
           onCategoryChange={setSelectedCategoryIdForDeck}
         />
+
+        {/* Add Magic Deck Modal */}
+        {isMagicDeckModalOpen && (
+          <MagicDeckModal
+            open={isMagicDeckModalOpen}
+            onOpenChange={setIsMagicDeckModalOpen}
+            onGenerate={(
+              categoryId: string,
+              deckName: string,
+              prompt: string
+            ) => {
+              // Here you would implement the magic deck generation logic
+              console.log("Generating deck:", categoryId, deckName, prompt);
+              toast.success("Magic deck generated successfully!");
+              setIsMagicDeckModalOpen(false);
+            }}
+            categories={categories}
+          />
+        )}
       </SidebarProvider>
     </div>
   );

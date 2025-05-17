@@ -25,28 +25,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { MarkdownContent } from "@/components/markdown-content";
-
-// Import the scoreCard function from the sorting module
-const secondsSince = (date?: Date) => {
-  if (!date) return 999999;
-  return (Date.now() - new Date(date).getTime()) / 1000;
-};
-
-// Copy of the scoreCard function from sorting.ts but without jitter for consistent display
-const scoreCard = (card: {
-  ease: number;
-  last_reviewed: Date | string | null;
-  review_count: number;
-}) => {
-  const easeWeight = (card.ease ?? 2.5) * 1000;
-  const recencyBoost =
-    secondsSince(
-      card.last_reviewed ? new Date(card.last_reviewed) : undefined
-    ) * 0.05;
-  const seenWeight = Math.pow(card.review_count ?? 0, 0.7);
-
-  return Math.round(easeWeight - recencyBoost + seenWeight);
-};
+import { scoreCard } from "@/features/cards/sorting";
 
 interface FlashcardProps {
   card: {
@@ -405,7 +384,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                           <tbody>
                             {allCards.map((c, index) => {
                               // Calculate score for sorting
-                              const score = scoreCard(c);
+                              const score = Math.round(scoreCard(c, false));
                               return (
                                 <tr
                                   key={c.id}

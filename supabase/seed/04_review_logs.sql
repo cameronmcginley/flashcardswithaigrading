@@ -60,8 +60,8 @@ INSERT INTO review_logs (
     answer_time_ms,
     previous_ease_factor,
     new_ease_factor,
-    correct,
     grading_difficulty,
+    verdict,
     reviewed_at
 )
 SELECT
@@ -76,28 +76,20 @@ SELECT
     (random() * 1.2 + 1.3)::float as previous_ease_factor,
     -- New ease factor slightly adjusted from previous
     (random() * 1.2 + 1.3)::float as new_ease_factor,
-    -- Correct answers correlate with grades
-    CASE 
-        WHEN calculated_grade >= 80 THEN true
-        WHEN calculated_grade >= 50 THEN random() < 0.5
-        ELSE false
-    END::boolean as correct,
     -- Distribute difficulty levels
     CASE floor(random() * 3)::int
         WHEN 0 THEN 'beginner'
         WHEN 1 THEN 'adept'
         ELSE 'master'
     END::grading_difficulty_type as grading_difficulty,
+    -- Set verdict based on grade
+    CASE 
+        WHEN calculated_grade >= 80 THEN 'correct'::grading_verdict_type
+        WHEN calculated_grade >= 60 THEN 'partial'::grading_verdict_type
+        ELSE 'incorrect'::grading_verdict_type
+    END as verdict,
     review_date as reviewed_at
 FROM card_reviews;
-
--- Update review logs with verdict field using grade breakpoints
-UPDATE review_logs
-SET verdict = CASE 
-    WHEN grade >= 80 THEN 'correct'
-    WHEN grade >= 60 THEN 'partial'
-    ELSE 'incorrect'
-END;
 
 -- Drop the temporary function
 DROP FUNCTION random_timestamp_last_year(); 

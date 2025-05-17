@@ -25,7 +25,20 @@ export const insertReviewLog = async (log: {
 
   const { data, error } = await supabase
     .from("review_logs")
-    .insert([{ ...log, verdict }])
+    .insert([
+      {
+        profile_id: log.user_id,
+        card_id: log.card_id,
+        deck_id: log.deck_id,
+        category_id: log.category_id,
+        grade: log.grade,
+        answer_time_ms: log.answer_time_ms,
+        previous_ease_factor: log.previous_ease_factor,
+        new_ease_factor: log.new_ease_factor,
+        verdict: verdict + "::grading_verdict_type",
+        grading_difficulty: log.grading_difficulty,
+      },
+    ])
     .select()
     .single();
 
@@ -40,7 +53,7 @@ export const getDailyStats = async (days = 14) => {
 
   const { data, error } = await supabase
     .from("review_logs")
-    .select("grade, correct, answer_time_ms, reviewed_at")
+    .select("grade, verdict, answer_time_ms, reviewed_at")
     .gte("reviewed_at", since.toISOString());
 
   if (error) throw error;
@@ -56,7 +69,7 @@ export const getDailyStats = async (days = 14) => {
       grouped[day] = { total: 0, correct: 0, gradeSum: 0, timeSum: 0 };
 
     grouped[day].total += 1;
-    grouped[day].correct += row.correct ? 1 : 0;
+    grouped[day].correct += row.verdict === "correct" ? 1 : 0;
     grouped[day].gradeSum += row.grade;
     grouped[day].timeSum += row.answer_time_ms;
   }
@@ -76,14 +89,14 @@ export const getDailyStats = async (days = 14) => {
 export const getStatsInRange = async (start: Date, end: Date = new Date()) => {
   const { data, error } = await supabase
     .from("review_logs")
-    .select("correct, new_ease_factor")
+    .select("verdict, new_ease_factor")
     .gte("reviewed_at", start.toISOString())
     .lte("reviewed_at", end.toISOString());
 
   if (error) throw error;
 
   const totalReviews = data.length;
-  const totalCorrect = data.filter((d) => d.correct).length;
+  const totalCorrect = data.filter((d) => d.verdict === "correct").length;
   const totalIncorrect = totalReviews - totalCorrect;
   const averageEase =
     totalReviews === 0
@@ -109,12 +122,12 @@ export const getStatsInRange = async (start: Date, end: Date = new Date()) => {
 export const getAllTimeStats = async () => {
   const { data, error } = await supabase
     .from("review_logs")
-    .select("correct, reviewed_at, new_ease_factor");
+    .select("verdict, reviewed_at, new_ease_factor");
 
   if (error) throw error;
 
   const totalReviews = data.length;
-  const totalCorrect = data.filter((d) => d.correct).length;
+  const totalCorrect = data.filter((d) => d.verdict === "correct").length;
   const totalIncorrect = totalReviews - totalCorrect;
   const averageEase =
     totalReviews === 0
@@ -155,9 +168,19 @@ export const getAllTimeStats = async () => {
 
 /** Deck-level performance overview */
 export const getDeckPerformanceStats = async () => {
+  type ReviewLogWithDeck = {
+    deck_id: string;
+    grade: number;
+    verdict: "correct" | "partial" | "incorrect";
+    decks: {
+      name: string;
+    };
+  };
+
   const { data, error } = await supabase
     .from("review_logs")
-    .select("deck_id, grade, correct, decks!inner(name)");
+    .select("deck_id, grade, verdict, decks(name)")
+    .returns<ReviewLogWithDeck[]>();
 
   if (error) throw error;
 
@@ -174,7 +197,7 @@ export const getDeckPerformanceStats = async () => {
       grouped[deckId] = { name: deckName, total: 0, correct: 0, gradeSum: 0 };
 
     grouped[deckId].total += 1;
-    grouped[deckId].correct += row.correct ? 1 : 0;
+    grouped[deckId].correct += row.verdict === "correct" ? 1 : 0;
     grouped[deckId].gradeSum += row.grade;
   }
 
@@ -194,8 +217,8 @@ export const getUserAvgCorrectScore = async (userId: string) => {
   const { data, error } = await supabase
     .from("review_logs")
     .select("grade")
-    .eq("user_id", userId)
-    .eq("correct", true);
+    .eq("profile_id", userId)
+    .eq("verdict", "correct");
 
   if (error) throw error;
   if (!data.length) return null;
@@ -277,6 +300,30 @@ export const getCategoryStats = async (
   timeRange: string
 ): Promise<CategoryStatsResponse[]> => {
   const { data, error } = await supabase.rpc("get_category_stats", {
+    time_range: timeRange,
+  });
+
+  if (error) throw error;
+  return data;
+};
+
+export interface DeckStatsResponse {
+  id: string;
+  name: string;
+  category_name: string;
+  card_count: number;
+  total_reviews: number;
+  correct_reviews: number;
+  incorrect_reviews: number;
+  accuracy: number;
+  average_ease: number;
+  last_reviewed: string | null;
+}
+
+export const getDeckStats = async (
+  timeRange: string
+): Promise<DeckStatsResponse[]> => {
+  const { data, error } = await supabase.rpc("get_deck_stats", {
     time_range: timeRange,
   });
 

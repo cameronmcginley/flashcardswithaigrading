@@ -18,6 +18,9 @@
     "db:hardreset": "npm run db:reset && npm run db:seed"
   },
   "dependencies": {
+    "@dnd-kit/core": "^6.3.1",
+    "@dnd-kit/sortable": "^10.0.0",
+    "@dnd-kit/utilities": "^3.2.2",
     "@nivo/bar": "^0.94.0",
     "@nivo/calendar": "^0.94.0",
     "@nivo/heatmap": "^0.94.0",

@@ -9,9 +9,11 @@ export const getAllCategoriesWithDecks = async () => {
       `
       id,
       name,
+      display_order,
       decks!inner (
         id,
         name,
+        display_order,
         cards!inner (
           count
         )
@@ -21,7 +23,7 @@ export const getAllCategoriesWithDecks = async () => {
     .is("deleted_at", null)
     .is("decks.deleted_at", null)
     .is("decks.cards.deleted_at", null)
-    .order("name", { ascending: true });
+    .order("display_order", { ascending: true });
 
   if (error) throw error;
 
@@ -29,11 +31,13 @@ export const getAllCategoriesWithDecks = async () => {
   const data = rawData?.map((category) => ({
     id: category.id,
     name: category.name,
-    decks: category.decks.map((deck) => ({
-      id: deck.id,
-      name: deck.name,
-      card_count: deck.cards?.[0]?.count || 0,
-    })),
+    decks: category.decks
+      .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
+      .map((deck) => ({
+        id: deck.id,
+        name: deck.name,
+        card_count: deck.cards?.[0]?.count || 0,
+      })),
   }));
 
   return data;
@@ -114,4 +118,57 @@ export const deleteCategory = async (categoryId: string) => {
 
   if (error) throw error;
   return data;
+};
+
+// New function to update category order
+export const updateCategoryOrder = async (
+  categoryId: string,
+  newOrder: number
+) => {
+  if (!categoryId) {
+    throw new Error("Missing required fields");
+  }
+
+  const { error } = await supabase.rpc("update_category_order", {
+    category_id: categoryId,
+    new_order: newOrder,
+  });
+
+  if (error) throw error;
+  return true;
+};
+
+// New function to update deck order
+export const updateDeckOrder = async (deckId: string, newOrder: number) => {
+  if (!deckId) {
+    throw new Error("Missing required fields");
+  }
+
+  const { error } = await supabase.rpc("update_deck_order", {
+    deck_id: deckId,
+    new_order: newOrder,
+  });
+
+  if (error) throw error;
+  return true;
+};
+
+// New function to update multiple categories and decks at once
+export interface OrderUpdateItem {
+  id: string;
+  type: "category" | "deck";
+  order: number;
+}
+
+export const updateItemsOrder = async (items: OrderUpdateItem[]) => {
+  const categoryUpdates = items
+    .filter((item) => item.type === "category")
+    .map((item) => updateCategoryOrder(item.id, item.order));
+
+  const deckUpdates = items
+    .filter((item) => item.type === "deck")
+    .map((item) => updateDeckOrder(item.id, item.order));
+
+  await Promise.all([...categoryUpdates, ...deckUpdates]);
+  return true;
 };

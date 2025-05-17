@@ -54,6 +54,7 @@ create table cards (
   ease       float default 2.5,
   review_count    int default 0,
   correct_count   int default 0,
+  partial_correct_count int default 0,
   incorrect_count int default 0,
   last_reviewed   timestamptz,
   created_at timestamptz default now(),
@@ -62,6 +63,7 @@ create table cards (
 
 -- 6. REVIEW LOGS  (for insights)
 create type grading_difficulty_type as enum ('beginner','adept','master');
+create type grading_verdict_type as enum ('correct', 'partial', 'incorrect');
 
 create table review_logs (
   id          uuid default gen_random_uuid(),
@@ -73,7 +75,7 @@ create table review_logs (
   answer_time_ms int not null,
   previous_ease_factor float not null,
   new_ease_factor      float not null,
-  correct boolean not null,
+  verdict grading_verdict_type not null,
   grading_difficulty grading_difficulty_type not null default 'adept',
   reviewed_at timestamptz not null default now(),
   primary key (id, profile_id)
