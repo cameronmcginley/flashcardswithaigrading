@@ -11,6 +11,18 @@ import {
 import DeckInfoModal from "./components/deck-info-modal";
 import { getAllCategoriesWithDecks } from "@/features/categories/category";
 import { toast } from "sonner";
+import AddCardModal from "./components/add-card-modal";
+import AddDeckModal from "./components/add-deck-modal";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 
 // Define interfaces that match the database schema
 interface DatabaseDeck {
@@ -53,6 +65,25 @@ export default function Page() {
     deckName: string;
     categoryName: string;
   } | null>(null);
+
+  // State for AddCardModal
+  const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
+  const [selectedDeckForCard, setSelectedDeckForCard] = useState<{
+    deckId: string;
+    deckName: string;
+    categoryName: string;
+  } | null>(null);
+
+  // Add state for add category modal
+  const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
+  const [newCategoryName, setNewCategoryName] = useState("");
+
+  // Add state for add deck modal from FAB
+  const [isAddDeckFromFabModalOpen, setIsAddDeckFromFabModalOpen] =
+    useState(false);
+  const [selectedCategoryIdForDeck, setSelectedCategoryIdForDeck] = useState<
+    string | null
+  >(null);
 
   // Fetch categories and decks on mount
   useEffect(() => {
@@ -120,8 +151,23 @@ export default function Page() {
   };
 
   const handleAddCategory = () => {
-    // TODO: Implement add category functionality
-    console.log("Add category");
+    setIsAddCategoryModalOpen(true);
+  };
+
+  const handleAddCategorySubmit = () => {
+    if (newCategoryName.trim()) {
+      // TODO: Implement actual save to database
+      const newCategory: UICategory = {
+        id: `cat-${Date.now()}`,
+        name: newCategoryName,
+        decks: [],
+      };
+
+      setCategories([...categories, newCategory]);
+      toast.success(`Category "${newCategoryName}" added`);
+      setNewCategoryName("");
+      setIsAddCategoryModalOpen(false);
+    }
   };
 
   const handleEditDeck = (
@@ -131,6 +177,15 @@ export default function Page() {
   ) => {
     setSelectedDeckInfo({ deckId, deckName, categoryName });
     setIsDeckInfoModalOpen(true);
+  };
+
+  const handleAddCard = (
+    deckId: string,
+    deckName: string,
+    categoryName: string
+  ) => {
+    setSelectedDeckForCard({ deckId, deckName, categoryName });
+    setIsAddCardModalOpen(true);
   };
 
   const handleCardCountChange = (deckId: string, change: number) => {
@@ -171,17 +226,104 @@ export default function Page() {
     setCategories(updatedCategories);
   };
 
+  const handleAddCardSubmit = (front: string, back: string, deckId: string) => {
+    // TODO: Add actual implementation to save the card to the database
+    console.log("Adding card to deck:", deckId, { front, back });
+
+    // Increment the card count for the deck
+    handleCardCountChange(deckId, 1);
+
+    toast.success("Card added successfully");
+  };
+
+  const handleAddMultipleCards = (
+    cards: Array<{ front: string; back: string }>,
+    deckId: string
+  ) => {
+    // TODO: Add actual implementation to save multiple cards
+    console.log("Adding multiple cards to deck:", deckId, cards);
+
+    // Increment the card count for the deck
+    handleCardCountChange(deckId, cards.length);
+
+    toast.success(`Added ${cards.length} cards successfully`);
+  };
+
+  const handleAddCardGeneral = () => {
+    // Get all available decks
+    const allDecks = categories.flatMap((category) =>
+      category.decks.map((deck) => ({
+        deckId: deck.id,
+        deckName: deck.name,
+        categoryName: category.name,
+      }))
+    );
+
+    // Select the first deck by default if any exists
+    if (allDecks.length > 0) {
+      const firstDeck = allDecks[0];
+      setSelectedDeckForCard({
+        deckId: firstDeck.deckId,
+        deckName: firstDeck.deckName,
+        categoryName: firstDeck.categoryName,
+      });
+      setIsAddCardModalOpen(true);
+    } else {
+      toast.error("No decks available. Please create a deck first.");
+    }
+  };
+
+  // Render the Add Category modal content only when needed
+  const renderAddCategoryModal = () => (
+    <DialogContent className="sm:max-w-[425px]">
+      <DialogHeader>
+        <DialogTitle>Create New Category</DialogTitle>
+      </DialogHeader>
+      <div className="grid gap-4 py-4">
+        <div className="grid grid-cols-4 items-center gap-4">
+          <Label htmlFor="categoryName" className="text-right">
+            Name
+          </Label>
+          <Input
+            id="categoryName"
+            value={newCategoryName}
+            onChange={(e) => setNewCategoryName(e.target.value)}
+            className="col-span-3"
+            autoFocus
+          />
+        </div>
+      </div>
+      <DialogFooter>
+        <Button
+          variant="outline"
+          onClick={() => setIsAddCategoryModalOpen(false)}
+        >
+          Cancel
+        </Button>
+        <Button onClick={handleAddCategorySubmit}>Add Category</Button>
+      </DialogFooter>
+    </DialogContent>
+  );
+
   if (isLoading) {
     return <div>Loading...</div>;
   }
 
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
+      {/* Prerender dialog without content for faster initial render */}
+      <Dialog
+        open={isAddCategoryModalOpen}
+        onOpenChange={setIsAddCategoryModalOpen}
+      >
+        {isAddCategoryModalOpen && renderAddCategoryModal()}
+      </Dialog>
+
       <SidebarProvider
         className="flex-1 flex"
         style={
           {
-            "--sidebar-width": "19rem",
+            "--sidebar-width": "clamp(22rem, 20vw, 30rem)",
           } as React.CSSProperties
         }
       >
@@ -192,6 +334,8 @@ export default function Page() {
           onAddCategory={handleAddCategory}
           onEditDeck={handleEditDeck}
           onDeleteDeck={handleDeleteDeck}
+          onAddCard={handleAddCard}
+          onAddCardGeneral={handleAddCardGeneral}
         />
         <SidebarInset className="flex flex-col pt-0">
           <header className="flex h-12 shrink-0 items-center gap-3 px-4">
@@ -244,6 +388,43 @@ export default function Page() {
             onCardCountChange={handleCardCountChange}
           />
         )}
+
+        {selectedDeckForCard && (
+          <AddCardModal
+            open={isAddCardModalOpen}
+            onOpenChange={setIsAddCardModalOpen}
+            onAddCard={handleAddCardSubmit}
+            onAddMultipleCards={handleAddMultipleCards}
+            deckName={selectedDeckForCard.deckName}
+            availableDecks={categories.flatMap((category) =>
+              category.decks.map((deck) => ({
+                id: deck.id,
+                name: deck.name,
+                categoryName: category.name,
+              }))
+            )}
+            defaultDeckId={selectedDeckForCard.deckId}
+          />
+        )}
+
+        {/* Add Deck Modal from FAB */}
+        <AddDeckModal
+          open={isAddDeckFromFabModalOpen}
+          onOpenChange={setIsAddDeckFromFabModalOpen}
+          onAddDeck={(name) => {
+            if (selectedCategoryIdForDeck && name) {
+              handleAddDeck(selectedCategoryIdForDeck);
+              setIsAddDeckFromFabModalOpen(false);
+            }
+          }}
+          categoryId={selectedCategoryIdForDeck || ""}
+          categoryName={
+            categories.find((c) => c.id === selectedCategoryIdForDeck)?.name ||
+            ""
+          }
+          categories={categories}
+          onCategoryChange={setSelectedCategoryIdForDeck}
+        />
       </SidebarProvider>
     </div>
   );
