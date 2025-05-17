@@ -384,7 +384,18 @@ Can you help me understand this feedback better and suggest how I can improve my
                           <tbody>
                             {allCards.map((c, index) => {
                               // Calculate score for sorting
-                              const score = Math.round(scoreCard(c, false));
+                              const score = Math.round(
+                                scoreCard(
+                                  {
+                                    ease: c.ease,
+                                    last_reviewed: c.last_reviewed
+                                      ? new Date(c.last_reviewed)
+                                      : new Date(0),
+                                    review_count: c.review_count,
+                                  },
+                                  false
+                                )
+                              );
                               return (
                                 <tr
                                   key={c.id}
@@ -451,25 +462,40 @@ Can you help me understand this feedback better and suggest how I can improve my
 
                 <div className="border rounded-md p-3 bg-muted/20 text-xs space-y-1">
                   <h5 className="font-medium">Grading System</h5>
-                  <ul className="space-y-1">
-                    <li className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                      <strong>Correct:</strong> Solid recall (≥80%){" "}
-                      <span className="text-muted-foreground">+5% ease</span>
-                    </li>
-                    <li className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
-                      <strong>Partial:</strong> Knew concept but missed details
-                      (60-79%){" "}
-                      <span className="text-muted-foreground">-5% ease</span>
-                    </li>
-                    <li className="flex items-center gap-1">
-                      <span className="w-2 h-2 rounded-full bg-red-500"></span>
-                      <strong>Incorrect:</strong> Didn&apos;t recall properly
-                      (&lt;60%){" "}
-                      <span className="text-muted-foreground">-15% ease</span>
-                    </li>
-                  </ul>
+                  <div className="grid gap-3 mt-2">
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="w-2 h-2 rounded-full bg-green-500 flex-shrink-0"></span>
+                        <strong>Correct:</strong>
+                      </div>
+                      <div className="pl-3.5">
+                        <div>Solid recall (≥80%)</div>
+                        <div className="text-muted-foreground">+5% ease</div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="w-2 h-2 rounded-full bg-yellow-500 flex-shrink-0"></span>
+                        <strong>Partial:</strong>
+                      </div>
+                      <div className="pl-3.5">
+                        <div>Knew concept but missed details (60-79%)</div>
+                        <div className="text-muted-foreground">-5% ease</div>
+                      </div>
+                    </div>
+
+                    <div>
+                      <div className="flex items-center gap-1.5 mb-1">
+                        <span className="w-2 h-2 rounded-full bg-red-500 flex-shrink-0"></span>
+                        <strong>Incorrect:</strong>
+                      </div>
+                      <div className="pl-3.5">
+                        <div>Didn&apos;t recall properly (&lt;60%)</div>
+                        <div className="text-muted-foreground">-15% ease</div>
+                      </div>
+                    </div>
+                  </div>
                   <div className="mt-2 pt-1 border-t text-muted-foreground">
                     AI grading automatically applies these verdicts based on
                     your answer.
