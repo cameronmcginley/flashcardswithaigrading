@@ -207,8 +207,8 @@ export const markCardCorrect = async (cardId: string) => {
   if (error) throw error;
 
   const updated = {
+    // Increase ease by 5%
     ease: Math.min(5.0, (data.ease ?? 2.5) * 1.05),
-
     review_count: (data.review_count ?? 0) + 1,
     correct_count: (data.correct_count ?? 0) + 1,
     last_reviewed: new Date(),

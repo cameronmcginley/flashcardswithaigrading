@@ -13,9 +13,19 @@ export const insertReviewLog = async (log: {
   correct: boolean;
   grading_difficulty: "beginner" | "adept" | "master";
 }) => {
+  // Determine the verdict based on grade thresholds
+  let verdict: "correct" | "partial" | "incorrect";
+  if (log.grade >= 80) {
+    verdict = "correct";
+  } else if (log.grade >= 60) {
+    verdict = "partial";
+  } else {
+    verdict = "incorrect";
+  }
+
   const { data, error } = await supabase
     .from("review_logs")
-    .insert([log])
+    .insert([{ ...log, verdict }])
     .select()
     .single();
 

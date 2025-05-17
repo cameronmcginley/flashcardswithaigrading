@@ -301,8 +301,7 @@ export default function MainArea({
       );
       setFilteredCards(updatedFilteredCards);
 
-      toast.success("Marked as correct");
-      handleNextCard();
+      // Let user manually proceed to next card
     } catch (error) {
       console.error("Error marking card as correct:", error);
       toast.error("Failed to update card");
@@ -348,10 +347,7 @@ export default function MainArea({
       );
       setFilteredCards(updatedFilteredCards);
 
-      toast.success("Marked as partially correct", {
-        style: { backgroundColor: "#facc15", color: "#422006" },
-      });
-      handleNextCard();
+      // Let user manually proceed to next card
     } catch (error) {
       console.error("Error marking card as partially correct:", error);
       toast.error("Failed to update card");
@@ -395,8 +391,7 @@ export default function MainArea({
       );
       setFilteredCards(updatedFilteredCards);
 
-      toast.error("Marked as wrong");
-      handleNextCard();
+      // Let user manually proceed to next card
     } catch (error) {
       console.error("Error marking card as incorrect:", error);
       toast.error("Failed to update card");

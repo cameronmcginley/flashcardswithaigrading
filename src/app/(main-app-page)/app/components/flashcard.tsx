@@ -214,9 +214,18 @@ export default function Flashcard({
       const result = await response.json();
       setAiGrade(result);
       setIsGraded(true);
-      toast.success("AI Grading Complete", {
-        description: `Your answer has been graded. Score: ${result.grade}%`,
-      });
+
+      // Auto-mark the card based on the AI grade, but don't advance to next card
+      if (result.grade >= 80 && onCorrect) {
+        // ≥80% - Mark as correct
+        await onCorrect();
+      } else if (result.grade >= 60 && onPartiallyCorrect) {
+        // 60-79% - Mark as partially correct
+        await onPartiallyCorrect();
+      } else if (result.grade < 60 && onWrong) {
+        // <60% - Mark as incorrect
+        await onWrong();
+      }
     } catch (error) {
       console.error("Error grading answer:", error);
       toast.error("Failed to grade answer", {
@@ -354,19 +363,26 @@ Can you help me understand this feedback better and suggest how I can improve my
                 <ul className="space-y-1">
                   <li className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-green-500"></span>
-                    <strong>Correct:</strong> Solid recall (≥80%)
+                    <strong>Correct:</strong> Solid recall (≥80%){" "}
+                    <span className="text-muted-foreground">+5% ease</span>
                   </li>
                   <li className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-yellow-500"></span>
                     <strong>Partial:</strong> Knew concept but missed details
-                    (60-79%)
+                    (60-79%){" "}
+                    <span className="text-muted-foreground">-5% ease</span>
                   </li>
                   <li className="flex items-center gap-1">
                     <span className="w-2 h-2 rounded-full bg-red-500"></span>
                     <strong>Incorrect:</strong> Didn&apos;t recall properly
-                    (&lt;60%)
+                    (&lt;60%){" "}
+                    <span className="text-muted-foreground">-15% ease</span>
                   </li>
                 </ul>
+                <div className="mt-2 pt-1 border-t text-muted-foreground">
+                  AI grading automatically applies these verdicts based on your
+                  answer.
+                </div>
               </div>
 
               <div className="pt-2 text-xs text-muted-foreground">
@@ -526,39 +542,61 @@ Can you help me understand this feedback better and suggest how I can improve my
                 </div>
 
                 {/* Manual grading buttons */}
-                {onCorrect && onWrong && (
-                  <div className="flex gap-2 mt-4 border-t pt-4">
-                    <div className="text-sm font-medium text-muted-foreground mb-2 mr-2">
-                      Rate your answer:
-                    </div>
-                    <Button
-                      variant="outline"
-                      onClick={onCorrect}
-                      className="bg-green-100 hover:bg-green-200 text-green-800 border-green-300"
-                    >
-                      <Check className="h-4 w-4 mr-1" />
-                      Correct
-                    </Button>
-                    {onPartiallyCorrect && (
-                      <Button
-                        variant="outline"
-                        onClick={onPartiallyCorrect}
-                        className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border-yellow-300"
-                      >
-                        <Check className="h-4 w-4 mr-1" />
-                        Partial
-                      </Button>
-                    )}
-                    <Button
-                      variant="outline"
-                      onClick={onWrong}
-                      className="bg-red-100 hover:bg-red-200 text-red-800 border-red-300"
-                    >
-                      <X className="h-4 w-4 mr-1" />
-                      Incorrect
-                    </Button>
-                  </div>
-                )}
+                {onCorrect &&
+                  onWrong &&
+                  !isGraded &&
+                  !isGrading &&
+                  (() => {
+                    // Check if auto-grade is enabled in localStorage
+                    const savedSettings =
+                      localStorage.getItem("ez-anki-settings");
+                    let autoGrade = false;
+                    if (savedSettings) {
+                      try {
+                        const settings = JSON.parse(savedSettings);
+                        autoGrade = settings.autoGrade || false;
+                      } catch (e) {
+                        console.error("Error parsing settings:", e);
+                      }
+                    }
+
+                    // If auto-grade is enabled, don't show manual grading buttons
+                    if (autoGrade) return null;
+
+                    return (
+                      <div className="flex gap-2 mt-4 border-t pt-4">
+                        <div className="text-sm font-medium text-muted-foreground mb-2 mr-2">
+                          Rate your answer:
+                        </div>
+                        <Button
+                          variant="outline"
+                          onClick={onCorrect}
+                          className="bg-green-100 hover:bg-green-200 text-green-800 border-green-300"
+                        >
+                          <Check className="h-4 w-4 mr-1" />
+                          Correct
+                        </Button>
+                        {onPartiallyCorrect && (
+                          <Button
+                            variant="outline"
+                            onClick={onPartiallyCorrect}
+                            className="bg-yellow-100 hover:bg-yellow-200 text-yellow-800 border-yellow-300"
+                          >
+                            <Check className="h-4 w-4 mr-1" />
+                            Partial
+                          </Button>
+                        )}
+                        <Button
+                          variant="outline"
+                          onClick={onWrong}
+                          className="bg-red-100 hover:bg-red-200 text-red-800 border-red-300"
+                        >
+                          <X className="h-4 w-4 mr-1" />
+                          Incorrect
+                        </Button>
+                      </div>
+                    );
+                  })()}
               </div>
             </div>
           )}
@@ -584,10 +622,25 @@ Can you help me understand this feedback better and suggest how I can improve my
                 <div className="flex-1">
                   <div className="flex items-center justify-between mb-2">
                     <h4 className="font-semibold text-lg">AI Feedback</h4>
-                    <div className="text-lg font-bold">
+                    <div className="flex items-center text-lg font-bold">
                       <span className={getGradeTextColor(aiGrade.grade)}>
                         {aiGrade.grade}%
                       </span>
+                      {aiGrade.grade >= 80 && (
+                        <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 ml-2 text-xs font-medium text-green-700">
+                          Correct
+                        </span>
+                      )}
+                      {aiGrade.grade >= 60 && aiGrade.grade < 80 && (
+                        <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 ml-2 text-xs font-medium text-yellow-700">
+                          Partially Correct
+                        </span>
+                      )}
+                      {aiGrade.grade < 60 && (
+                        <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 ml-2 text-xs font-medium text-red-700">
+                          Incorrect
+                        </span>
+                      )}
                     </div>
                   </div>
 
@@ -646,7 +699,11 @@ Can you help me understand this feedback better and suggest how I can improve my
             resetGrading();
             onNext?.();
           }}
-          className="flex items-center"
+          className={`flex items-center ${
+            isFlipped && (isGraded || isGrading)
+              ? "bg-blue-100 border-blue-300 text-blue-800 animate-pulse"
+              : ""
+          }`}
         >
           {isFlipped ? "Next" : "Skip"}
           <ChevronRight className="h-4 w-4 ml-1" />
