@@ -28,6 +28,7 @@ import {
   DialogTitle,
   DialogFooter,
 } from "@/components/ui/dialog";
+import { LoadingScreen } from "@/components/loading-screen";
 
 // Define interfaces that match the database schema
 interface DatabaseDeck {
@@ -93,10 +94,66 @@ export default function Page() {
   // Rename the magic deck modal state to match its usage
   const [isMagicDeckModalOpen, setIsMagicDeckModalOpen] = useState(false);
 
+  // Helper function to toggle simulate delay
+  const toggleSimulateDelay = () => {
+    try {
+      // Get current settings
+      const savedSettings = localStorage.getItem("ez-anki-settings") || "{}";
+      const settings = JSON.parse(savedSettings);
+
+      // Toggle the simulate delay setting
+      settings.simulateDelay = !settings.simulateDelay;
+
+      // Save the updated settings
+      localStorage.setItem("ez-anki-settings", JSON.stringify(settings));
+
+      // Show a toast message
+      toast.success(
+        `Simulate delay ${settings.simulateDelay ? "enabled" : "disabled"}`
+      );
+
+      // Reload the page to apply the change
+      window.location.reload();
+    } catch (error) {
+      console.error("Error toggling simulate delay:", error);
+      toast.error("Failed to toggle simulate delay setting");
+    }
+  };
+
+  // Add keyboard shortcut to toggle simulate delay (Shift+Alt+D)
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.shiftKey && e.altKey && e.key.toLowerCase() === "d") {
+        toggleSimulateDelay();
+      }
+    };
+
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, []);
+
   // Fetch categories and decks on mount
   const fetchCategories = async () => {
     try {
       setIsLoading(true);
+
+      // Simulated delay for testing the loading screen (3 seconds)
+      // This can be toggled with a debug setting
+      const savedSettings = localStorage.getItem("ez-anki-settings");
+      let simulateDelay = false;
+      if (savedSettings) {
+        try {
+          const settings = JSON.parse(savedSettings);
+          simulateDelay = settings.simulateDelay || false;
+        } catch (e) {
+          console.error("Error parsing settings:", e);
+        }
+      }
+
+      if (simulateDelay) {
+        await new Promise((resolve) => setTimeout(resolve, 3000));
+      }
+
       const data = await getAllCategoriesWithDecks();
 
       // Transform the data to match our UI interface
@@ -352,7 +409,26 @@ export default function Page() {
   );
 
   if (isLoading) {
-    return <div>Loading...</div>;
+    return (
+      <LoadingScreen
+        isLoading={true}
+        hasContent={true}
+        onAddCategory={handleAddCategory}
+        onOpenMagicDeck={() => setIsMagicDeckModalOpen(true)}
+      />
+    );
+  }
+
+  // Show empty state when no categories exist
+  if (categories.length === 0) {
+    return (
+      <LoadingScreen
+        isLoading={false}
+        hasContent={false}
+        onAddCategory={handleAddCategory}
+        onOpenMagicDeck={() => setIsMagicDeckModalOpen(true)}
+      />
+    );
   }
 
   return (
@@ -443,6 +519,45 @@ export default function Page() {
           <div className="flex-1 overflow-auto p-4 pt-0">
             <MainArea selectedDecks={selectedDecks} />
           </div>
+
+          {/* Debug Settings Indicator */}
+          {(() => {
+            // Check for debug settings
+            const savedSettings = localStorage.getItem("ez-anki-settings");
+            let debugMode = false;
+            let simulateDelay = false;
+
+            if (savedSettings) {
+              try {
+                const settings = JSON.parse(savedSettings);
+                debugMode = settings.debugMode || false;
+                simulateDelay = settings.simulateDelay || false;
+              } catch (e) {
+                console.error("Error parsing settings:", e);
+              }
+            }
+
+            // Only show debug indicator if in debug mode
+            if (debugMode) {
+              return (
+                <div className="border-t px-4 py-2 text-xs text-muted-foreground flex justify-between items-center">
+                  <span>Debug Mode</span>
+                  <button
+                    onClick={toggleSimulateDelay}
+                    className={`px-2 py-1 rounded text-xs ${
+                      simulateDelay
+                        ? "bg-amber-200 text-amber-800 hover:bg-amber-300"
+                        : "bg-gray-200 text-gray-800 hover:bg-gray-300"
+                    }`}
+                  >
+                    {simulateDelay ? "Delay: ON" : "Delay: OFF"}
+                  </button>
+                </div>
+              );
+            }
+
+            return null;
+          })()}
         </SidebarInset>
 
         {selectedDeckInfo && (
