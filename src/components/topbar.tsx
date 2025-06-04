@@ -1,11 +1,12 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings } from "lucide-react";
+import { Settings, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import SettingsModal from "./settings-modal";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
+import { useAuth } from "@/lib/auth-context";
 
 interface TopbarProps {
   onDebugModeChange?: (debugMode: boolean) => void;
@@ -14,6 +15,7 @@ interface TopbarProps {
 export default function Topbar({ onDebugModeChange }: TopbarProps) {
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const pathname = usePathname();
+  const { signOut } = useAuth();
 
   const [settings, setSettings] = useState({
     apiKey: "",
@@ -51,6 +53,19 @@ export default function Topbar({ onDebugModeChange }: TopbarProps) {
     // Notify parent about debug mode changes
     if (onDebugModeChange && newSettings.debugMode !== settings.debugMode) {
       onDebugModeChange(newSettings.debugMode);
+    }
+  };
+
+  const handleSignOut = async () => {
+    try {
+      // Clear any stored settings or user data
+      localStorage.clear();
+      // Sign out from Supabase
+      await signOut();
+      // Redirect to home page
+      window.location.href = "/";
+    } catch (error) {
+      console.error("Error signing out:", error);
     }
   };
 
@@ -93,7 +108,7 @@ export default function Topbar({ onDebugModeChange }: TopbarProps) {
           </Link>
         </div>
       </div>
-      <div>
+      <div className="flex items-center gap-2">
         <Button
           variant="ghost"
           size="icon"
@@ -101,6 +116,14 @@ export default function Topbar({ onDebugModeChange }: TopbarProps) {
           className="p-0"
         >
           <Settings className="h-5 w-5" />
+        </Button>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleSignOut}
+          className="p-0"
+        >
+          <LogOut className="h-5 w-5" />
         </Button>
         <SettingsModal
           open={isSettingsOpen}

@@ -26,6 +26,12 @@ import {
 import { cn } from "@/lib/utils";
 import { MarkdownContent } from "@/components/markdown-content";
 import { scoreCard } from "@/features/cards/sorting";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 
 interface FlashcardProps {
   card: {
@@ -780,16 +786,25 @@ Can you help me understand this feedback better and suggest how I can improve my
                   </div>
 
                   {/* Ask ChatGPT Button */}
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    className="flex items-center gap-1.5"
-                    onClick={copyFeedbackAndOpenChatGPT}
-                  >
-                    <Copy className="h-3.5 w-3.5" />
-                    <ExternalLink className="h-3.5 w-3.5" />
-                    <span>Ask ChatGPT for Help</span>
-                  </Button>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Button
+                          variant="outline"
+                          size="sm"
+                          className="flex items-center gap-1.5"
+                          onClick={copyFeedbackAndOpenChatGPT}
+                        >
+                          <Copy className="h-3.5 w-3.5" />
+                          <ExternalLink className="h-3.5 w-3.5" />
+                          <span>Ask ChatGPT for Help</span>
+                        </Button>
+                      </TooltipTrigger>
+                      <TooltipContent side="top" align="center">
+                        <p className="text-sm">Copies your question and answer to clipboard and opens ChatGPT</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
                 </div>
               </div>
             </Card>

@@ -52,8 +52,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   };
 
   const signOut = async () => {
+  try {
     const { error } = await supabase.auth.signOut();
-    if (error) throw error;
+    if (error && error.code !== "session_not_found") throw error;
+  } catch (err) {
+    console.error("Logout failed:", err);
+  }
   };
 
   const value = {

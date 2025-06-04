@@ -4,6 +4,7 @@ import { ArrowRight, Brain } from "lucide-react";
 import FlashcardDemo from "./components/flashcard-demo";
 import SettingsShowcase from "./components/settings-showcase";
 import FeatureGrid from "./components/feature-grid";
+import Link from "next/link";
 
 export default function Home() {
   return (
@@ -24,10 +25,12 @@ export default function Home() {
             EZ Anki uses AI to grade your answers, give feedback, and adapt your
             study schedule.
           </p>
-          <Button size="lg" className="rounded-full px-8 py-6 text-lg group">
-            Try Now
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
+          <Link href="/app">
+            <Button size="lg" className="rounded-full px-8 py-6 text-lg group">
+              Try Now
+              <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </Link>
         </div>
       </section>
 
@@ -102,10 +105,12 @@ export default function Home() {
             Join thousands of engineers who are optimizing their learning with
             EZ Anki.
           </p>
-          <Button size="lg" className="rounded-full px-8 py-6 text-lg group">
-            Get Started Now
-            <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
-          </Button>
+          <Link href="/app">
+            <Button size="lg" className="rounded-full px-8 py-6 text-lg group">
+              Get Started Now
+              <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
+            </Button>
+          </Link>
         </div>
       </section>
 
