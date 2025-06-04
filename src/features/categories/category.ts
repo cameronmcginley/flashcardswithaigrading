@@ -10,11 +10,11 @@ export const getAllCategoriesWithDecks = async () => {
       id,
       name,
       display_order,
-      decks!inner (
+      decks:decks!left (
         id,
         name,
         display_order,
-        cards!inner (
+        cards!left (
           count
         )
       )
@@ -31,7 +31,7 @@ export const getAllCategoriesWithDecks = async () => {
   const data = rawData?.map((category) => ({
     id: category.id,
     name: category.name,
-    decks: category.decks
+    decks: (category.decks || [])
       .sort((a, b) => (a.display_order || 0) - (b.display_order || 0))
       .map((deck) => ({
         id: deck.id,
