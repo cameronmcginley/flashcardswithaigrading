@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { motion } from "framer-motion";
+import { LoadingSidebar } from "@/components/loading-sidebar";
 
 interface LoadingScreenProps {
   isLoading: boolean;
@@ -28,38 +29,8 @@ export function LoadingScreen({
 }: LoadingScreenProps) {
   if (isLoading) {
     return (
-      <div className="h-full w-full flex flex-col items-center justify-center p-8">
-        <div className="w-full max-w-md flex flex-col items-center">
-          <motion.div
-            className="w-20 h-20 rounded-full bg-primary/10 flex items-center justify-center mb-6"
-            animate={{
-              scale: [1, 1.1, 1],
-              rotate: [0, 5, -5, 0],
-            }}
-            transition={{
-              duration: 2,
-              repeat: Infinity,
-              ease: "easeInOut",
-            }}
-          >
-            <BookOpen className="h-10 w-10 text-primary" />
-          </motion.div>
-          <motion.h2
-            className="text-2xl font-bold mb-2"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-          >
-            Loading your flashcards
-          </motion.h2>
-          <motion.p
-            className="text-muted-foreground text-center mb-8"
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.3 }}
-          >
-            Preparing your study materials...
-          </motion.p>
+      <div className="flex flex-col h-full">
+        <div className="flex-1 p-4">
           <div className="w-full space-y-4">
             <Skeleton className="h-12 w-full" />
             <div className="flex items-center space-x-4">

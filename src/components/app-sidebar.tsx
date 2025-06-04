@@ -29,7 +29,9 @@ import {
   SidebarHeader,
   SidebarMenu,
   SidebarMenuSub,
+  SidebarMenuSkeleton,
 } from "@/components/ui/sidebar";
+import { LoadingSidebar } from "@/components/loading-sidebar";
 import AddDeckModal from "@/app/(main-app-page)/app/components/add-deck-modal";
 import { Input } from "@/components/ui/input";
 import MagicDeckModal from "@/components/magic-deck-modal";
@@ -148,7 +150,7 @@ function SortableItem({ id, label, depth = 0 }: SortableItemProps) {
 interface AppSidebarProps {
   categories: Category[];
   onDeckSelect: (categoryId: string, deckId: string) => void;
-  onAddDeck: (categoryId: string) => void;
+  onAddDeck: (name: string, deckId: string) => void;
   onAddCategory: () => void;
   onEditDeck: (deckId: string, deckName: string, categoryName: string) => void;
   onDeleteDeck: (categoryId: string, deckId: string) => void;
@@ -157,6 +159,8 @@ interface AppSidebarProps {
   onAddCard?: (deckId: string, deckName: string, categoryName: string) => void;
   onAddCardGeneral?: () => void;
   onSaveOrder?: (categories: Category[]) => Promise<void>;
+  setSelectedCategoryIdForDeck: (categoryId: string) => void;
+  isLoading?: boolean;
 }
 
 export function AppSidebar({
@@ -171,7 +175,14 @@ export function AppSidebar({
   onAddCard,
   onAddCardGeneral,
   onSaveOrder,
+  setSelectedCategoryIdForDeck,
+  isLoading = false,
 }: AppSidebarProps) {
+  // If loading, show the loading state
+  if (isLoading) {
+    return <LoadingSidebar />;
+  }
+
   const [expandedCategories, setExpandedCategories] = useState<string[]>([]);
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
   const [isMagicDeckModalOpen, setIsMagicDeckModalOpen] = useState(false);
@@ -475,6 +486,7 @@ export function AppSidebar({
   const handleAddDeckClick = (categoryId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     setSelectedCategoryId(categoryId);
+    setSelectedCategoryIdForDeck(categoryId);
     setIsAddDeckModalOpen(true);
   };
 
@@ -985,9 +997,9 @@ export function AppSidebar({
       <AddDeckModal
         open={isAddDeckModalOpen}
         onOpenChange={setIsAddDeckModalOpen}
-        onAddDeck={(name) => {
+        onAddDeck={(name, deckId) => {
           if (selectedCategoryId && name) {
-            onAddDeck(selectedCategoryId);
+            onAddDeck(name, deckId);
             setIsAddDeckModalOpen(false);
           }
         }}
