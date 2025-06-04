@@ -1,6 +1,7 @@
 import { supabase } from "@/lib/supabase/client";
 import { isValidCategoryName } from "./utils";
 import { INVALID_CATEGORY_NAME_ERROR } from "./constants";
+import { updateDeckOrder } from "../decks/deck";
 
 export const getAllCategoriesWithDecks = async () => {
   const { data: rawData, error } = await supabase
@@ -120,7 +121,6 @@ export const deleteCategory = async (categoryId: string) => {
   return data;
 };
 
-// New function to update category order
 export const updateCategoryOrder = async (
   categoryId: string,
   newOrder: number
@@ -138,22 +138,6 @@ export const updateCategoryOrder = async (
   return true;
 };
 
-// New function to update deck order
-export const updateDeckOrder = async (deckId: string, newOrder: number) => {
-  if (!deckId) {
-    throw new Error("Missing required fields");
-  }
-
-  const { error } = await supabase.rpc("update_deck_order", {
-    deck_id: deckId,
-    new_order: newOrder,
-  });
-
-  if (error) throw error;
-  return true;
-};
-
-// New function to update multiple categories and decks at once
 export interface OrderUpdateItem {
   id: string;
   type: "category" | "deck";

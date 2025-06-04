@@ -20,6 +20,8 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { createDeck } from "@/features/decks/deck";
+import { createManyCards } from "@/features/cards/card";
 
 interface Category {
   id: string;
@@ -29,11 +31,12 @@ interface Category {
 interface AddDeckModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddDeck: (name: string) => void;
+  onAddDeck: (name: string, deckId: string) => void;
   categoryId: string | null;
   categoryName: string;
   categories: Category[];
   onCategoryChange: (categoryId: string) => void;
+  onRefresh?: () => Promise<void>;
 }
 
 export default function AddDeckModal({
@@ -44,6 +47,7 @@ export default function AddDeckModal({
   categoryName,
   categories,
   onCategoryChange,
+  onRefresh,
 }: AddDeckModalProps) {
   const [deckName, setDeckName] = useState("");
   const [jsonContent, setJsonContent] = useState(
@@ -58,11 +62,11 @@ export default function AddDeckModal({
       2
     )
   );
-
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [isDeckNameValid, setIsDeckNameValid] = useState(true);
   const [isJsonValid, setIsJsonValid] = useState(true);
 
-  const handleSubmit = () => {
+  const handleSubmit = async () => {
     if (!isDeckNameValid || !isJsonValid) {
       toast.error("Validation Error", {
         description: "Please fix the validation errors before saving.",
@@ -77,8 +81,11 @@ export default function AddDeckModal({
       return;
     }
 
-    if (deckName.trim()) {
+    const trimmedDeckName = deckName.trim();
+    if (trimmedDeckName) {
       try {
+        setIsSubmitting(true);
+
         // Validate JSON structure
         const parsed = JSON.parse(jsonContent);
         if (!Array.isArray(parsed)) {
@@ -97,7 +104,22 @@ export default function AddDeckModal({
           return;
         }
 
-        onAddDeck(deckName);
+        // Create the deck
+        const deck = await createDeck(trimmedDeckName, categoryId);
+
+        // Create the cards
+        await createManyCards(
+          deck.id,
+          parsed.map((card) => ({
+            front: card.question,
+            back: card.answer,
+          }))
+        );
+
+        // Call the onAddDeck callback with the deck ID and name
+        onAddDeck(trimmedDeckName, deck.id);
+
+        // Reset form but keep the category selected
         setDeckName("");
         setJsonContent(
           JSON.stringify(
@@ -111,11 +133,17 @@ export default function AddDeckModal({
             2
           )
         );
+
+        // Close modal last
+        onOpenChange(false);
+
       } catch (error) {
-        // This shouldn't happen since we validate JSON format
-        toast.error("Error", {
-          description: "Failed to parse JSON.",
+        console.error("Error creating deck:", error);
+        toast.error("Failed to create deck", {
+          description: error instanceof Error ? error.message : "Unknown error",
         });
+      } finally {
+        setIsSubmitting(false);
       }
     }
   };
@@ -133,7 +161,7 @@ export default function AddDeckModal({
               value={categoryId || ""}
               onValueChange={(value) => onCategoryChange(value)}
             >
-              <SelectTrigger id="category-select">
+              <SelectTrigger id="category-select" className="w-full">
                 <SelectValue placeholder="Select a category" />
               </SelectTrigger>
               <SelectContent>
@@ -174,7 +202,9 @@ export default function AddDeckModal({
           <Button variant="outline" onClick={() => onOpenChange(false)}>
             Cancel
           </Button>
-          <Button onClick={handleSubmit}>Add Deck</Button>
+          <Button onClick={handleSubmit} disabled={isSubmitting}>
+            {isSubmitting ? "Creating..." : "Add Deck"}
+          </Button>
         </DialogFooter>
       </DialogContent>
     </Dialog>

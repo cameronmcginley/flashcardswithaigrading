@@ -272,9 +272,43 @@ export default function Page() {
     setSelectedDecks(selectedDecks);
   };
 
+  // This is the handler for the AddDeckModal
+  const handleAddDeckFromModal = async (name: string, deckId: string) => {
+    try {
+      // Find the category and add the new deck to it
+      if (selectedCategoryIdForDeck) {
+        setCategories(prevCategories => 
+          prevCategories.map(category => {
+            if (category.id === selectedCategoryIdForDeck) {
+              return {
+                ...category,
+                decks: [...category.decks, {
+                  id: deckId,
+                  name: name,
+                  selected: false,
+                  cardCount: 0
+                }]
+              };
+            }
+            return category;
+          })
+        );
+
+        // Keep the category ID but don't reopen the modal
+        setIsAddDeckFromFabModalOpen(false);
+      }
+      
+      toast.success(`Deck "${name}" added successfully`);
+    } catch (error) {
+      console.error("Error updating categories:", error);
+      toast.error("Failed to update decks");
+    }
+  };
+
+  // This is the handler for the sidebar
   const handleAddDeck = (categoryId: string) => {
-    // TODO: Implement add deck functionality
-    console.log("Add deck to category:", categoryId);
+    setSelectedCategoryIdForDeck(categoryId);
+    setIsAddDeckFromFabModalOpen(false);
   };
 
   const handleAddCategory = () => {
@@ -816,23 +850,20 @@ export default function Page() {
         )}
 
         {/* Add Deck Modal from FAB */}
-        <AddDeckModal
-          open={isAddDeckFromFabModalOpen}
-          onOpenChange={setIsAddDeckFromFabModalOpen}
-          onAddDeck={(name) => {
-            if (selectedCategoryIdForDeck && name) {
-              handleAddDeck(selectedCategoryIdForDeck);
-              setIsAddDeckFromFabModalOpen(false);
+        {isAddDeckFromFabModalOpen && (
+          <AddDeckModal
+            open={isAddDeckFromFabModalOpen}
+            onOpenChange={setIsAddDeckFromFabModalOpen}
+            onAddDeck={handleAddDeckFromModal}
+            categoryId={selectedCategoryIdForDeck}
+            categoryName={
+              categories.find((c) => c.id === selectedCategoryIdForDeck)?.name || ""
             }
-          }}
-          categoryId={selectedCategoryIdForDeck || ""}
-          categoryName={
-            categories.find((c) => c.id === selectedCategoryIdForDeck)?.name ||
-            ""
-          }
-          categories={categories}
-          onCategoryChange={setSelectedCategoryIdForDeck}
-        />
+            categories={categories}
+            onCategoryChange={setSelectedCategoryIdForDeck}
+            onRefresh={fetchCategories}
+          />
+        )}
 
         {/* Add Magic Deck Modal */}
         {isMagicDeckModalOpen && (
