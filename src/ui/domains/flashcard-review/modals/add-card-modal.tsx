@@ -290,7 +290,7 @@ export const AddCardModal = ({
               value={front}
               onChange={setFront}
               onValidChange={setIsFrontValid}
-              maxLength={500}
+              maxLength={2000}
               placeholder="Enter front side..."
               multiline
               rows={4}
@@ -304,7 +304,7 @@ export const AddCardModal = ({
               value={back}
               onChange={setBack}
               onValidChange={setIsBackValid}
-              maxLength={1000}
+              maxLength={2000}
               placeholder="Enter back side..."
               multiline
               rows={4}

@@ -619,7 +619,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                     </div>
                   </div>
                 ) : (
-                  <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1">
+                  <div className="text-lg font-medium mb-6 max-h-[500px] overflow-y-auto pr-1">
                     <MarkdownContent content={card.back} />
                   </div>
                 )}

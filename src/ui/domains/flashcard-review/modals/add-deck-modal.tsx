@@ -159,7 +159,7 @@ export const AddDeckModal = ({
             value={deckName}
             onChange={setDeckName}
             onValidChange={setIsDeckNameValid}
-            maxLength={50}
+            maxLength={100}
             placeholder="Enter deck name..."
             required
           />

@@ -8,7 +8,9 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import rehypeHighlight from "rehype-highlight";
+import rehypeKatex from "rehype-katex";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit2, Info } from "lucide-react";
 import {
@@ -17,6 +19,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import "katex/dist/katex.min.css";
+import "katex/dist/contrib/mhchem";
 
 interface JsonTextInputProps {
   id: string;
@@ -101,7 +105,7 @@ export function JsonTextInput({
 
       // Otherwise, just stringify it nicely
       return "```json\n" + JSON.stringify(parsed, null, 2) + "\n```";
-    } catch (error) {
+    } catch {
       return "Invalid JSON";
     }
   };
@@ -156,7 +160,7 @@ export function JsonTextInput({
       try {
         const formatted = JSON.stringify(JSON.parse(value), null, 2);
         onChange(formatted);
-      } catch (error) {
+      } catch {
         // This shouldn't happen since we already validated the JSON
       }
     }
@@ -219,8 +223,8 @@ export function JsonTextInput({
             >
               {value ? (
                 <ReactMarkdown
-                  remarkPlugins={[remarkGfm]}
-                  rehypePlugins={[rehypeHighlight]}
+                  remarkPlugins={[remarkGfm, remarkMath]}
+                  rehypePlugins={[rehypeHighlight, rehypeKatex]}
                 >
                   {extractMarkdownContent(value)}
                 </ReactMarkdown>

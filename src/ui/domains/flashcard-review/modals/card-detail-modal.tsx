@@ -82,7 +82,7 @@ export const CardDetailModal = ({
                 label="Front"
                 value={front}
                 onChange={setFront}
-                maxLength={500}
+                maxLength={2000}
                 placeholder="Enter front side..."
                 multiline
                 rows={4}
@@ -95,7 +95,7 @@ export const CardDetailModal = ({
                 label="Back"
                 value={back}
                 onChange={setBack}
-                maxLength={1000}
+                maxLength={2000}
                 placeholder="Enter back side..."
                 multiline
                 rows={4}

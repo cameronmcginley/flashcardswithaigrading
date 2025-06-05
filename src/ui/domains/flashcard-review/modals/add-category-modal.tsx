@@ -57,7 +57,7 @@ export const AddCategoryModal = ({
             value={categoryName}
             onChange={setCategoryName}
             onValidChange={setIsNameValid}
-            maxLength={50}
+            maxLength={100}
             placeholder="Enter category name..."
             required
           />

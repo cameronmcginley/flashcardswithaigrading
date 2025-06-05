@@ -6,15 +6,14 @@ import { Button } from "@/components/ui/button";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
+import { JsonTextInput } from "@/components/json-text-input";
 import { motion, AnimatePresence } from "framer-motion";
 import { 
   Upload, 
   FileText, 
   Plus, 
   CheckCircle2, 
-  Copy,
   Database,
   Zap,
   ArrowRight
@@ -24,20 +23,20 @@ export default function BulkImportShowcase() {
   const [activeTab, setActiveTab] = useState("json");
   const [isImporting, setIsImporting] = useState(false);
 
-  const jsonExample = `[
+  const [jsonExample, setJsonExample] = useState(`[
   {
-    "front": "What is React Fiber?",
-    "back": "React's reconciliation algorithm that enables concurrent rendering and better performance through work splitting."
+    "front": "What is **React Fiber**?",
+    "back": "React's reconciliation algorithm that enables concurrent rendering and better performance through work splitting.\\n\\n\`\`\`javascript\\n// Example of concurrent features\\nfunction MyComponent() {\\n  return <div>Hello World</div>;\\n}\\n\`\`\`"
   },
   {
-    "front": "Explain useCallback hook",
-    "back": "A React hook that returns a memoized callback function, preventing unnecessary re-renders of child components."
+    "front": "Explain \`useCallback\` hook",
+    "back": "A React hook that returns a memoized callback function, preventing unnecessary re-renders of child components.\\n\\n### Usage:\\n- Optimize child component rendering\\n- Prevent unnecessary function recreations\\n- Improve performance in large apps"
   },
   {
-    "front": "What is TypeScript?",
-    "back": "A statically typed superset of JavaScript that compiles to plain JavaScript, providing better tooling and error detection."
+    "front": "What is **TypeScript**?",
+    "back": "A statically typed superset of JavaScript that compiles to plain JavaScript.\\n\\n#### Benefits:\\n- Better tooling and error detection\\n- Enhanced IDE support\\n- Improved code maintainability\\n\\n$$\\\\text{TypeScript} = \\\\text{JavaScript} + \\\\text{Types}$$"
   }
-]`;
+]`);
 
   const [formData, setFormData] = useState({
     front1: "What is GraphQL?",
@@ -55,10 +54,6 @@ export default function BulkImportShowcase() {
     setTimeout(() => {
       setIsImporting(false);
     }, 2000);
-  };
-
-  const copyJsonExample = () => {
-    navigator.clipboard.writeText(jsonExample);
   };
 
   const getCardData = () => {
@@ -106,26 +101,17 @@ export default function BulkImportShowcase() {
 
               <TabsContent value="json" className="space-y-4 mt-6">
                 <div className="relative">
-                  <Label htmlFor="json-input">Paste your JSON array</Label>
-                  <div className="relative mt-2">
-                    <Textarea
-                      id="json-input"
-                      value={jsonExample}
-                      readOnly
-                      className="h-[200px] font-mono text-sm bg-gray-50 dark:bg-gray-900 border-2"
-                    />
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      className="absolute top-2 right-2"
-                      onClick={copyJsonExample}
-                    >
-                      <Copy className="h-4 w-4" />
-                    </Button>
-                  </div>
-                  <p className="text-xs text-gray-500 mt-2">
-                    Supports unlimited cards with front/back structure
-                  </p>
+                  <JsonTextInput
+                    id="json-input"
+                    label="Paste your JSON array"
+                    value={jsonExample}
+                    onChange={setJsonExample}
+                    rows={8}
+                    className="font-mono text-sm"
+                    helperText="Supports unlimited cards with front/back structure and markdown formatting"
+                    markdown={true}
+                    formatOnBlur={true}
+                  />
                 </div>
               </TabsContent>
 

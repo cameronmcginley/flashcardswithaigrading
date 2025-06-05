@@ -337,66 +337,6 @@ export default function AlgorithmShowcase() {
           </CardContent>
         </Card>
       </div>
-
-      {/* Progress Visualization */}
-      <Card className="mt-8 border-2 bg-white dark:bg-gray-800">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
-            <Clock className="h-5 w-5" />
-            Retention Curve Visualization
-          </CardTitle>
-          <p className="text-sm text-gray-600 dark:text-gray-400">
-            See how spaced repetition fights the forgetting curve
-          </p>
-        </CardHeader>
-        <CardContent>
-          <div className="relative h-32 bg-gray-50 dark:bg-gray-900 rounded-lg p-4 overflow-hidden">
-            {/* Forgetting curve without spaced repetition */}
-            <motion.div
-              className="absolute inset-4"
-              initial={{ pathLength: 0 }}
-              animate={{ pathLength: 1 }}
-              transition={{ duration: 2, delay: 0.5 }}
-            >
-              <svg className="w-full h-full" viewBox="0 0 300 100">
-                {/* Without spaced repetition - steep decline */}
-                <path
-                  d="M 0 20 Q 50 60 100 80 Q 150 90 200 95 Q 250 98 300 99"
-                  stroke="rgb(239 68 68)"
-                  strokeWidth="2"
-                  fill="none"
-                  strokeDasharray="5,5"
-                />
-                {/* With spaced repetition - maintained retention */}
-                <path
-                  d="M 0 20 L 50 25 L 100 20 L 150 25 L 200 20 L 250 25 L 300 20"
-                  stroke="rgb(34 197 94)"
-                  strokeWidth="3"
-                  fill="none"
-                />
-              </svg>
-            </motion.div>
-            
-            <div className="absolute bottom-2 left-4 right-4 flex justify-between text-xs text-gray-500">
-              <span>Day 1</span>
-              <span>Week 1</span>
-              <span>Month 1</span>
-              <span>Month 3</span>
-            </div>
-            
-            <div className="absolute top-2 right-4 space-y-1">
-              <div className="flex items-center gap-2 text-xs">
-                <div className="w-3 h-0.5 bg-red-500 opacity-50" style={{ borderStyle: 'dashed' }} />
-                <span className="text-gray-600 dark:text-gray-400">Without SRS</span>
-              </div>
-              <div className="flex items-center gap-2 text-xs">
-                <div className="w-3 h-0.5 bg-green-500" />
-                <span className="text-gray-600 dark:text-gray-400">With SRS</span>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
     </div>
   );
 } 

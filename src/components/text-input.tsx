@@ -9,7 +9,9 @@ import { Label } from "@/components/ui/label";
 import { cn } from "@/lib/utils";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import remarkMath from "remark-math";
 import rehypeHighlight from "rehype-highlight";
+import rehypeKatex from "rehype-katex";
 import { Button } from "@/components/ui/button";
 import { Eye, Edit2, Info } from "lucide-react";
 import {
@@ -18,6 +20,8 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import "katex/dist/katex.min.css";
+import "katex/dist/contrib/mhchem";
 
 interface TextInputWithLimitProps {
   id: string;
@@ -36,7 +40,7 @@ interface TextInputWithLimitProps {
   markdown?: boolean;
 }
 
-export function TextInputWithLimit({
+export const TextInputWithLimit = ({
   id,
   label,
   value,
@@ -51,7 +55,7 @@ export function TextInputWithLimit({
   required = false,
   disabled = false,
   markdown = false,
-}: TextInputWithLimitProps) {
+}: TextInputWithLimitProps) => {
   const [isExceeded, setIsExceeded] = useState(false);
   const [charCount, setCharCount] = useState(0);
   const [isPreview, setIsPreview] = useState(false);
@@ -159,8 +163,8 @@ export function TextInputWithLimit({
               >
                 {value ? (
                   <ReactMarkdown
-                    remarkPlugins={[remarkGfm]}
-                    rehypePlugins={[rehypeHighlight]}
+                    remarkPlugins={[remarkGfm, remarkMath]}
+                    rehypePlugins={[rehypeHighlight, rehypeKatex]}
                   >
                     {value}
                   </ReactMarkdown>
