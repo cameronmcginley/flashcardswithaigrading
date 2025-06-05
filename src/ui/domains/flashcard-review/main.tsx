@@ -48,6 +48,7 @@ export const Main = () => {
   // Add Card Modal state (for deck info modal)
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
   const [selectedCardForEdit, setSelectedCardForEdit] = useState<UICard | null>(null);
+  const [isDeleteCardModalOpen, setIsDeleteCardModalOpen] = useState(false);
 
   // -------- Helpers --------
   const showFreshAccountPage = () =>
@@ -497,17 +498,13 @@ export const Main = () => {
         onOpenChange={setIsDeckInfoModalOpen}
         deckId={selectedDeckInfo?.deckId || ""}
         deckName={selectedDeckInfo?.deckName || ""}
-        categoryId={selectedDeckInfo?.categoryId || ""}
         categoryName={selectedDeckInfo?.categoryName || ""}
         cards={deckCards}
         isLoading={isDeckCardsLoading}
         onUpdateDeckName={handleUpdateDeckName}
-        onDeleteCard={handleDeleteCard}
-        onUpdateCard={handleUpdateCard}
-        onAddCard={handleAddCardToDeck}
-        isAddCardModalOpen={isAddCardModalOpen}
-        onAddCardModalOpenChange={setIsAddCardModalOpen}
-        selectedCardForEdit={selectedCardForEdit}
+        onAddCard={setIsAddCardModalOpen}
+        onDeleteCard={setIsDeleteCardModalOpen}
+        onUpdateCard={setIsAddCardModalOpen}
         setSelectedCardForEdit={setSelectedCardForEdit}
       />
 
@@ -524,6 +521,20 @@ export const Main = () => {
         defaultDeckId={selectedDeckInfo?.deckId}
         editMode={!!selectedCardForEdit}
         initialCard={selectedCardForEdit || undefined}
+      />
+
+      <DeleteConfirmationDialog
+        open={isDeleteCardModalOpen}
+        onOpenChange={setIsDeleteCardModalOpen}
+        onConfirm={() => {
+          if (selectedCardForEdit) {
+            handleDeleteCard(selectedCardForEdit.id);
+            setIsDeleteCardModalOpen(false);
+            setSelectedCardForEdit(null);
+          }
+        }}
+        title="Delete Card"
+        description={`Are you sure you want to delete "${selectedCardForEdit?.front || 'this card'}"? This action cannot be undone.`}
       />
     </div>
   );

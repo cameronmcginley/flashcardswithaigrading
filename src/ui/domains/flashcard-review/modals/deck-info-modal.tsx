@@ -13,10 +13,8 @@ import { Input } from "@/components/ui/input";
 import { Plus, Edit, Trash, Check, X, Search, Code, Copy, List, ArrowUpDown } from "lucide-react";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip";
-import { AlertDialog, AlertDialogAction, AlertDialogCancel, AlertDialogContent, AlertDialogDescription, AlertDialogFooter, AlertDialogHeader, AlertDialogTitle } from "@/components/ui/alert-dialog";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { AddCardModal } from "./add-card-modal";
 import type { UICard } from "../types";
 
 interface DeckInfoModalProps {
@@ -24,21 +22,13 @@ interface DeckInfoModalProps {
   onOpenChange: (open: boolean) => void;
   deckId: string;
   deckName: string;
-  categoryId: string;
   categoryName: string;
   cards: UICard[];
   isLoading: boolean;
-
-  // Callbacks
-  onUpdateDeckName: (deckId: string, newName: string) => void;
-  onDeleteCard: (cardId: string) => void;
-  onUpdateCard: (cardId: string, front: string, back: string) => void;
-  onAddCard: (deckId: string, front: string, back: string) => void;
-
-  // Edit modal state
-  isAddCardModalOpen: boolean;
-  onAddCardModalOpenChange: (open: boolean) => void;
-  selectedCardForEdit: UICard | null;
+  onUpdateDeckName: (deckId: string, newName: string) => Promise<void>;
+  onAddCard: (open: boolean) => void;
+  onDeleteCard: (open: boolean) => void;
+  onUpdateCard: (open: boolean) => void;
   setSelectedCardForEdit: (card: UICard | null) => void;
 }
 
@@ -47,32 +37,24 @@ export const DeckInfoModal = ({
   onOpenChange,
   deckId,
   deckName,
-  categoryId,
   categoryName,
   cards,
   isLoading,
   onUpdateDeckName,
+  onAddCard,
   onDeleteCard,
   onUpdateCard,
-  onAddCard,
-  isAddCardModalOpen,
-  onAddCardModalOpenChange,
-  selectedCardForEdit,
   setSelectedCardForEdit,
 }: DeckInfoModalProps) => {
-  // UI state only
   const [editingName, setEditingName] = useState(false);
   const [tempDeckName, setTempDeckName] = useState(deckName);
   const [searchQuery, setSearchQuery] = useState("");
-  const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; cardId: string | null }>({ open: false, cardId: null });
   const [currentView, setCurrentView] = useState<"cards" | "json">("cards");
   const [sortColumn, setSortColumn] = useState<"front" | "ease" | "review_count" | "last_reviewed">("last_reviewed");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
-  // Keep deckName in sync if prop changes
   if (deckName !== tempDeckName && !editingName) setTempDeckName(deckName);
 
-  // Search/sort cards
   const filteredCards = useMemo(() => {
     const q = searchQuery.toLowerCase();
     return !q ? cards : cards.filter((c) => c.front.toLowerCase().includes(q));
@@ -169,7 +151,7 @@ export const DeckInfoModal = ({
                 className="pl-8"
               />
             </div>
-            <Button onClick={() => { setSelectedCardForEdit(null); onAddCardModalOpenChange(true); }}>
+            <Button onClick={() => { setSelectedCardForEdit(null); onAddCard(true); }}>
               <Plus className="h-4 w-4 mr-2" />
               Add Card
             </Button>
@@ -268,7 +250,7 @@ export const DeckInfoModal = ({
                                   onClick={(e) => {
                                     e.stopPropagation();
                                     setSelectedCardForEdit(card);
-                                    onAddCardModalOpenChange(true);
+                                    onUpdateCard(true);
                                   }}
                                 >
                                   <Edit className="h-4 w-4" />
@@ -279,7 +261,8 @@ export const DeckInfoModal = ({
                                   className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50"
                                   onClick={(e) => {
                                     e.stopPropagation();
-                                    setDeleteDialog({ open: true, cardId: card.id });
+                                    setSelectedCardForEdit(card);
+                                    onDeleteCard(true);
                                   }}
                                 >
                                   <Trash className="h-4 w-4" />
@@ -319,41 +302,6 @@ export const DeckInfoModal = ({
           </DialogFooter>
         </DialogContent>
       </Dialog>
-
-      <AddCardModal
-        open={isAddCardModalOpen}
-        onOpenChange={onAddCardModalOpenChange}
-        onAddCard={(front, back) => onAddCard(deckId, front, back)}
-        onUpdateCard={(cardId, front, back) => onUpdateCard(cardId, front, back)}
-        defaultDeckId={deckId}
-        deckName={deckName}
-        availableDecks={[{ id: deckId, name: deckName, categoryId }]}
-        editMode={!!selectedCardForEdit}
-        initialCard={selectedCardForEdit || undefined}
-      />
-
-      <AlertDialog open={deleteDialog.open} onOpenChange={(open) => setDeleteDialog(d => ({ ...d, open }))}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Delete Card</AlertDialogTitle>
-            <AlertDialogDescription>
-              Are you sure you want to delete this card? This action cannot be undone.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel onClick={() => setDeleteDialog({ open: false, cardId: null })}>Cancel</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={() => {
-                if (deleteDialog.cardId) onDeleteCard(deleteDialog.cardId);
-                setDeleteDialog({ open: false, cardId: null });
-              }}
-              className="bg-red-500 hover:bg-red-600"
-            >
-              Delete
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 };
