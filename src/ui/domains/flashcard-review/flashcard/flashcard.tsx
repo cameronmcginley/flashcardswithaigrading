@@ -25,7 +25,7 @@ import {
 } from "@/components/ui/popover";
 import { cn } from "@/lib/utils";
 import { MarkdownContent } from "@/components/markdown-content";
-import { scoreCard } from "@/features/cards/sorting";
+import { scoreCard } from "@/api/cards/sorting";
 import {
   Tooltip,
   TooltipContent,

@@ -1,36 +1,24 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Flashcard from "./flashcard";
-import AddCardModal from "./add-card-modal";
-import DeleteConfirmationModal from "./delete-confirmation-modal";
+import Flashcard from "../flashcard/flashcard";
+import AddCardModal from "../modals/add-card-modal";
+import DeleteConfirmationModal from "../modals/delete-confirmation-modal";
 import { toast } from "sonner";
 import {
   getAllCardsInDeck,
   markCardCorrect,
   markCardPartiallyCorrect,
   markCardIncorrect,
-} from "@/features/cards/card";
-import { sortCardsToReview } from "@/features/cards/sorting";
+} from "@/api/cards/card";
+import { sortCardsToReview } from "@/api/cards/sorting";
 import {
   ClipboardList,
   BookOpen,
   LayoutGrid,
   ArrowRightLeft,
 } from "lucide-react";
-
-interface UICard {
-  id: string;
-  deckId: string;
-  question: string;
-  answer: string;
-  ease: number;
-  review_count: number;
-  correct_count: number;
-  partial_correct_count: number;
-  incorrect_count: number;
-  last_reviewed: Date;
-}
+import { UICard } from "../types";
 
 interface MainAreaProps {
   selectedDecks?: { deckId: string; cardCount: number }[];

@@ -56,7 +56,7 @@ import {
   deleteCard,
   updateCardFrontAndOrBack,
   createCard,
-} from "@/features/cards/card";
+} from "@/api/cards/card";
 import { format } from "date-fns";
 import AddCardModal from "./add-card-modal";
 

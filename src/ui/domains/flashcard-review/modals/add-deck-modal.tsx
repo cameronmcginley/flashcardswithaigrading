@@ -20,8 +20,8 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { createDeck } from "@/features/decks/deck";
-import { createManyCards } from "@/features/cards/card";
+import { createDeck } from "@/api/decks/deck";
+import { createManyCards } from "@/api/cards/card";
 
 interface Category {
   id: string;

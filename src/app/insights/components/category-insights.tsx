@@ -35,8 +35,8 @@ import {
   ArrowUp,
   ArrowDown,
 } from "lucide-react";
-import { getCategoryStats } from "@/features/insights/insights";
-import type { CategoryStatsResponse } from "@/features/insights/insights";
+import { getCategoryStats } from "@/api/insights/insights";
+import type { CategoryStatsResponse } from "@/api/insights/insights";
 import { toast } from "sonner";
 
 interface CategoryInsightsProps {

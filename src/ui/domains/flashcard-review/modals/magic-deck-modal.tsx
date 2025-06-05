@@ -19,25 +19,13 @@ import {
 } from "@/components/ui/select";
 import { Loader2 } from "lucide-react";
 import { toast } from "sonner";
-
-interface Deck {
-  id: string;
-  name: string;
-  selected: boolean;
-  cardCount: number;
-}
-
-interface Category {
-  id: string;
-  name: string;
-  decks: Deck[];
-}
+import { UICategory } from "../types";
 
 interface MagicDeckModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
   onGenerate: (categoryId: string, deckName: string, prompt: string) => void;
-  categories: Category[];
+  categories: UICategory[];
 }
 
 const DEFAULT_PROMPT = `Generate 10 flashcards that are concise, practical, and highly relevant for learning and review.

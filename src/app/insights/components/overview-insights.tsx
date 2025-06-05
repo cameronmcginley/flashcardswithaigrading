@@ -13,7 +13,7 @@ import { ResponsiveCalendar } from "@nivo/calendar";
 import { ResponsiveBar } from "@nivo/bar";
 import { ResponsivePie } from "@nivo/pie";
 import { ResponsiveLine } from "@nivo/line";
-import { getDailyStats, getAllTimeStats } from "@/features/insights/insights";
+import { getDailyStats, getAllTimeStats } from "@/api/insights/insights";
 
 interface OverviewInsightsProps {
   timeRange: string;

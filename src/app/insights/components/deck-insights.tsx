@@ -42,8 +42,8 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { getDeckStats } from "@/features/insights/insights";
-import type { DeckStatsResponse } from "@/features/insights/insights";
+import { getDeckStats } from "@/api/insights/insights";
+import type { DeckStatsResponse } from "@/api/insights/insights";
 import { toast } from "sonner";
 
 interface DeckInsightsProps {
