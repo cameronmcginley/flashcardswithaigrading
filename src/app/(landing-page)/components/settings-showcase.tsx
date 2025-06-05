@@ -138,7 +138,7 @@ export default function SettingsShowcase() {
             />
             <p className="text-xs text-gray-400 mt-2">
               Customize how the AI evaluates and responds to your answers. Use
-              variables like {"{question}"}, {"{your_answer}"}, and{" "}
+              variables like {"{front}"}, {"{your_answer}"}, and{" "}
               {"{correct_answer}"}.
             </p>
           </div>

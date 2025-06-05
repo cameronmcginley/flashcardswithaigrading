@@ -27,17 +27,17 @@ import { UIDeck } from "../types";
 interface AddCardModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCard: (question: string, answer: string, deckId: string) => void;
-  onUpdateCard?: (cardId: string, question: string, answer: string) => void;
+  onAddCard: (front: string, back: string, deckId: string) => void;
+  onUpdateCard?: (cardId: string, front: string, back: string) => void;
   onAddMultipleCards?: (
-    cards: Array<{ question: string; answer: string }>,
+    cards: Array<{ front: string; back: string }>,
     deckId: string
   ) => void;
   deckName?: string;
   availableDecks: UIDeck[];
   defaultDeckId?: string;
   editMode?: boolean;
-  initialCard?: { id?:string, question:string, answer:string };
+  initialCard?: { id?:string, front:string, back:string };
 }
 
 export const AddCardModal = ({
@@ -52,14 +52,14 @@ export const AddCardModal = ({
   editMode = false,
   initialCard,
 }: AddCardModalProps) => {
-  const [question, setQuestion] = useState(initialCard?.question || "");
-  const [answer, setAnswer] = useState(initialCard?.answer || "");
+  const [front, setFront] = useState(initialCard?.front || "");
+  const [back, setBack] = useState(initialCard?.back || "");
   const [jsonContent, setJsonContent] = useState(
     JSON.stringify(
       [
         {
-          question: initialCard?.question || "Example question?",
-          answer: initialCard?.answer || "Example answer.",
+          front: initialCard?.front || "Example front?",
+          back: initialCard?.back || "Example back.",
         },
       ],
       null,
@@ -69,22 +69,22 @@ export const AddCardModal = ({
   const [activeTab, setActiveTab] = useState("form");
   const [selectedDeckId, setSelectedDeckId] = useState<string>("");
 
-  const [isQuestionValid, setIsQuestionValid] = useState(true);
-  const [isAnswerValid, setIsAnswerValid] = useState(true);
+  const [isFrontValid, setIsFrontValid] = useState(true);
+  const [isBackValid, setIsBackValid] = useState(true);
   const [isJsonValid, setIsJsonValid] = useState(true);
 
   // Reset form when modal opens or initialCard changes
   useEffect(() => {
     if (open) {
       if (initialCard) {
-        setQuestion(initialCard.question);
-        setAnswer(initialCard.answer);
+        setFront(initialCard.front);
+        setBack(initialCard.back);
         setJsonContent(
           JSON.stringify(
             [
               {
-                question: initialCard.question,
-                answer: initialCard.answer,
+                front: initialCard.front,
+                back: initialCard.back,
               },
             ],
             null,
@@ -102,7 +102,7 @@ export const AddCardModal = ({
   }, [open, initialCard, defaultDeckId, availableDecks]);
 
   const handleSubmitForm = () => {
-    if (!isQuestionValid || !isAnswerValid) {
+    if (!isFrontValid || !isBackValid) {
       toast.error("Validation Error", {
         description: "Please fix the validation errors before saving.",
       });
@@ -116,16 +116,16 @@ export const AddCardModal = ({
       return;
     }
 
-    if (question.trim() && answer.trim()) {
+    if (front.trim() && back.trim()) {
       if (editMode && initialCard?.id && onUpdateCard) {
-        onUpdateCard(initialCard.id, question, answer);
+        onUpdateCard(initialCard.id, front, back);
       } else {
-        onAddCard(question, answer, selectedDeckId);
+        onAddCard(front, back, selectedDeckId);
       }
       resetForm();
     } else {
       toast.error("Validation Error", {
-        description: "Question and answer cannot be empty.",
+        description: "Front and back cannot be empty.",
       });
     }
   };
@@ -151,10 +151,10 @@ export const AddCardModal = ({
       // Check if it's an array
       if (Array.isArray(parsed)) {
         // Validate each card in the array
-        const isValid = parsed.every((card) => card.question && card.answer);
+        const isValid = parsed.every((card) => card.front && card.back);
         if (!isValid) {
           toast.error("Validation Error", {
-            description: "Each card must have 'question' and 'answer' fields.",
+            description: "Each card must have 'front' and 'back' fields.",
           });
           return;
         }
@@ -167,7 +167,7 @@ export const AddCardModal = ({
             return;
           }
           if (initialCard?.id && onUpdateCard) {
-            onUpdateCard(initialCard.id, parsed[0].question, parsed[0].answer);
+            onUpdateCard(initialCard.id, parsed[0].front, parsed[0].back);
           }
         } else {
           // If we have a handler for multiple cards, use it
@@ -180,7 +180,7 @@ export const AddCardModal = ({
             // Otherwise, add just the first card
             if (parsed.length > 0) {
               const firstCard = parsed[0];
-              onAddCard(firstCard.question, firstCard.answer, selectedDeckId);
+              onAddCard(firstCard.front, firstCard.back, selectedDeckId);
               if (parsed.length > 1) {
                 toast.warning("Warning", {
                   description:
@@ -199,7 +199,7 @@ export const AddCardModal = ({
       } else {
         toast.error("Validation Error", {
           description:
-            "JSON must be an array of cards with 'question' and 'answer' fields.",
+            "JSON must be an array of cards with 'front' and 'back' fields.",
         });
       }
     } catch {
@@ -211,14 +211,14 @@ export const AddCardModal = ({
 
   const resetForm = () => {
     if (!editMode) {
-      setQuestion("");
-      setAnswer("");
+      setFront("");
+      setBack("");
       setJsonContent(
         JSON.stringify(
           [
             {
-              question: "Example question?",
-              answer: "Example answer.",
+              front: "Example front?",
+              back: "Example back.",
             },
           ],
           null,
@@ -285,13 +285,13 @@ export const AddCardModal = ({
           </TabsList>
           <TabsContent value="form" className="space-y-4 py-4">
             <TextInputWithLimit
-              id="question"
-              label="Question"
-              value={question}
-              onChange={setQuestion}
-              onValidChange={setIsQuestionValid}
+              id="front"
+              label="Front"
+              value={front}
+              onChange={setFront}
+              onValidChange={setIsFrontValid}
               maxLength={500}
-              placeholder="Enter question side..."
+              placeholder="Enter front side..."
               multiline
               rows={4}
               required
@@ -299,13 +299,13 @@ export const AddCardModal = ({
             />
 
             <TextInputWithLimit
-              id="answer"
-              label="Answer"
-              value={answer}
-              onChange={setAnswer}
-              onValidChange={setIsAnswerValid}
+              id="back"
+              label="Back"
+              value={back}
+              onChange={setBack}
+              onValidChange={setIsBackValid}
               maxLength={1000}
-              placeholder="Enter answer side..."
+              placeholder="Enter back side..."
               multiline
               rows={4}
               required
@@ -342,8 +342,8 @@ export const AddCardModal = ({
               rows={8}
               helperText={
                 editMode
-                  ? "Edit your card in JSON format with question and answer fields."
-                  : "Enter your cards in JSON format with question and answer fields. You can add multiple cards as an array."
+                  ? "Edit your card in JSON format with front and back fields."
+                  : "Enter your cards in JSON format with front and back fields. You can add multiple cards as an array."
               }
               required
               formatOnBlur

@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
 import { INVALID_CARD_FRONT_AND_BACK_ERROR } from "./constants";
-import { isValidCardQuestionAndAnswer } from "./utils";
+import { isValidCardFrontAndBack } from "./utils";
 
 /** Fetch a single card by its ID */
 export const getCard = async (cardId: string) => {
@@ -17,20 +17,20 @@ export const getCard = async (cardId: string) => {
 /** Create a new card */
 export const createCard = async (
   deckId: string,
-  question: string,
-  answer: string
+  front: string,
+  back: string
 ) => {
-  if (!deckId || !question || !answer) {
+  if (!deckId || !front || !back) {
     throw new Error("Missing required fields");
   }
 
-  if (!isValidCardQuestionAndAnswer(question, answer)) {
+  if (!isValidCardFrontAndBack(front, back)) {
     throw new Error(INVALID_CARD_FRONT_AND_BACK_ERROR);
   }
 
   const { data, error } = await supabase
     .from("cards")
-    .insert([{ deck_id: deckId, question, answer }])
+    .insert([{ deck_id: deckId, front, back }])
     .select()
     .single();
 
@@ -41,14 +41,14 @@ export const createCard = async (
 /** Create many cards */
 export const createManyCards = async (
   deckId: string,
-  cards: { question: string; answer: string }[]
+  cards: { front: string; back: string }[]
 ) => {
   if (!deckId || !cards || cards.length === 0) {
     throw new Error("Missing required fields");
   }
 
   for (const card of cards) {
-    if (!isValidCardQuestionAndAnswer(card.question, card.answer)) {
+    if (!isValidCardFrontAndBack(card.front, card.back)) {
       throw new Error(INVALID_CARD_FRONT_AND_BACK_ERROR);
     }
   }
@@ -62,23 +62,23 @@ export const createManyCards = async (
   return data;
 };
 
-/** Update the question and/or answer fields of a card */
-export const updateCardQuestionAndOrAnswer = async (
+/** Update the front and/or back fields of a card */
+export const updateCardFrontAndOrBack = async (
   cardId: string,
-  question?: string,
-  answer?: string
+  front?: string,
+  back?: string
 ) => {
-  if (!question && !answer) {
+  if (!front && !back) {
     throw new Error("No fields to update");
   }
 
-  if (!isValidCardQuestionAndAnswer(question, answer)) {
+  if (!isValidCardFrontAndBack(front, back)) {
     throw new Error(INVALID_CARD_FRONT_AND_BACK_ERROR);
   }
 
-  const updates: { question?: string; answer?: string } = {};
-  if (question) updates.question = question;
-  if (answer) updates.answer = answer;
+  const updates: { front?: string; back?: string } = {};
+  if (front) updates.front = front;
+  if (back) updates.back = back;
 
   const { data, error } = await supabase
     .from("cards")
@@ -137,14 +137,14 @@ export const restoreCards = async (cardIds: string[]) => {
  * */
 export const bulkEditDeckCards = async (
   deckId: string,
-  cards: { question: string; answer: string }[]
+  cards: { front: string; back: string }[]
 ) => {
   if (!deckId || !cards || cards.length === 0) {
     throw new Error("Missing required fields");
   }
 
   for (const card of cards) {
-    if (!isValidCardQuestionAndAnswer(card.question, card.answer)) {
+    if (!isValidCardFrontAndBack(card.front, card.back)) {
       throw new Error(INVALID_CARD_FRONT_AND_BACK_ERROR);
     }
   }
@@ -157,7 +157,7 @@ export const bulkEditDeckCards = async (
   } catch {
     const deletedCardIds = deletedCards.map((card) => card.id);
     await restoreCards(deletedCardIds);
-    throw new Error("Insert failed, rollanswer attempted");
+    throw new Error("Insert failed, rollback attempted");
   }
 };
 
@@ -196,7 +196,7 @@ export const getAllCardsInCategory = async (categoryId: string) => {
   return data;
 };
 
-/** Mark a card as answered correctly and update ease/stats */
+/** Mark a card as backed correctly and update ease/stats */
 export const markCardCorrect = async (cardId: string) => {
   const { data, error } = await supabase
     .from("cards")
@@ -254,7 +254,7 @@ export const markCardPartiallyCorrect = async (cardId: string) => {
   return updatedCard;
 };
 
-/** Mark a card as answered incorrectly and update ease/stats */
+/** Mark a card as backed incorrectly and update ease/stats */
 export const markCardIncorrect = async (cardId: string) => {
   const { data, error } = await supabase
     .from("cards")

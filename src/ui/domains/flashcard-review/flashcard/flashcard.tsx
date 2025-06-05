@@ -36,8 +36,8 @@ import {
 interface FlashcardProps {
   card: {
     id: string;
-    question: string;
-    answer: string;
+    front: string;
+    back: string;
     ease?: number;
     review_count?: number;
     correct_count?: number;
@@ -45,10 +45,10 @@ interface FlashcardProps {
     incorrect_count?: number;
     last_reviewed?: Date | string | null;
   };
-  onUpdate: (question: string, answer: string) => void;
+  onUpdate: (front: string, back: string) => void;
   onDelete: () => void;
   resetGradingOnCardChange?: boolean;
-  onAnswered?: () => void;
+  onBacked?: () => void;
   onPrevious?: () => void;
   onNext?: () => void;
   onCorrect?: () => void;
@@ -56,7 +56,7 @@ interface FlashcardProps {
   onWrong?: () => void;
   allCards?: Array<{
     id: string;
-    question: string;
+    front: string;
     ease: number;
     review_count: number;
     last_reviewed: Date | string | null;
@@ -68,7 +68,7 @@ export const Flashcard = ({
   onUpdate,
   onDelete,
   resetGradingOnCardChange = true,
-  onAnswered,
+  onBacked,
   onPrevious,
   onNext,
   onCorrect,
@@ -77,11 +77,11 @@ export const Flashcard = ({
   allCards,
 }: FlashcardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
-  const [userAnswer, setUserAnswer] = useState("");
-  const [editingQuestion, setEditingQuestion] = useState(false);
-  const [editingAnswer, setEditingAnswer] = useState(false);
-  const [tempQuestion, setTempQuestion] = useState(card.question);
-  const [tempAnswer, setTempAnswer] = useState(card.answer);
+  const [userAnswer, setUserBack] = useState("");
+  const [editingFront, setEditingFront] = useState(false);
+  const [editingBack, setEditingBack] = useState(false);
+  const [tempFront, setTempFront] = useState(card.front);
+  const [tempBack, setTempBack] = useState(card.back);
   const [isGrading, setIsGrading] = useState(false);
   const [isGraded, setIsGraded] = useState(false);
   const [aiGrade, setAiGrade] = useState<{
@@ -99,20 +99,20 @@ export const Flashcard = ({
     // Reset grading when card changes
     if (resetGradingOnCardChange) {
       resetGrading();
-      setTempQuestion(card.question);
-      setTempAnswer(card.answer);
+      setTempFront(card.front);
+      setTempBack(card.back);
     }
   }, [card.id, resetGradingOnCardChange]);
 
   // Separate effect to keep temp values in sync
   useEffect(() => {
-    if (!editingQuestion) {
-      setTempQuestion(card.question);
+    if (!editingFront) {
+      setTempFront(card.front);
     }
-    if (!editingAnswer) {
-      setTempAnswer(card.answer);
+    if (!editingBack) {
+      setTempBack(card.back);
     }
-  }, [card.question, card.answer, editingQuestion, editingAnswer]);
+  }, [card.front, card.back, editingFront, editingBack]);
 
   // Calculate card statistics from real data
   const getCardStats = () => {
@@ -167,8 +167,8 @@ export const Flashcard = ({
     }
 
     // Notify parent that user has answered (viewed the answer)
-    if (!isFlipped && onAnswered) {
-      onAnswered();
+    if (!isFlipped && onBacked) {
+      onBacked();
     }
   };
 
@@ -214,8 +214,8 @@ export const Flashcard = ({
           "Content-Type": "application/json",
         },
         body: JSON.stringify({
-          question: card.question,
-          answer: card.answer,
+          front: card.front,
+          back: card.back,
           userAnswer: userAnswer,
           gradingDifficulty,
         }),
@@ -251,46 +251,46 @@ export const Flashcard = ({
     }
   };
 
-  const startEditingQuestion = () => {
-    setTempQuestion(card.question);
-    setEditingQuestion(true);
+  const startEditingFront = () => {
+    setTempFront(card.front);
+    setEditingFront(true);
   };
 
-  const startEditingAnswer = () => {
-    setTempAnswer(card.answer);
-    setEditingAnswer(true);
+  const startEditingBack = () => {
+    setTempBack(card.back);
+    setEditingBack(true);
   };
 
   const startEditing = () => {
     if (isFlipped) {
-      startEditingAnswer();
+      startEditingBack();
     } else {
-      startEditingQuestion();
+      startEditingFront();
     }
   };
 
-  const saveQuestion = () => {
-    if (tempQuestion.trim()) {
-      onUpdate(tempQuestion, card.answer);
-      setEditingQuestion(false);
+  const saveFront = () => {
+    if (tempFront.trim()) {
+      onUpdate(tempFront, card.back);
+      setEditingFront(false);
     }
   };
 
-  const saveAnswer = () => {
-    if (tempAnswer.trim()) {
-      onUpdate(card.question, tempAnswer);
-      setEditingAnswer(false);
+  const saveBack = () => {
+    if (tempBack.trim()) {
+      onUpdate(card.front, tempBack);
+      setEditingBack(false);
     }
   };
 
-  const cancelEditingQuestion = () => {
-    setEditingQuestion(false);
-    setTempQuestion(card.question);
+  const cancelEditingFront = () => {
+    setEditingFront(false);
+    setTempFront(card.front);
   };
 
-  const cancelEditingAnswer = () => {
-    setEditingAnswer(false);
-    setTempAnswer(card.answer);
+  const cancelEditingBack = () => {
+    setEditingBack(false);
+    setTempBack(card.back);
   };
 
   // Function to get color based on grade percentage
@@ -316,9 +316,9 @@ export const Flashcard = ({
 
     const feedbackText = `This is the feedback I got for an AI graded flashcard answer
 
-Question: ${card.question}
-Correct Answer: ${card.answer}
-Your Answer: ${userAnswer || "(No answer provided)"}
+Front: ${card.front}
+Correct Back: ${card.back}
+Your Back: ${userAnswer || "(No answer provided)"}
 AI Feedback: ${aiGrade.response}
 Grade: ${aiGrade.grade}%
 
@@ -383,7 +383,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                                 Score
                               </th>
                               <th className="py-1 text-left font-medium text-gray-600">
-                                Question
+                                Front
                               </th>
                             </tr>
                           </thead>
@@ -414,9 +414,9 @@ Can you help me understand this feedback better and suggest how I can improve my
                                     {score}
                                   </td>
                                   <td className="py-1 truncate">
-                                    {c.question.length > 50
-                                      ? c.question.substring(0, 50) + "..."
-                                      : c.question}
+                                    {c.front.length > 50
+                                      ? c.front.substring(0, 50) + "..."
+                                      : c.front}
                                   </td>
                                 </tr>
                               );
@@ -451,14 +451,14 @@ Can you help me understand this feedback better and suggest how I can improve my
                   <div className="text-muted-foreground">Reviews:</div>
                   <div>{cardStats.reviews}</div>
 
-                  <div className="text-muted-foreground">Correct Answers:</div>
+                  <div className="text-muted-foreground">Correct Backs:</div>
                   <div>{cardStats.correct}</div>
 
-                  <div className="text-muted-foreground">Partial Answers:</div>
+                  <div className="text-muted-foreground">Partial Backs:</div>
                   <div>{cardStats.partial}</div>
 
                   <div className="text-muted-foreground">
-                    Incorrect Answers:
+                    Incorrect Backs:
                   </div>
                   <div>{cardStats.incorrect}</div>
 
@@ -538,31 +538,31 @@ Can you help me understand this feedback better and suggest how I can improve my
       <Card className="w-full shadow-lg">
         <CardContent className="p-6">
           <div className="text-sm font-medium text-muted-foreground mb-4">
-            <span>{isFlipped ? "Answer" : "Question"}</span>
+            <span>{isFlipped ? "Back" : "Front"}</span>
           </div>
 
           {!isFlipped ? (
             <div className="mb-6">
               <div className="group relative">
-                {editingQuestion ? (
+                {editingFront ? (
                   <div className="space-y-2">
                     <div>
                       <Textarea
-                        value={tempQuestion}
-                        onChange={(e) => setTempQuestion(e.target.value)}
+                        value={tempFront}
+                        onChange={(e) => setTempFront(e.target.value)}
                         className="min-h-[150px] w-full"
                         autoFocus
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={saveQuestion}>
+                      <Button size="sm" onClick={saveFront}>
                         <Check className="h-4 w-4 mr-1" />
                         Save
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={cancelEditingQuestion}
+                        onClick={cancelEditingFront}
                       >
                         <X className="h-4 w-4 mr-1" />
                         Cancel
@@ -571,7 +571,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                   </div>
                 ) : (
                   <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1">
-                    <MarkdownContent content={card.question} />
+                    <MarkdownContent content={card.front} />
                   </div>
                 )}
               </div>
@@ -581,7 +581,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                   <Textarea
                     placeholder="Type your answer here..."
                     value={userAnswer}
-                    onChange={(e) => setUserAnswer(e.target.value)}
+                    onChange={(e) => setUserBack(e.target.value)}
                     className="min-h-[150px] w-full"
                   />
                 </div>
@@ -593,25 +593,25 @@ Can you help me understand this feedback better and suggest how I can improve my
           ) : (
             <div className="mb-6">
               <div className="group relative">
-                {editingAnswer ? (
+                {editingBack ? (
                   <div className="space-y-2">
                     <div>
                       <Textarea
-                        value={tempAnswer}
-                        onChange={(e) => setTempAnswer(e.target.value)}
+                        value={tempBack}
+                        onChange={(e) => setTempBack(e.target.value)}
                         className="min-h-[150px] w-full"
                         autoFocus
                       />
                     </div>
                     <div className="flex gap-2">
-                      <Button size="sm" onClick={saveAnswer}>
+                      <Button size="sm" onClick={saveBack}>
                         <Check className="h-4 w-4 mr-1" />
                         Save
                       </Button>
                       <Button
                         size="sm"
                         variant="outline"
-                        onClick={cancelEditingAnswer}
+                        onClick={cancelEditingBack}
                       >
                         <X className="h-4 w-4 mr-1" />
                         Cancel
@@ -620,7 +620,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                   </div>
                 ) : (
                   <div className="text-lg font-medium mb-6 max-h-[200px] overflow-y-auto pr-1">
-                    <MarkdownContent content={card.answer} />
+                    <MarkdownContent content={card.back} />
                   </div>
                 )}
               </div>
@@ -628,12 +628,12 @@ Can you help me understand this feedback better and suggest how I can improve my
               <div className="mt-4">
                 <div className="p-4 bg-muted/20 rounded-lg mb-4 max-h-[150px] overflow-y-auto">
                   <div className="text-sm font-medium text-muted-foreground mb-2">
-                    Your Answer:
+                    Your Back:
                   </div>
                   <div>{userAnswer || "(No answer provided)"}</div>
                 </div>
                 <div className="flex gap-2">
-                  <Button onClick={handleFlip}>Back to Question</Button>
+                  <Button onClick={handleFlip}>Back to Front</Button>
                   <Button
                     variant="outline"
                     onClick={() => {
@@ -801,7 +801,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top" align="center">
-                        <p className="text-sm">Copies your question and answer to clipboard and opens ChatGPT</p>
+                        <p className="text-sm">Copies your front and answer to clipboard and opens ChatGPT</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

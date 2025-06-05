@@ -9,25 +9,25 @@ const gradingDifficulties: Record<number, string> = {
 
 export async function POST(req: NextRequest) {
   try {
-    const { question, answer, userAnswer, gradingDifficulty } =
+    const { front, back, userAnswer, gradingDifficulty } =
       await req.json();
 
     if (!userAnswer) {
       return NextResponse.json(
-        { error: "Answer is missing." },
+        { error: "Back is missing." },
         { status: 400 }
       );
     }
 
-    const filteredUserAnswer = userAnswer.substring(0, 2000);
+    const filteredUserBack = userAnswer.substring(0, 2000);
 
     const prompt = `
     You are an **exam grader**.
     
     ### Inputs
-    Question: ${question}
-    CorrectAnswer: ${answer}
-    StudentAnswer: ${filteredUserAnswer}
+    Front: ${front}
+    CorrectBack: ${back}
+    StudentBack: ${filteredUserBack}
     Difficulty: ${gradingDifficulties[gradingDifficulty]}   // Easy | Medium | Hard
     
     ### Grading Rules
@@ -37,13 +37,13 @@ export async function POST(req: NextRequest) {
        • Expert → require full precision and relevant nuance.
     
     2. **Feedback**  
-       • Usually ≤35 words total. For complex questions, feel free to increase or make short paragraphs.
+       • Usually ≤35 words total. For complex fronts, feel free to increase or make short paragraphs.
        • Speak directly to the student.  
        • Highlight *one* thing correct (if any) and *one–two* specific gaps.  
-       • Provide a concrete study tip; **do not** say “just answer the question.”  
-       • **Never quote the entire CorrectAnswer.** Paraphrase or hint instead.
+       • Provide a concrete study tip; **do not** say “just answer the front.”  
+       • **Never quote the entire CorrectBack.** Paraphrase or hint instead.
        • Free to use Markdown formatting inside the response, use code blocks as necessary.
-       • Feel free to add onto the correctAnswer that was provided if needed.
+       • Feel free to add onto the correctBack that was provided if needed.
        • Don't just say something like "You missed elaborating on the importance of...". Explain more specifically what was missed.
     
     3. **Format**  

@@ -9,19 +9,19 @@ const openai = new OpenAI({
 });
 
 const SYSTEM_PROMPT = `You are a helpful AI that generates flashcards based on user prompts.
-You MUST respond with a JSON array of objects, where each object has 'question' and 'answer' fields.
+You MUST respond with a JSON array of objects, where each object has 'front' and 'back' fields.
 The response should be ONLY the JSON array, nothing else.
 Example format:
 [
   {
-    "question": "What is the capital of France?",
-    "answer": "Paris"
+    "front": "What is the capital of France?",
+    "back": "Paris"
   }
 ]`;
 
 interface Card {
-  question: string;
-  answer: string;
+  front: string;
+  back: string;
 }
 
 export async function POST(request: NextRequest) {
@@ -89,8 +89,8 @@ export async function POST(request: NextRequest) {
           (card) =>
             typeof card === "object" &&
             card !== null &&
-            "question" in card &&
-            "answer" in card
+            "front" in card &&
+            "back" in card
         )
       ) {
         throw new Error("Invalid card format in response");
@@ -124,8 +124,8 @@ export async function POST(request: NextRequest) {
     const { error: cardsError } = await supabase.from("cards").insert(
       cards.map((card) => ({
         deck_id: deck.id,
-        front: card.question,
-        back: card.answer,
+        front: card.front,
+        back: card.back,
       }))
     );
 

@@ -85,18 +85,18 @@ export function JsonTextInput({
       if (Array.isArray(parsed)) {
         return parsed
           .map((card, index) => {
-            return `## Card ${index + 1}\n\n### Question\n${
-              card.question || ""
-            }\n\n### Answer\n${card.answer || ""}\n\n---\n`;
+            return `## Card ${index + 1}\n\n### Front\n${
+              card.front || ""
+            }\n\n### Back\n${card.back || ""}\n\n---\n`;
           })
           .join("\n");
       }
 
       // If it's a single card object
-      if (parsed.question || parsed.answer) {
-        return `## Card\n\n### Question\n${
-          parsed.question || ""
-        }\n\n### Answer\n${parsed.answer || ""}\n`;
+      if (parsed.front || parsed.back) {
+        return `## Card\n\n### Front\n${
+          parsed.front || ""
+        }\n\n### Back\n${parsed.back || ""}\n`;
       }
 
       // Otherwise, just stringify it nicely
@@ -273,13 +273,13 @@ export function JsonTextInput({
               <div className="text-xs text-blue-500 flex items-center">
                 <Info className="h-3 w-3 mr-1" />
                 <span>
-                  Markdown formatting is supported in question and answer fields
+                  Markdown formatting is supported in front and back fields
                 </span>
               </div>
             </TooltipTrigger>
             <TooltipContent side="right" className="max-w-xs">
               <p className="text-xs">
-                Markdown formatting is supported in question and answer fields.
+                Markdown formatting is supported in front and back fields.
                 Use # for headings, * for lists, **bold**, *italic*, `code`, and
                 more.
               </p>

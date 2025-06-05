@@ -93,8 +93,8 @@ export const Content = ({ selectedDecks = [] }: ContentProps) => {
         const transformedCards: UICard[] = allCards.flat().map((card) => ({
           id: card.id,
           deckId: card.deck_id,
-          question: card.front,
-          answer: card.back,
+          front: card.front,
+          back: card.back,
           ease: card.ease,
           review_count: card.review_count,
           correct_count: card.correct_count,
@@ -152,7 +152,7 @@ export const Content = ({ selectedDecks = [] }: ContentProps) => {
     }
   };
 
-  const handleAnswered = () => {
+  const handleBacked = () => {
     // This is called when a card is flipped, but we don't need to do anything
   };
 
@@ -160,8 +160,8 @@ export const Content = ({ selectedDecks = [] }: ContentProps) => {
     const newCard = {
       id: `${Date.now()}`,
       deckId,
-      question: front,
-      answer: back,
+      front: front,
+      back: back,
       ease: 2.5,
       review_count: 0,
       correct_count: 0,
@@ -182,14 +182,14 @@ export const Content = ({ selectedDecks = [] }: ContentProps) => {
   };
 
   const handleAddMultipleCards = (
-    newCards: Array<{ question: string; answer: string }>,
+    newCards: Array<{ front: string; back: string }>,
     deckId: string
   ) => {
     const cardsToAdd = newCards.map((card, index) => ({
       id: `${Date.now()}-${index}`,
       deckId,
-      question: card.question,
-      answer: card.answer,
+      front: card.front,
+      back: card.back,
       ease: 2.5,
       review_count: 0,
       correct_count: 0,
@@ -225,12 +225,12 @@ export const Content = ({ selectedDecks = [] }: ContentProps) => {
     setIsDeleteModalOpen(false);
   };
 
-  const handleUpdateCard = (question: string, answer: string) => {
+  const handleUpdateCard = (front: string, back: string) => {
     if (!currentCard) return;
 
     const updatedCards = cards.map((card) => {
       if (card.id === currentCard.id) {
-        return { ...card, question, answer };
+        return { ...card, front, back };
       }
       return card;
     });
@@ -239,7 +239,7 @@ export const Content = ({ selectedDecks = [] }: ContentProps) => {
 
     const updatedFilteredCards = filteredCards.map((card, index) => {
       if (index === currentCardIndex) {
-        return { ...card, question, answer };
+        return { ...card, front, back };
       }
       return card;
     });
@@ -458,7 +458,7 @@ export const Content = ({ selectedDecks = [] }: ContentProps) => {
               card={currentCard}
               onUpdate={handleUpdateCard}
               onDelete={() => setIsDeleteModalOpen(true)}
-              onAnswered={handleAnswered}
+              onBacked={handleBacked}
               onPrevious={cardHistory.canGoBack() ? handlePrevCard : undefined}
               onNext={handleNextCard}
               onCorrect={handleCorrect}

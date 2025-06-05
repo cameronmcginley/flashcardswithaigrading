@@ -31,7 +31,7 @@ interface MagicDeckModalProps {
 const DEFAULT_PROMPT = `Generate 10 flashcards that are concise, practical, and highly relevant for learning and review.
 
 Each flashcard should:
-- Be phrased as a clear question with a specific answer
+- Be phrased as a clear front with a specific answer
 - Focus on practical knowledge and real-world application
 - Have an answer that fits in 1-2 sentences or a small code snippet
 - Be technical and actionable, not just theoretical

@@ -36,8 +36,8 @@ export interface UICategoryWithDecks extends UICategory {
 export interface UICard {
     id: string;
     deckId: string;
-    question: string;
-    answer: string;
+    front: string;
+    back: string;
     ease: number;
     review_count: number;
     correct_count: number;

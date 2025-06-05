@@ -50,8 +50,8 @@ export const AddDeckModal = ({
     JSON.stringify(
       [
         {
-          question: "Example question?",
-          answer: "Example answer.",
+          front: "Example front?",
+          back: "Example back.",
         },
       ],
       null,
@@ -91,11 +91,11 @@ export const AddDeckModal = ({
           return;
         }
 
-        // Check if each card has question and answer
-        const isValid = parsed.every((card) => card.question && card.answer);
+        // Check if each card has front and back
+        const isValid = parsed.every((card) => card.front && card.back);
         if (!isValid) {
           toast.error("Validation Error", {
-            description: "Each card must have 'question' and 'answer' fields.",
+            description: "Each card must have 'front' and 'back' fields.",
           });
           return;
         }
@@ -107,8 +107,8 @@ export const AddDeckModal = ({
         await createManyCards(
           deck.id,
           parsed.map((card) => ({
-            question: card.question,
-            answer: card.answer,
+            front: card.front,
+            back: card.back,
           }))
         );
 
@@ -121,8 +121,8 @@ export const AddDeckModal = ({
           JSON.stringify(
             [
               {
-                question: "Example question?",
-                answer: "Example answer.",
+                front: "Example front?",
+                back: "Example back.",
               },
             ],
             null,
@@ -189,7 +189,7 @@ export const AddDeckModal = ({
             onValidChange={setIsJsonValid}
             placeholder="Enter cards JSON..."
             rows={10}
-            helperText="Enter your cards in JSON format. Each card should have a question and answer field."
+            helperText="Enter your cards in JSON format. Each card should have a front and answer field."
             formatOnBlur
             markdown={true}
           />

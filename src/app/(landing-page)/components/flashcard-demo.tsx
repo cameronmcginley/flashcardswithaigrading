@@ -14,15 +14,15 @@ export default function FlashcardDemo() {
   const [isFlipped, setIsFlipped] = useState(false);
   const [isGraded, setIsGraded] = useState(false);
   const [isGrading, setIsGrading] = useState(false);
-  const [currentTab, setCurrentTab] = useState("question");
+  const [currentTab, setCurrentTab] = useState("front");
   const [gradeScore, setGradeScore] = useState(65);
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
     if (!isFlipped) {
-      setCurrentTab("answer");
+      setCurrentTab("back");
     } else {
-      setCurrentTab("question");
+      setCurrentTab("front");
     }
   };
 
@@ -43,7 +43,7 @@ export default function FlashcardDemo() {
   const resetDemo = () => {
     setIsFlipped(false);
     setIsGraded(false);
-    setCurrentTab("question");
+    setCurrentTab("front");
   };
 
   const closeGrading = () => {
@@ -84,18 +84,18 @@ export default function FlashcardDemo() {
 
   // Function to copy feedback to clipboard and open ChatGPT
   const copyFeedbackAndOpenChatGPT = () => {
-    const question = "What is tail call optimization?";
-    const correctAnswer =
+    const front = "What is tail call optimization?";
+    const correctBack =
       "When the final action of a function is a recursive call and can reuse stack frame";
-    const userAnswer = "Recursion that stops early";
+    const userBack = "Recursion that stops early";
     const aiFeedback =
       "Partially correct. You're on the right track, but it specifically refers to reusing the call frame. Tail call optimization is a compiler technique where a function call in tail position doesn't need to allocate a new stack frame, instead reusing the current one. This prevents stack overflow in deeply recursive functions.";
 
     const feedbackText = `This is the feedback I got for an AI graded flashcard answer
 
-Question: ${question}
-Correct Answer: ${correctAnswer}
-Your Answer: ${userAnswer}
+Front: ${front}
+Correct Back: ${correctBack}
+Your Back: ${userBack}
 AI Feedback: ${aiFeedback}
 Grade: ${gradeScore}%
 
@@ -133,20 +133,20 @@ Can you help me understand this feedback better and suggest how I can improve my
               <Tabs value={currentTab} className="w-full">
                 <TabsList className="grid w-full grid-cols-2 mb-6">
                   <TabsTrigger
-                    value="question"
-                    onClick={() => setCurrentTab("question")}
+                    value="front"
+                    onClick={() => setCurrentTab("front")}
                   >
-                    Question
+                    Front
                   </TabsTrigger>
                   <TabsTrigger
-                    value="answer"
-                    onClick={() => setCurrentTab("answer")}
+                    value="back"
+                    onClick={() => setCurrentTab("back")}
                   >
-                    Answer
+                    Back
                   </TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="question" className="mt-0">
+                <TabsContent value="front" className="mt-0">
                   <div className="text-center">
                     <h3 className="text-2xl font-semibold mb-6">
                       What is tail call optimization?
@@ -156,23 +156,23 @@ Can you help me understand this feedback better and suggest how I can improve my
                       className="mt-4"
                       variant="outline"
                     >
-                      Show Answer
+                      Show Back
                     </Button>
                   </div>
                 </TabsContent>
 
-                <TabsContent value="answer" className="mt-0">
+                <TabsContent value="back" className="mt-0">
                   <div className="space-y-6">
                     <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                       <h4 className="font-medium text-sm text-gray-500 dark:text-gray-400 mb-2">
-                        Your Answer:
+                        Your Back:
                       </h4>
                       <p className="text-lg">"Recursion that stops early"</p>
                     </div>
 
                     <div className="p-4 bg-gray-50 dark:bg-gray-900 rounded-lg">
                       <h4 className="font-medium text-sm text-gray-500 dark:text-gray-400 mb-2">
-                        Correct Answer:
+                        Correct Back:
                       </h4>
                       <p className="text-lg">
                         "When the final action of a function is a recursive call
@@ -302,7 +302,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top" align="center">
-                        <p className="text-sm">Copies your question and answer to clipboard and opens ChatGPT</p>
+                        <p className="text-sm">Copies your front and answer to clipboard and opens ChatGPT</p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>

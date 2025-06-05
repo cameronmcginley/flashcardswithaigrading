@@ -32,8 +32,8 @@ interface DeckInfoModalProps {
   // Callbacks
   onUpdateDeckName: (deckId: string, newName: string) => void;
   onDeleteCard: (cardId: string) => void;
-  onUpdateCard: (cardId: string, question: string, answer: string) => void;
-  onAddCard: (deckId: string, question: string, answer: string) => void;
+  onUpdateCard: (cardId: string, front: string, back: string) => void;
+  onAddCard: (deckId: string, front: string, back: string) => void;
 
   // Edit modal state
   isAddCardModalOpen: boolean;
@@ -66,7 +66,7 @@ export const DeckInfoModal = ({
   const [searchQuery, setSearchQuery] = useState("");
   const [deleteDialog, setDeleteDialog] = useState<{ open: boolean; cardId: string | null }>({ open: false, cardId: null });
   const [currentView, setCurrentView] = useState<"cards" | "json">("cards");
-  const [sortColumn, setSortColumn] = useState<"question" | "ease" | "review_count" | "last_reviewed">("last_reviewed");
+  const [sortColumn, setSortColumn] = useState<"front" | "ease" | "review_count" | "last_reviewed">("last_reviewed");
   const [sortDirection, setSortDirection] = useState<"asc" | "desc">("desc");
 
   // Keep deckName in sync if prop changes
@@ -75,13 +75,13 @@ export const DeckInfoModal = ({
   // Search/sort cards
   const filteredCards = useMemo(() => {
     const q = searchQuery.toLowerCase();
-    return !q ? cards : cards.filter((c) => c.question.toLowerCase().includes(q));
+    return !q ? cards : cards.filter((c) => c.front.toLowerCase().includes(q));
   }, [cards, searchQuery]);
 
   const sortedCards = useMemo(() => {
     const arr = [...filteredCards];
     arr.sort((a, b) => {
-      if (sortColumn === "question") return sortDirection === "asc" ? a.question.localeCompare(b.question) : b.question.localeCompare(a.question);
+      if (sortColumn === "front") return sortDirection === "asc" ? a.front.localeCompare(b.front) : b.front.localeCompare(a.front);
       if (sortColumn === "ease") return sortDirection === "asc" ? (a.ease ?? 0) - (b.ease ?? 0) : (b.ease ?? 0) - (a.ease ?? 0);
       if (sortColumn === "review_count") return sortDirection === "asc" ? (a.review_count ?? 0) - (b.review_count ?? 0) : (b.review_count ?? 0) - (a.review_count ?? 0);
       // last_reviewed
@@ -98,7 +98,7 @@ export const DeckInfoModal = ({
   };
 
   const cardsJson = useMemo(
-    () => JSON.stringify(cards.map(({ question, answer }) => ({ question, answer })), null, 2),
+    () => JSON.stringify(cards.map(({ front, back }) => ({ front, back })), null, 2),
     [cards]
   );
 
@@ -213,8 +213,8 @@ export const DeckInfoModal = ({
                       <TableHeader>
                         <TableRow>
                           <TableHead>
-                            <Button variant="ghost" onClick={() => toggleSort("question")} className="h-8 text-left font-medium">
-                              Question
+                            <Button variant="ghost" onClick={() => toggleSort("front")} className="h-8 text-left font-medium">
+                              Front
                               <ArrowUpDown className="ml-2 h-4 w-4" />
                             </Button>
                           </TableHead>
@@ -246,10 +246,10 @@ export const DeckInfoModal = ({
                               <TooltipProvider>
                                 <Tooltip>
                                   <TooltipTrigger asChild>
-                                    <p className="truncate max-w-[300px]">{card.question}</p>
+                                    <p className="truncate max-w-[300px]">{card.front}</p>
                                   </TooltipTrigger>
                                   <TooltipContent side="bottom" className="max-w-md">
-                                    <p>{card.question}</p>
+                                    <p>{card.front}</p>
                                   </TooltipContent>
                                 </Tooltip>
                               </TooltipProvider>
@@ -323,8 +323,8 @@ export const DeckInfoModal = ({
       <AddCardModal
         open={isAddCardModalOpen}
         onOpenChange={onAddCardModalOpenChange}
-        onAddCard={(question, answer) => onAddCard(deckId, question, answer)}
-        onUpdateCard={(cardId, question, answer) => onUpdateCard(cardId, question, answer)}
+        onAddCard={(front, back) => onAddCard(deckId, front, back)}
+        onUpdateCard={(cardId, front, back) => onUpdateCard(cardId, front, back)}
         defaultDeckId={deckId}
         deckName={deckName}
         availableDecks={[{ id: deckId, name: deckName, categoryId }]}

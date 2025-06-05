@@ -205,7 +205,7 @@ export default function SettingsModal({
 
           <div className="flex items-center justify-between">
             <div className="flex items-center gap-2">
-              <Label htmlFor="autoGrade">Auto-grade Answers</Label>
+              <Label htmlFor="autoGrade">Auto-grade Backs</Label>
               <TooltipProvider>
                 <Tooltip>
                   <TooltipTrigger asChild>

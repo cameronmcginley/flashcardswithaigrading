@@ -80,7 +80,7 @@ export const getDailyStats = async (days = 14) => {
       totalReviews: stats.total,
       correctPercent: Math.round((stats.correct / stats.total) * 100),
       avgGrade: Math.round(stats.gradeSum / stats.total),
-      avgAnswerTimeSec: Math.round(stats.timeSum / stats.total / 10) / 100,
+      avgBackTimeSec: Math.round(stats.timeSum / stats.total / 10) / 100,
     }))
     .sort((a, b) => (a.day > b.day ? -1 : 1));
 };
@@ -102,9 +102,9 @@ export const getStatsInRange = async (start: Date, end: Date = new Date()) => {
     totalReviews === 0
       ? 0
       : Math.round(
-          (data.reduce((sum, r) => sum + r.new_ease_factor, 0) / totalReviews) *
-            10
-        ) / 10;
+        (data.reduce((sum, r) => sum + r.new_ease_factor, 0) / totalReviews) *
+        10
+      ) / 10;
 
   return {
     totalReviews,
@@ -133,9 +133,9 @@ export const getAllTimeStats = async () => {
     totalReviews === 0
       ? 0
       : Math.round(
-          (data.reduce((sum, r) => sum + r.new_ease_factor, 0) / totalReviews) *
-            10
-        ) / 10;
+        (data.reduce((sum, r) => sum + r.new_ease_factor, 0) / totalReviews) *
+        10
+      ) / 10;
 
   const now = new Date();
   const startOfToday = new Date(now.setHours(0, 0, 0, 0));
