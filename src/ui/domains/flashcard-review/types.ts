@@ -1,6 +1,7 @@
 
 export interface DatabaseDeck {
     id: string;
+    category_id: string;
     name: string;
     card_count: number;
 }
@@ -8,19 +9,27 @@ export interface DatabaseDeck {
 export interface DatabaseCategory {
     id: string;
     name: string;
+}
+
+export interface DatabaseCategoryWithDecks extends DatabaseCategory {
     decks: DatabaseDeck[];
 }
 
 export interface UIDeck {
     id: string;
+    categoryId: string;
     name: string;
     selected?: boolean;
     cardCount?: number;
 }
 
+
 export interface UICategory {
     id: string;
     name: string;
+}
+
+export interface UICategoryWithDecks extends UICategory {
     decks: UIDeck[];
 }
 

@@ -5,31 +5,20 @@ import { AppSidebar } from "./sidebar/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getAllCategoriesWithDecks, createCategory, updateItemsOrder } from "@/api/categories/category";
 import { toast } from "sonner";
-import AddDeckModal from "./modals/add-deck-modal";
-import MagicDeckModal from "./modals/magic-deck-modal";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogFooter,
-} from "@/components/ui/dialog";
+import { AddDeckModal } from "./modals/add-deck-modal";
+import { MagicDeckModal } from "./modals/magic-deck-modal";
 import { LoadingScreen } from "./loading-screen/loading-screen";
 import { FreshAccountScreen } from "./fresh-account-screen/fresh-account-screen";
-import DeleteConfirmationDialog from "./modals/delete-confirmation-dialog";
-import Content from "./content/content";
+import { DeleteConfirmationDialog } from "./modals/delete-confirmation-dialog";
+import { Content } from "./content/content";
 import {
-  DatabaseCategory,
-  DatabaseDeck,
-  UICategory,
+  UICategoryWithDecks,
   DeleteItem,
 } from "./types";
+import { AddCategoryModal } from "./modals/add-category-modal";
 
-export default function Main() {
-  const [categories, setCategories] = useState<UICategory[]>([]);
+export const Main = () => {
+  const [categories, setCategories] = useState<UICategoryWithDecks[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [selectedDecks, setSelectedDecks] = useState<{ deckId: string; cardCount: number }[]>([]);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
@@ -41,7 +30,6 @@ export default function Main() {
   const [isMagicDeckModalOpen, setIsMagicDeckModalOpen] = useState(false);
 
   // -------- Helpers --------
-
   const showFreshAccountPage = () =>
     categories.length === 1 && categories[0].name === "Default" && categories[0].decks.length === 0;
 
@@ -102,14 +90,15 @@ export default function Main() {
         return;
       }
       const data = await getAllCategoriesWithDecks();
-      const transformedCategories: UICategory[] = data.map((category: DatabaseCategory) => ({
+      const transformedCategories = data.map((category) => ({
         id: category.id,
         name: category.name,
-        decks: (category.decks || []).map((deck: DatabaseDeck) => ({
+        decks: (category.decks || []).map((deck) => ({
           id: deck.id,
           name: deck.name,
           selected: false,
           cardCount: deck.card_count || 0,
+          categoryId: category.id,
         })),
       }));
       setCategories(transformedCategories);
@@ -142,6 +131,10 @@ export default function Main() {
     setIsAddDeckModalOpen(true);
   };
 
+  const handleMagicDeck = () => {
+    setIsMagicDeckModalOpen(true);
+  };
+
   const handleAddDeckModalSubmit = (name: string, deckId: string) => {
     if (!selectedCategoryIdForDeck) return;
     setCategories((prev) =>
@@ -151,7 +144,7 @@ export default function Main() {
               ...category,
               decks: [
                 ...category.decks,
-                { id: deckId, name, selected: false, cardCount: 0 },
+                { id: deckId, name, selected: false, cardCount: 0, categoryId: category.id },
               ],
             }
           : category
@@ -239,7 +232,7 @@ export default function Main() {
     toast("Not implemented: Edit deck modal");
   };
 
-  const handleSaveOrder = async (updatedCategories: UICategory[]) => {
+  const handleSaveOrder = async (updatedCategories: UICategoryWithDecks[]) => {
     try {
       const orderUpdates = updatedCategories.flatMap((cat, idx) => [
         { id: cat.id, type: "category" as const, order: idx },
@@ -262,42 +255,8 @@ export default function Main() {
     toast("Add Card via FAB: Not implemented");
   };
 
-  // -------- UI/JSX --------
-
   return (
     <div className="flex flex-col h-[calc(100vh-4rem)] overflow-hidden">
-      {/* Add Category Modal */}
-      <Dialog open={isAddCategoryModalOpen} onOpenChange={setIsAddCategoryModalOpen}>
-        {isAddCategoryModalOpen && (
-          <DialogContent className="sm:max-w-[425px]">
-            <DialogHeader>
-              <DialogTitle>Create New Category</DialogTitle>
-            </DialogHeader>
-            <div className="grid gap-4 py-4">
-              <div className="grid grid-cols-4 items-center gap-4">
-                <Label htmlFor="categoryName" className="text-right">
-                  Name
-                </Label>
-                <Input
-                  id="categoryName"
-                  value={newCategoryName}
-                  onChange={(e) => setNewCategoryName(e.target.value)}
-                  className="col-span-3"
-                  autoFocus
-                />
-              </div>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" onClick={() => setIsAddCategoryModalOpen(false)}>
-                Cancel
-              </Button>
-              <Button onClick={handleAddCategorySubmit}>Add Category</Button>
-            </DialogFooter>
-          </DialogContent>
-        )}
-      </Dialog>
-
-      {/* Delete Dialog */}
       <DeleteConfirmationDialog
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
@@ -327,7 +286,7 @@ export default function Main() {
           onEditDeck={handleEditDeck}
           onDeleteDeck={handleDeleteDeck}
           onFabAddCard={handleFabAddCard}
-          onMagicDeck={() => setIsMagicDeckModalOpen(true)}
+          onMagicDeck={handleMagicDeck}
           onSaveOrder={handleSaveOrder}
         />
         <SidebarInset className="flex flex-col pt-0">
@@ -344,14 +303,17 @@ export default function Main() {
         </SidebarInset>
       </SidebarProvider>
 
+      <AddCategoryModal
+        open={isAddCategoryModalOpen}
+        onOpenChange={setIsAddCategoryModalOpen}
+        onAddCategory={handleAddCategorySubmit}
+      />
+
       <AddDeckModal
         open={isAddDeckModalOpen}
         onOpenChange={setIsAddDeckModalOpen}
         onAddDeck={handleAddDeckModalSubmit}
         categoryId={selectedCategoryIdForDeck || ""}
-        categoryName={
-          categories.find((c) => c.id === selectedCategoryIdForDeck)?.name || ""
-        }
         categories={categories}
         onCategoryChange={setSelectedCategoryIdForDeck}
       />

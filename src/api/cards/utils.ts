@@ -1,6 +1,6 @@
 import { MAX_CARD_BACK_LENGTH, MAX_CARD_FRONT_LENGTH } from "./constants";
 
-export const isValidCardFrontAndBack = (
+export const isValidCardQuestionAndAnswer = (
   front?: string,
   back?: string
 ): boolean => {

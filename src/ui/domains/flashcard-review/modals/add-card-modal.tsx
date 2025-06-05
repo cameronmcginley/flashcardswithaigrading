@@ -22,36 +22,25 @@ import {
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Info } from "lucide-react";
-
-interface Deck {
-  id: string;
-  name: string;
-  categoryName: string;
-}
-
-interface Card {
-  id?: string;
-  front: string;
-  back: string;
-}
+import { UIDeck } from "../types";
 
 interface AddCardModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddCard: (front: string, back: string, deckId: string) => void;
-  onUpdateCard?: (cardId: string, front: string, back: string) => void;
+  onAddCard: (question: string, answer: string, deckId: string) => void;
+  onUpdateCard?: (cardId: string, question: string, answer: string) => void;
   onAddMultipleCards?: (
-    cards: Array<{ front: string; back: string }>,
+    cards: Array<{ question: string; answer: string }>,
     deckId: string
   ) => void;
   deckName?: string;
-  availableDecks: Deck[];
+  availableDecks: UIDeck[];
   defaultDeckId?: string;
   editMode?: boolean;
-  initialCard?: Card;
+  initialCard?: { id?:string, question:string, answer:string };
 }
 
-export default function AddCardModal({
+export const AddCardModal = ({
   open,
   onOpenChange,
   onAddCard,
@@ -62,15 +51,15 @@ export default function AddCardModal({
   defaultDeckId,
   editMode = false,
   initialCard,
-}: AddCardModalProps) {
-  const [front, setFront] = useState(initialCard?.front || "");
-  const [back, setBack] = useState(initialCard?.back || "");
+}: AddCardModalProps) => {
+  const [question, setQuestion] = useState(initialCard?.question || "");
+  const [answer, setAnswer] = useState(initialCard?.answer || "");
   const [jsonContent, setJsonContent] = useState(
     JSON.stringify(
       [
         {
-          front: initialCard?.front || "Example front?",
-          back: initialCard?.back || "Example back.",
+          question: initialCard?.question || "Example question?",
+          answer: initialCard?.answer || "Example answer.",
         },
       ],
       null,
@@ -80,22 +69,22 @@ export default function AddCardModal({
   const [activeTab, setActiveTab] = useState("form");
   const [selectedDeckId, setSelectedDeckId] = useState<string>("");
 
-  const [isFrontValid, setIsFrontValid] = useState(true);
-  const [isBackValid, setIsBackValid] = useState(true);
+  const [isQuestionValid, setIsQuestionValid] = useState(true);
+  const [isAnswerValid, setIsAnswerValid] = useState(true);
   const [isJsonValid, setIsJsonValid] = useState(true);
 
   // Reset form when modal opens or initialCard changes
   useEffect(() => {
     if (open) {
       if (initialCard) {
-        setFront(initialCard.front);
-        setBack(initialCard.back);
+        setQuestion(initialCard.question);
+        setAnswer(initialCard.answer);
         setJsonContent(
           JSON.stringify(
             [
               {
-                front: initialCard.front,
-                back: initialCard.back,
+                question: initialCard.question,
+                answer: initialCard.answer,
               },
             ],
             null,
@@ -113,7 +102,7 @@ export default function AddCardModal({
   }, [open, initialCard, defaultDeckId, availableDecks]);
 
   const handleSubmitForm = () => {
-    if (!isFrontValid || !isBackValid) {
+    if (!isQuestionValid || !isAnswerValid) {
       toast.error("Validation Error", {
         description: "Please fix the validation errors before saving.",
       });
@@ -127,16 +116,16 @@ export default function AddCardModal({
       return;
     }
 
-    if (front.trim() && back.trim()) {
+    if (question.trim() && answer.trim()) {
       if (editMode && initialCard?.id && onUpdateCard) {
-        onUpdateCard(initialCard.id, front, back);
+        onUpdateCard(initialCard.id, question, answer);
       } else {
-        onAddCard(front, back, selectedDeckId);
+        onAddCard(question, answer, selectedDeckId);
       }
       resetForm();
     } else {
       toast.error("Validation Error", {
-        description: "Front and back cannot be empty.",
+        description: "Question and answer cannot be empty.",
       });
     }
   };
@@ -162,10 +151,10 @@ export default function AddCardModal({
       // Check if it's an array
       if (Array.isArray(parsed)) {
         // Validate each card in the array
-        const isValid = parsed.every((card) => card.front && card.back);
+        const isValid = parsed.every((card) => card.question && card.answer);
         if (!isValid) {
           toast.error("Validation Error", {
-            description: "Each card must have 'front' and 'back' fields.",
+            description: "Each card must have 'question' and 'answer' fields.",
           });
           return;
         }
@@ -178,7 +167,7 @@ export default function AddCardModal({
             return;
           }
           if (initialCard?.id && onUpdateCard) {
-            onUpdateCard(initialCard.id, parsed[0].front, parsed[0].back);
+            onUpdateCard(initialCard.id, parsed[0].question, parsed[0].answer);
           }
         } else {
           // If we have a handler for multiple cards, use it
@@ -191,7 +180,7 @@ export default function AddCardModal({
             // Otherwise, add just the first card
             if (parsed.length > 0) {
               const firstCard = parsed[0];
-              onAddCard(firstCard.front, firstCard.back, selectedDeckId);
+              onAddCard(firstCard.question, firstCard.answer, selectedDeckId);
               if (parsed.length > 1) {
                 toast.warning("Warning", {
                   description:
@@ -210,10 +199,10 @@ export default function AddCardModal({
       } else {
         toast.error("Validation Error", {
           description:
-            "JSON must be an array of cards with 'front' and 'back' fields.",
+            "JSON must be an array of cards with 'question' and 'answer' fields.",
         });
       }
-    } catch (error) {
+    } catch {
       toast.error("Error", {
         description: "Failed to parse JSON.",
       });
@@ -222,14 +211,14 @@ export default function AddCardModal({
 
   const resetForm = () => {
     if (!editMode) {
-      setFront("");
-      setBack("");
+      setQuestion("");
+      setAnswer("");
       setJsonContent(
         JSON.stringify(
           [
             {
-              front: "Example front?",
-              back: "Example back.",
+              question: "Example question?",
+              answer: "Example answer.",
             },
           ],
           null,
@@ -242,12 +231,12 @@ export default function AddCardModal({
 
   // Group decks by category for better organization in the dropdown
   const groupedDecks = availableDecks.reduce((acc, deck) => {
-    if (!acc[deck.categoryName]) {
-      acc[deck.categoryName] = [];
+    if (!acc[deck.categoryId]) {
+      acc[deck.categoryId] = [];
     }
-    acc[deck.categoryName].push(deck);
+    acc[deck.categoryId].push(deck);
     return acc;
-  }, {} as Record<string, Deck[]>);
+  }, {} as Record<string, UIDeck[]>);
 
   const title = editMode
     ? "Edit Card"
@@ -296,13 +285,13 @@ export default function AddCardModal({
           </TabsList>
           <TabsContent value="form" className="space-y-4 py-4">
             <TextInputWithLimit
-              id="front"
-              label="Front"
-              value={front}
-              onChange={setFront}
-              onValidChange={setIsFrontValid}
+              id="question"
+              label="Question"
+              value={question}
+              onChange={setQuestion}
+              onValidChange={setIsQuestionValid}
               maxLength={500}
-              placeholder="Enter front side..."
+              placeholder="Enter question side..."
               multiline
               rows={4}
               required
@@ -310,13 +299,13 @@ export default function AddCardModal({
             />
 
             <TextInputWithLimit
-              id="back"
-              label="Back"
-              value={back}
-              onChange={setBack}
-              onValidChange={setIsBackValid}
+              id="answer"
+              label="Answer"
+              value={answer}
+              onChange={setAnswer}
+              onValidChange={setIsAnswerValid}
               maxLength={1000}
-              placeholder="Enter back side..."
+              placeholder="Enter answer side..."
               multiline
               rows={4}
               required
@@ -353,8 +342,8 @@ export default function AddCardModal({
               rows={8}
               helperText={
                 editMode
-                  ? "Edit your card in JSON format with front and back fields."
-                  : "Enter your cards in JSON format with front and back fields. You can add multiple cards as an array."
+                  ? "Edit your card in JSON format with question and answer fields."
+                  : "Enter your cards in JSON format with question and answer fields. You can add multiple cards as an array."
               }
               required
               formatOnBlur
@@ -376,4 +365,4 @@ export default function AddCardModal({
       </DialogContent>
     </Dialog>
   );
-}
+};

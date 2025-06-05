@@ -17,11 +17,11 @@ interface DeleteConfirmationModalProps {
   onConfirm: () => void;
 }
 
-export default function DeleteConfirmationModal({
+export const DeleteConfirmationModal = ({
   open,
   onOpenChange,
   onConfirm,
-}: DeleteConfirmationModalProps) {
+}: DeleteConfirmationModalProps) => {
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
       <AlertDialogContent>

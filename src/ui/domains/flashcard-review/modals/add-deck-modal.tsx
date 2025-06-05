@@ -33,22 +33,18 @@ interface AddDeckModalProps {
   onOpenChange: (open: boolean) => void;
   onAddDeck: (name: string, deckId: string) => void;
   categoryId: string | null;
-  categoryName: string;
   categories: Category[];
   onCategoryChange: (categoryId: string) => void;
-  onRefresh?: () => Promise<void>;
 }
 
-export default function AddDeckModal({
+export const AddDeckModal = ({
   open,
   onOpenChange,
   onAddDeck,
   categoryId,
-  categoryName,
   categories,
   onCategoryChange,
-  onRefresh,
-}: AddDeckModalProps) {
+}: AddDeckModalProps) => {
   const [deckName, setDeckName] = useState("");
   const [jsonContent, setJsonContent] = useState(
     JSON.stringify(
@@ -111,8 +107,8 @@ export default function AddDeckModal({
         await createManyCards(
           deck.id,
           parsed.map((card) => ({
-            front: card.question,
-            back: card.answer,
+            question: card.question,
+            answer: card.answer,
           }))
         );
 

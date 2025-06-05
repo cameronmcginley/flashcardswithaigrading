@@ -29,13 +29,13 @@ interface CardDetailModalProps {
   onDelete: () => void;
 }
 
-export default function CardDetailModal({
+export const CardDetailModal = ({
   open,
   onOpenChange,
   card,
   onUpdate,
   onDelete,
-}: CardDetailModalProps) {
+}: CardDetailModalProps) => {
   const [front, setFront] = useState(card?.front || "");
   const [back, setBack] = useState(card?.back || "");
   const [isEditing, setIsEditing] = useState(false);

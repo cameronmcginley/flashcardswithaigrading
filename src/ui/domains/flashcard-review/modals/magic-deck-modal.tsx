@@ -46,12 +46,12 @@ Topic focus:
 
 Make the cards challenging enough to be valuable for learning but clear enough to have unambiguous answers.`;
 
-export default function MagicDeckModal({
+export const MagicDeckModal = ({
   open,
   onOpenChange,
   onGenerate,
   categories,
-}: MagicDeckModalProps) {
+}: MagicDeckModalProps) => {
   const [selectedCategoryId, setSelectedCategoryId] = useState<string>("");
   const [deckName, setDeckName] = useState("");
   const [prompt, setPrompt] = useState(DEFAULT_PROMPT);

@@ -63,7 +63,7 @@ interface FlashcardProps {
   }>;
 }
 
-export default function Flashcard({
+export const Flashcard = ({
   card,
   onUpdate,
   onDelete,
@@ -75,7 +75,7 @@ export default function Flashcard({
   onPartiallyCorrect,
   onWrong,
   allCards,
-}: FlashcardProps) {
+}: FlashcardProps) => {
   const [isFlipped, setIsFlipped] = useState(false);
   const [userAnswer, setUserAnswer] = useState("");
   const [editingQuestion, setEditingQuestion] = useState(false);
@@ -844,4 +844,4 @@ Can you help me understand this feedback better and suggest how I can improve my
       </div>
     </div>
   );
-}
+};

@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import Flashcard from "../flashcard/flashcard";
-import AddCardModal from "../modals/add-card-modal";
-import DeleteConfirmationModal from "../modals/delete-confirmation-modal";
+import { Flashcard } from "../flashcard/flashcard";
+import { AddCardModal } from "../modals/add-card-modal";
+import { DeleteConfirmationModal } from "../modals/delete-confirmation-modal";
 import { toast } from "sonner";
 import {
   getAllCardsInDeck,
@@ -20,7 +20,7 @@ import {
 } from "lucide-react";
 import { UICard } from "../types";
 
-interface MainAreaProps {
+interface ContentProps {
   selectedDecks?: { deckId: string; cardCount: number }[];
   debugMode?: boolean;
 }
@@ -62,7 +62,7 @@ class CardHistory {
   }
 }
 
-export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
+export const Content = ({ selectedDecks = [] }: ContentProps) => {
   const [cards, setCards] = useState<UICard[]>([]);
   const [filteredCards, setFilteredCards] = useState<UICard[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
@@ -182,14 +182,14 @@ export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
   };
 
   const handleAddMultipleCards = (
-    newCards: Array<{ front: string; back: string }>,
+    newCards: Array<{ question: string; answer: string }>,
     deckId: string
   ) => {
     const cardsToAdd = newCards.map((card, index) => ({
       id: `${Date.now()}-${index}`,
       deckId,
-      question: card.front,
-      answer: card.back,
+      question: card.question,
+      answer: card.answer,
       ease: 2.5,
       review_count: 0,
       correct_count: 0,
@@ -252,6 +252,7 @@ export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
       id: deck.deckId,
       name: "Selected Deck", // TODO: Get actual deck names
       categoryName: "Category", // TODO: Get actual category names
+      categoryId: "default", // Adding required categoryId
     }));
   };
 
@@ -487,4 +488,4 @@ export default function MainArea({ selectedDecks = [] }: MainAreaProps) {
       />
     </div>
   );
-}
+};

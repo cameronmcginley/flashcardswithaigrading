@@ -51,7 +51,7 @@ import {
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import type { ReorderableCategory, SortableItemProps, SortableItem } from "./types";
-import { UICategory } from "../types";
+import { UICategoryWithDecks } from "../types";
 
 // SortableItem for DnD
 function SortableItem({ id, label, depth = 0 }: SortableItemProps) {
@@ -102,7 +102,7 @@ function SortableItem({ id, label, depth = 0 }: SortableItemProps) {
 }
 
 interface AppSidebarProps {
-  categories: UICategory[];
+  categories: UICategoryWithDecks[];
   isLoading: boolean;
 
   // Handler props for parent-driven actions
@@ -115,7 +115,7 @@ interface AppSidebarProps {
   onDeleteDeck: (deckId: string, categoryId: string) => void;
   onFabAddCard: () => void;
   onMagicDeck: () => void;
-  onSaveOrder: (categories: UICategory[]) => void;
+  onSaveOrder: (categories: UICategoryWithDecks[]) => void;
 }
 
 // Pure presentational sidebar, all logic/state driven via props
@@ -168,7 +168,7 @@ export function AppSidebar({
     });
   };
 
-  const convertToReorderableCategories = (categories: UICategory[]): ReorderableCategory[] =>
+  const convertToReorderableCategories = (categories: UICategoryWithDecks[]): ReorderableCategory[] =>
     categories.map((category) => ({
       id: category.id,
       name: category.name,
@@ -181,14 +181,14 @@ export function AppSidebar({
 
   const convertFromReorderableCategories = (
     reorderableCategories: ReorderableCategory[]
-  ): UICategory[] =>
+  ): UICategoryWithDecks[] =>
     reorderableCategories.map((category) => ({
       id: category.id,
       name: category.name,
       decks: category.decks.map((deck) => ({
         id: deck.id,
         name: deck.name,
-        // NOTE: deck.selected and deck.cardCount should be recovered by parent; here we ignore for presentational-only.
+        categoryId: category.id,
       })),
     }));
 

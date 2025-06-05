@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase/client";
 import { INVALID_CARD_FRONT_AND_BACK_ERROR } from "./constants";
-import { isValidCardFrontAndBack } from "./utils";
+import { isValidCardQuestionAndAnswer } from "./utils";
 
 /** Fetch a single card by its ID */
 export const getCard = async (cardId: string) => {
@@ -17,20 +17,20 @@ export const getCard = async (cardId: string) => {
 /** Create a new card */
 export const createCard = async (
   deckId: string,
-  front: string,
-  back: string
+  question: string,
+  answer: string
 ) => {
-  if (!deckId || !front || !back) {
+  if (!deckId || !question || !answer) {
     throw new Error("Missing required fields");
   }
 
-  if (!isValidCardFrontAndBack(front, back)) {
+  if (!isValidCardQuestionAndAnswer(question, answer)) {
     throw new Error(INVALID_CARD_FRONT_AND_BACK_ERROR);
   }
 
   const { data, error } = await supabase
     .from("cards")
-    .insert([{ deck_id: deckId, front, back }])
+    .insert([{ deck_id: deckId, question, answer }])
     .select()
     .single();
 
@@ -41,14 +41,14 @@ export const createCard = async (
 /** Create many cards */
 export const createManyCards = async (
   deckId: string,
-  cards: { front: string; back: string }[]
+  cards: { question: string; answer: string }[]
 ) => {
   if (!deckId || !cards || cards.length === 0) {
     throw new Error("Missing required fields");
   }
 
   for (const card of cards) {
-    if (!isValidCardFrontAndBack(card.front, card.back)) {
+    if (!isValidCardQuestionAndAnswer(card.question, card.answer)) {
       throw new Error(INVALID_CARD_FRONT_AND_BACK_ERROR);
     }
   }
@@ -62,23 +62,23 @@ export const createManyCards = async (
   return data;
 };
 
-/** Update the front and/or back fields of a card */
-export const updateCardFrontAndOrBack = async (
+/** Update the question and/or answer fields of a card */
+export const updateCardQuestionAndOrAnswer = async (
   cardId: string,
-  front?: string,
-  back?: string
+  question?: string,
+  answer?: string
 ) => {
-  if (!front && !back) {
+  if (!question && !answer) {
     throw new Error("No fields to update");
   }
 
-  if (!isValidCardFrontAndBack(front, back)) {
+  if (!isValidCardQuestionAndAnswer(question, answer)) {
     throw new Error(INVALID_CARD_FRONT_AND_BACK_ERROR);
   }
 
-  const updates: { front?: string; back?: string } = {};
-  if (front) updates.front = front;
-  if (back) updates.back = back;
+  const updates: { question?: string; answer?: string } = {};
+  if (question) updates.question = question;
+  if (answer) updates.answer = answer;
 
   const { data, error } = await supabase
     .from("cards")
@@ -137,14 +137,14 @@ export const restoreCards = async (cardIds: string[]) => {
  * */
 export const bulkEditDeckCards = async (
   deckId: string,
-  cards: { front: string; back: string }[]
+  cards: { question: string; answer: string }[]
 ) => {
   if (!deckId || !cards || cards.length === 0) {
     throw new Error("Missing required fields");
   }
 
   for (const card of cards) {
-    if (!isValidCardFrontAndBack(card.front, card.back)) {
+    if (!isValidCardQuestionAndAnswer(card.question, card.answer)) {
       throw new Error(INVALID_CARD_FRONT_AND_BACK_ERROR);
     }
   }
@@ -157,7 +157,7 @@ export const bulkEditDeckCards = async (
   } catch {
     const deletedCardIds = deletedCards.map((card) => card.id);
     await restoreCards(deletedCardIds);
-    throw new Error("Insert failed, rollback attempted");
+    throw new Error("Insert failed, rollanswer attempted");
   }
 };
 

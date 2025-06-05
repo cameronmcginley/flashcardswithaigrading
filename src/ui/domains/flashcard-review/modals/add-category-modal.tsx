@@ -18,11 +18,11 @@ interface AddCategoryModalProps {
   onAddCategory: (name: string) => void;
 }
 
-export default function AddCategoryModal({
+export const AddCategoryModal = ({
   open,
   onOpenChange,
   onAddCategory,
-}: AddCategoryModalProps) {
+}: AddCategoryModalProps) => {
   const [categoryName, setCategoryName] = useState("");
   const [isNameValid, setIsNameValid] = useState(true);
 
@@ -60,7 +60,6 @@ export default function AddCategoryModal({
             maxLength={50}
             placeholder="Enter category name..."
             required
-            autoFocus
           />
         </div>
         <DialogFooter>

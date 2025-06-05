@@ -20,14 +20,14 @@ interface DeleteConfirmationDialogProps {
   confirmText?: string;
 }
 
-export default function DeleteConfirmationDialog({
+export const DeleteConfirmationDialog = ({
   open,
   onOpenChange,
   onConfirm,
   title,
   description,
   confirmText = "Delete",
-}: DeleteConfirmationDialogProps) {
+}: DeleteConfirmationDialogProps) => {
   return (
     <Dialog open={open} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
