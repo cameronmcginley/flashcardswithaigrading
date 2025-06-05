@@ -11,6 +11,18 @@ values
             where
                 name = 'Programming'
         ),
+        'Rich Text'
+    ),
+    (
+        '00000000-0000-0000-0000-000000000000',
+        (
+            select
+                id
+            from
+                categories
+            where
+                name = 'Programming'
+        ),
         'JavaScript Basics'
     ),
     (

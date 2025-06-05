@@ -32,7 +32,7 @@ values
             from
                 decks
             where
-                name = 'JavaScript Basics'
+                name = 'Rich Text'
         ),
         '**Algorithm Challenge**: Implement a function to reverse a string
 
@@ -82,7 +82,7 @@ function reverseString(str) {
             from
                 decks
             where
-                name = 'JavaScript Basics'
+                name = 'Rich Text'
         ),
         '## Promise Methods Comparison
 
@@ -153,7 +153,7 @@ Promise.allSettled([promise1, promise2, promise3])
             from
                 decks
             where
-                name = 'World Capitals'
+                name = 'Rich Text'
         ),
         '## Geography Challenge 🌍
 
@@ -191,7 +191,7 @@ Promise.allSettled([promise1, promise2, promise3])
             from
                 decks
             where
-                name = 'JavaScript Basics'
+                name = 'Rich Text'
         ),
         '## Calculus: Chain Rule
 
@@ -228,7 +228,7 @@ $$\frac{d}{dx}[f(g(x))] = f''(g(x)) \cdot g''(x)$$'
             from
                 decks
             where
-                name = 'World Capitals'
+                name = 'Rich Text'
         ),
         '## Physics: Kinematics
 
@@ -279,7 +279,7 @@ $$t = \frac{20 + 22.31}{9.8} = 4.32 \text{ seconds}$$
             from
                 decks
             where
-                name = 'JavaScript Basics'
+                name = 'Rich Text'
         ),
         '## Data Structures: Big O Analysis
 
@@ -348,13 +348,13 @@ O(1) < O(log n) < O(n) < O(n log n) < O(n²) < O(2ⁿ)
             from
                 decks
             where
-                name = 'World Capitals'
+                name = 'Rich Text'
         ),
         '## Chemistry: Balancing Equations ⚗️
 
 Balance this chemical equation:
 
-$$\ce{C_8H_{18} + O_2 -> CO_2 + H_2O}$$
+$${C_8H_{18} + O_2 -> CO_2 + H_2O}$$
 
 **Steps to follow:**
 1. Count atoms on each side
@@ -365,7 +365,7 @@ $$\ce{C_8H_{18} + O_2 -> CO_2 + H_2O}$$
         '## Balanced Chemical Equation ⚗️
 
 ### Solution:
-$$\ce{2C_8H_{18} + 25O_2 -> 16CO_2 + 18H_2O}$$
+$${2C_8H_{18} + 25O_2 -> 16CO_2 + 18H_2O}$$
 
 ### Step-by-Step Process:
 
@@ -374,17 +374,17 @@ $$\ce{2C_8H_{18} + 25O_2 -> 16CO_2 + 18H_2O}$$
 - **Right side:** 1 C, 2 H, 3 O
 
 **2. Balance carbon first:**
-- Need 8 CO₂ to balance 8 carbons: $\ce{C_8H_{18} + O_2 -> 8CO_2 + H_2O}$
+- Need 8 CO₂ to balance 8 carbons: ${C_8H_{18} + O_2 -> 8CO_2 + H_2O}$
 
 **3. Balance hydrogen:**
-- Need 9 H₂O to balance 18 hydrogens: $\ce{C_8H_{18} + O_2 -> 8CO_2 + 9H_2O}$
+- Need 9 H₂O to balance 18 hydrogens: ${C_8H_{18} + O_2 -> 8CO_2 + 9H_2O}$
 
 **4. Balance oxygen:**
 - Right side has: $(8 \times 2) + (9 \times 1) = 25$ oxygen atoms
 - Need $\frac{25}{2} = 12.5$ O₂ molecules
 
 **5. Clear fraction by multiplying all by 2:**
-$$\ce{2C_8H_{18} + 25O_2 -> 16CO_2 + 18H_2O}$$
+$${2C_8H_{18} + 25O_2 -> 16CO_2 + 18H_2O}$$
 
 ### Verification:
 | Element | Left Side | Right Side |

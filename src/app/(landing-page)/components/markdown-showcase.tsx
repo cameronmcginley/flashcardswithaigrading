@@ -19,6 +19,7 @@ import {
   ChevronRight
 } from "lucide-react";
 import "katex/dist/katex.min.css";
+import "katex/dist/contrib/mhchem";
 
 export default function MarkdownShowcase() {
   const [currentCard, setCurrentCard] = useState(0);

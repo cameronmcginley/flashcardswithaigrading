@@ -7,6 +7,7 @@ import rehypeHighlight from "rehype-highlight";
 import rehypeKatex from "rehype-katex";
 import { cn } from "@/lib/utils";
 import "katex/dist/katex.min.css";
+import "katex/dist/contrib/mhchem";
 
 interface MarkdownContentProps {
   content: string;
