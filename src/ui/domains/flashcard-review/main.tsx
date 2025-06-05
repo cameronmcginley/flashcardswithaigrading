@@ -4,8 +4,8 @@ import { useState, useEffect } from "react";
 import { AppSidebar } from "./sidebar/app-sidebar";
 import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
 import { getAllCategoriesWithDecks, createCategory, updateItemsOrder } from "@/api/categories/category";
-import { getAllCardsInDeck, createCard, updateCardFrontAndOrBack, deleteCard } from "@/api/cards/card";
-import { updateDeck } from "@/api/decks/deck";
+import { getAllCardsInDeck, createCard, updateCardFrontAndOrBack, deleteCard, createManyCards } from "@/api/cards/card";
+import { updateDeck, createDeck } from "@/api/decks/deck";
 import { toast } from "sonner";
 import { AddDeckModal } from "./modals/add-deck-modal";
 import { MagicDeckModal } from "./modals/magic-deck-modal";
@@ -291,23 +291,79 @@ export const Main = () => {
     setIsMagicDeckModalOpen(true);
   };
 
-  const handleAddDeckModalSubmit = (name: string, deckId: string) => {
+  const handleAddDeckModalSubmit = async (name: string, deckId: string, jsonContent?: string) => {
     if (!selectedCategoryIdForDeck) return;
-    setCategories((prev) =>
-      prev.map((category) =>
-        category.id === selectedCategoryIdForDeck
-          ? {
-              ...category,
-              decks: [
-                ...category.decks,
-                { id: deckId, name, selected: false, cardCount: 0, categoryId: category.id },
-              ],
-            }
-          : category
-      )
-    );
-    toast.success(`Deck "${name}" added successfully`);
-    setIsAddDeckModalOpen(false);
+    
+    try {
+      let createdDeck;
+      let cardCount = 0;
+
+      if (jsonContent) {
+        // Validate JSON structure
+        const parsed = JSON.parse(jsonContent);
+        if (!Array.isArray(parsed)) {
+          toast.error("Validation Error", {
+            description: "JSON must be an array of cards.",
+          });
+          return;
+        }
+
+        // Check if each card has front and back
+        const isValid = parsed.every((card) => card.front && card.back);
+        if (!isValid) {
+          toast.error("Validation Error", {
+            description: "Each card must have 'front' and 'back' fields.",
+          });
+          return;
+        }
+
+        // Create the deck
+        createdDeck = await createDeck(name, selectedCategoryIdForDeck);
+
+        // Create the cards
+        await createManyCards(
+          createdDeck.id,
+          parsed.map((card) => ({
+            front: card.front,
+            back: card.back,
+          }))
+        );
+
+        cardCount = parsed.length;
+      } else {
+        // If no JSON content, just create an empty deck
+        createdDeck = await createDeck(name, selectedCategoryIdForDeck);
+      }
+
+      // Update local state
+      setCategories((prev) =>
+        prev.map((category) =>
+          category.id === selectedCategoryIdForDeck
+            ? {
+                ...category,
+                decks: [
+                  ...category.decks,
+                  { 
+                    id: createdDeck.id, 
+                    name, 
+                    selected: false, 
+                    cardCount: cardCount, 
+                    categoryId: category.id 
+                  },
+                ],
+              }
+            : category
+        )
+      );
+      
+      toast.success(`Deck "${name}" added successfully${cardCount > 0 ? ` with ${cardCount} cards` : ""}`);
+      setIsAddDeckModalOpen(false);
+    } catch (error) {
+      console.error("Error creating deck:", error);
+      toast.error("Failed to create deck", {
+        description: error instanceof Error ? error.message : "Unknown error",
+      });
+    }
   };
 
   const handleEditCategory = (categoryId: string, newName: string) => {

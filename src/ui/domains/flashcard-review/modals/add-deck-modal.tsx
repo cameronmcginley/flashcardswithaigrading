@@ -20,8 +20,6 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
-import { createDeck } from "@/api/decks/deck";
-import { createManyCards } from "@/api/cards/card";
 
 interface Category {
   id: string;
@@ -31,7 +29,7 @@ interface Category {
 interface AddDeckModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  onAddDeck: (name: string, deckId: string) => void;
+  onAddDeck: (name: string, deckId: string, jsonContent?: string) => void;
   categoryId: string | null;
   categories: Category[];
   onCategoryChange: (categoryId: string) => void;
@@ -82,7 +80,7 @@ export const AddDeckModal = ({
       try {
         setIsSubmitting(true);
 
-        // Validate JSON structure
+        // Validate JSON structure before passing to parent
         const parsed = JSON.parse(jsonContent);
         if (!Array.isArray(parsed)) {
           toast.error("Validation Error", {
@@ -100,20 +98,8 @@ export const AddDeckModal = ({
           return;
         }
 
-        // Create the deck
-        const deck = await createDeck(trimmedDeckName, categoryId);
-
-        // Create the cards
-        await createManyCards(
-          deck.id,
-          parsed.map((card) => ({
-            front: card.front,
-            back: card.back,
-          }))
-        );
-
-        // Call the onAddDeck callback with the deck ID and name
-        onAddDeck(trimmedDeckName, deck.id);
+        // Pass to parent component to handle the actual creation
+        await onAddDeck(trimmedDeckName, "", jsonContent);
 
         // Reset form but keep the category selected
         setDeckName("");
@@ -130,13 +116,10 @@ export const AddDeckModal = ({
           )
         );
 
-        // Close modal last
-        onOpenChange(false);
-
       } catch (error) {
-        console.error("Error creating deck:", error);
-        toast.error("Failed to create deck", {
-          description: error instanceof Error ? error.message : "Unknown error",
+        console.error("Error in modal validation:", error);
+        toast.error("Validation Error", {
+          description: "Invalid JSON format or structure.",
         });
       } finally {
         setIsSubmitting(false);
