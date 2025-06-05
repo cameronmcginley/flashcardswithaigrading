@@ -417,8 +417,8 @@ export const Main = () => {
   };
 
   const handleDeckSelect = (categoryId: string, deckId: string) => {
-    setCategories((prev) =>
-      prev.map((category) =>
+    setCategories((prev) => {
+      const updatedCategories = prev.map((category) =>
         category.id === categoryId
           ? {
               ...category,
@@ -427,15 +427,18 @@ export const Main = () => {
               ),
             }
           : category
-      )
-    );
-    // Update selectedDecks for MainArea/Content
-    setSelectedDecks(
-      categories
-        .flatMap((c) =>
-          c.decks.filter((d) => d.selected).map((d) => ({ deckId: d.id, cardCount: d.cardCount ?? 0 }))
-        )
-    );
+      );
+      
+      // Update selectedDecks based on the updated categories state
+      setSelectedDecks(
+        updatedCategories
+          .flatMap((c) =>
+            c.decks.filter((d) => d.selected).map((d) => ({ deckId: d.id, cardCount: d.cardCount ?? 0 }))
+          )
+      );
+      
+      return updatedCategories;
+    });
   };
 
   const handleEditDeck = (deckId: string, categoryId: string) => {
