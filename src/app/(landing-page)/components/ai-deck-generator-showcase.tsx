@@ -41,7 +41,7 @@ export default function AIDeckGeneratorShowcase() {
     {
       topic: "JavaScript Promises",
       description: "Modern async programming concepts",
-      color: "from-yellow-400 to-orange-500",
+      color: "from-emerald-400 to-teal-500",
       icon: "⚡",
       cards: [
         { front: "What is a Promise in JavaScript?", back: "A Promise is an object representing the eventual completion or failure of an asynchronous operation, providing a cleaner alternative to callbacks." },
@@ -54,7 +54,7 @@ export default function AIDeckGeneratorShowcase() {
     {
       topic: "Photosynthesis Biology",
       description: "Plant energy conversion process",
-      color: "from-green-400 to-emerald-500",
+      color: "from-emerald-400 to-teal-500",
       icon: "🌱",
       cards: [
         { front: "What is photosynthesis?", back: "The process by which plants convert light energy, carbon dioxide, and water into glucose and oxygen using chlorophyll." },
@@ -67,7 +67,7 @@ export default function AIDeckGeneratorShowcase() {
     {
       topic: "World War II History",
       description: "Major events and timeline",
-      color: "from-red-400 to-rose-500", 
+      color: "from-emerald-400 to-teal-500", 
       icon: "🌍",
       cards: [
         { front: "When did World War II officially begin and end?", back: "September 1, 1939 (Germany invades Poland) to September 2, 1945 (Japan surrenders)." },
@@ -122,9 +122,7 @@ export default function AIDeckGeneratorShowcase() {
     <div className="max-w-6xl mx-auto">
       <div className="grid lg:grid-cols-2 gap-8 items-start">
         {/* Input Section */}
-        <Card className="relative overflow-hidden border-2 bg-white dark:bg-gray-800 min-h-[600px]">
-          <div className={`absolute inset-0 bg-gradient-to-br ${currentExampleData.color} opacity-5`} />
-          
+        <Card className="relative overflow-hidden border-2 !bg-white dark:bg-gray-800 min-h-[600px]">
           <CardHeader className="relative">
             <CardTitle className="flex items-center gap-2">
               <Wand2 className="h-5 w-5" />
@@ -219,14 +217,14 @@ export default function AIDeckGeneratorShowcase() {
               </Button>
 
               {/* AI Features */}
-              <div className="p-4 bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg border border-purple-200 dark:border-purple-800">
+              <div className="p-4 bg-gradient-to-r from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20 rounded-lg border border-emerald-200 dark:border-emerald-800">
                 <div className="flex items-center gap-2 mb-2">
-                  <Lightbulb className="h-4 w-4 text-purple-600" />
-                  <span className="font-medium text-purple-900 dark:text-purple-100 text-sm">
+                  <Lightbulb className="h-4 w-4 text-emerald-600" />
+                  <span className="font-medium text-emerald-900 dark:text-emerald-100 text-sm">
                     AI Features
                   </span>
                 </div>
-                <ul className="text-xs text-purple-800 dark:text-purple-200 space-y-1">
+                <ul className="text-xs text-emerald-800 dark:text-emerald-200 space-y-1">
                   <li>• Automatically structures learning material</li>
                   <li>• Creates progressive difficulty levels</li>
                   <li>• Generates comprehensive coverage</li>
@@ -257,7 +255,7 @@ export default function AIDeckGeneratorShowcase() {
                       ease: "easeInOut"
                     }}
                   >
-                    <Brain className="h-8 w-8 mx-auto text-purple-500" />
+                    <Brain className="h-8 w-8 mx-auto text-emerald-500" />
                   </motion.div>
                   <p className="mt-2 font-medium">AI is thinking...</p>
                   <p className="text-sm text-gray-600 dark:text-gray-400">
@@ -311,25 +309,11 @@ export default function AIDeckGeneratorShowcase() {
                       <CheckCircle2 className="h-16 w-16 mx-auto text-green-500 mb-4" />
                     </motion.div>
                     <h3 className="text-xl font-semibold text-green-600 mb-2">
-                      Deck Generated Successfully! ✨
+                      Deck Generated Successfully!
                     </h3>
                     <p className="text-gray-600 dark:text-gray-400">
-                      {cardCount} intelligent flashcards created for {currentTopic || currentExampleData.topic}
+                      {cardCount} flashcards created for {currentTopic || currentExampleData.topic}
                     </p>
-                    <div className="flex justify-center gap-2 mt-4">
-                      <Badge className="bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-200">
-                        <Target className="h-3 w-3 mr-1" />
-                        Perfectly Structured
-                      </Badge>
-                      <Badge className="bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-200">
-                        <Clock className="h-3 w-3 mr-1" />
-                        Ready in Seconds
-                      </Badge>
-                      <Badge className="bg-purple-100 text-purple-800 dark:bg-purple-900 dark:text-purple-200">
-                        <Zap className="h-3 w-3 mr-1" />
-                        AI Powered
-                      </Badge>
-                    </div>
                   </motion.div>
                 )}
               </AnimatePresence>
@@ -342,7 +326,7 @@ export default function AIDeckGeneratorShowcase() {
                     initial={{ opacity: 0, x: 50, scale: 0.8 }}
                     animate={{ opacity: 1, x: 0, scale: 1 }}
                     transition={{ delay: index * 0.1 }}
-                    className="p-4 border rounded-lg bg-gray-50 dark:bg-gray-900 border-gray-200 dark:border-gray-700"
+                    className="p-4 border rounded-lg bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 shadow-sm"
                   >
                     <div className="flex items-start gap-3">
                       <div className="w-6 h-6 rounded-full bg-blue-100 dark:bg-blue-900 border border-blue-200 dark:border-blue-700 flex items-center justify-center flex-shrink-0">
@@ -354,7 +338,7 @@ export default function AIDeckGeneratorShowcase() {
                         <p className="font-medium text-sm mb-2 leading-relaxed">
                           {card.front}
                         </p>
-                        <div className="p-3 bg-white dark:bg-gray-800 rounded border border-gray-200 dark:border-gray-600 text-xs text-gray-600 dark:text-gray-400">
+                        <div className="p-3 bg-gray-50 dark:bg-gray-700 rounded border border-gray-200 dark:border-gray-600 text-xs text-gray-600 dark:text-gray-400">
                           <span className="font-medium text-gray-800 dark:text-gray-200">Answer: </span>
                           {card.back}
                         </div>

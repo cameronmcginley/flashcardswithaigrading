@@ -119,54 +119,6 @@ export default function FeatureGrid() {
         "Drag & drop reordering"
       ]
     },
-    {
-      icon: <Calendar className="h-10 w-10" />,
-      title: "Review Scheduling",
-      description: "Intelligent card queuing based on performance and review history.",
-      verified: "✓ Implemented",
-      color: "from-violet-500 to-purple-600",
-      highlights: [
-        "Performance-based queuing",
-        "Review history tracking",
-        "Adaptive intervals"
-      ]
-    },
-    {
-      icon: <Clock className="h-10 w-10" />,
-      title: "Auto-Grade Mode",
-      description: "Automatic grading when flipping cards for seamless study sessions.",
-      verified: "✓ Implemented",
-      color: "from-emerald-500 to-teal-600",
-      highlights: [
-        "Seamless auto-grading",
-        "Configurable settings",
-        "Manual override option"
-      ]
-    },
-    {
-      icon: <Zap className="h-10 w-10" />,
-      title: "Real-time Sync",
-      description: "LocalStorage-based persistence with instant updates across sessions.",
-      verified: "✓ Implemented",
-      color: "from-cyan-500 to-blue-600",
-      highlights: [
-        "Instant local storage",
-        "Session persistence",
-        "Real-time updates"
-      ]
-    },
-    {
-      icon: <Sparkles className="h-10 w-10" />,
-      title: "Modern Interface",
-      description: "Beautiful, responsive design with dark mode and smooth animations.",
-      verified: "✓ Implemented",
-      color: "from-rose-500 to-pink-600",
-      highlights: [
-        "Responsive design",
-        "Dark mode support",
-        "Smooth animations"
-      ]
-    }
   ];
 
   const containerVariants = {

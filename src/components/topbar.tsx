@@ -76,7 +76,9 @@ export default function Topbar({ onDebugModeChange }: TopbarProps) {
           href="/"
           className="font-semibold text-lg hover:text-gray-600 transition-colors"
         >
-          Flashcards with AI Grading
+          <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-teal-600">
+            Flashcards with AI Grading
+          </span>
         </Link>
 
         <div className="flex items-center gap-2">

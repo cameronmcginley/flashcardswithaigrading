@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import { AppSidebar } from "./sidebar/app-sidebar";
-import { SidebarInset, SidebarProvider } from "@/components/ui/sidebar";
+import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
 import { getAllCategoriesWithDecks, createCategory, updateItemsOrder } from "@/api/categories/category";
 import { getAllCardsInDeck, createCard, updateCardFrontAndOrBack, deleteCard, createManyCards } from "@/api/cards/card";
 import { updateDeck, createDeck } from "@/api/decks/deck";
@@ -517,16 +517,31 @@ export const Main = () => {
           onSaveOrder={handleSaveOrder}
         />
         <SidebarInset className="flex flex-col pt-0">
-          {isLoading ? (
-            <LoadingScreen />
-          ) : showFreshAccountPage() ? (
-            <FreshAccountScreen
-              onAddDeck={() => setIsAddDeckModalOpen(true)}
-              onOpenMagicDeck={() => setIsMagicDeckModalOpen(true)}
-            />
-          ) : (
-            <Content selectedDecks={selectedDecks} />
-          )}
+          <header className="flex h-12 shrink-0 items-center gap-3 px-4">
+            <SidebarTrigger className="-ml-1" />
+            <span className="text-sm text-muted-foreground">
+              {selectedDecks.length === 0
+                ? "No decks selected"
+                : `${selectedDecks.length} deck${
+                    selectedDecks.length === 1 ? "" : "s"
+                  } selected (${selectedDecks.reduce(
+                    (sum, deck) => sum + deck.cardCount,
+                    0
+                  )} cards)`}
+            </span>
+          </header>
+          <div className="flex-1 overflow-auto p-4 pt-0">
+            {isLoading ? (
+              <LoadingScreen />
+            ) : showFreshAccountPage() ? (
+              <FreshAccountScreen
+                onAddDeck={() => setIsAddDeckModalOpen(true)}
+                onOpenMagicDeck={() => setIsMagicDeckModalOpen(true)}
+              />
+            ) : (
+              <Content selectedDecks={selectedDecks} />
+            )}
+          </div>
         </SidebarInset>
       </SidebarProvider>
 

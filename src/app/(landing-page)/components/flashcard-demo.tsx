@@ -244,9 +244,9 @@ Can you help me understand this feedback better and suggest how I can improve my
             transition={{ duration: 0.4, delay: 0.2 }}
             className="mt-8"
           >
-            <Card className="p-6 border-2 border-border bg-muted/20 relative">
+            <Card className="p-6 border-2 border-border bg-white relative">
               {/* Speech bubble arrow */}
-              <div className="absolute -top-3 left-10 w-6 h-6 bg-muted/20 border-t-2 border-l-2 border-border transform rotate-45"></div>
+              <div className="absolute -top-3 left-10 w-6 h-6 bg-white border-t-2 border-l-2 border-border transform rotate-45"></div>
               
               <div className="flex items-start gap-4">
                 <div className="bg-muted p-2 rounded-full">

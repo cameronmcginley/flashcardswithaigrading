@@ -15,52 +15,41 @@ export default function Home() {
   return (
     <main className="flex min-h-screen flex-col items-center">
       {/* Hero Section */}
-      <section className="w-full py-20 px-4 md:py-32 flex flex-col items-center justify-center text-center bg-gradient-to-b from-gray-50 to-white dark:from-gray-950 dark:to-gray-900">
+      <section className="w-full py-20 px-4 md:py-32 flex flex-col items-center justify-center text-center bg-gradient-to-b from-emerald-50 to-white dark:from-emerald-950/10 dark:to-gray-900">
         <div className="container max-w-5xl">
-          <Badge className="mb-6 bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 px-4 py-2">
-            <Sparkles className="h-4 w-4 mr-2" />
-            Powered by AI
-          </Badge>
           <h1 className="text-4xl md:text-7xl font-bold tracking-tight mb-8">
-            The Future of{" "}
-            <span className="bg-clip-text text-transparent bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600">
-              Smart Learning
-            </span>
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-teal-600">
+              Smart Flashcards
+            </span>{" "}
+            with AI Grading
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-            `Flashcards with AI Grading` revolutionizes flashcard learning with AI-powered grading, 
-            adaptive algorithms, and powerful features that make studying efficient and engaging.
+            Flashcard learning with AI-powered grading that provides detailed feedback and informs 
+            a spaced repetition algorithm for optimized study scheduling. Includes bulk import, 
+            AI deck generation, markdown support, and analytics tracking.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/app">
-              <Button size="lg" className="rounded-full px-8 py-6 text-lg group bg-gradient-to-r from-blue-600 to-purple-600 hover:from-blue-700 hover:to-purple-700">
+              <Button size="lg" className="rounded-full px-8 py-6 text-lg group bg-gradient-to-r from-emerald-700 to-teal-600 hover:from-emerald-800 hover:to-teal-700">
                 <Zap className="mr-2 h-5 w-5" />
-                Start Learning Now
+                Go to App
                 <ArrowRight className="ml-2 h-5 w-5 transition-transform group-hover:translate-x-1" />
               </Button>
             </Link>
-            <Button variant="outline" size="lg" className="rounded-full px-8 py-6 text-lg">
-              <Target className="mr-2 h-5 w-5" />
-              View Demo
-            </Button>
           </div>
         </div>
       </section>
 
       {/* AI Grading Demo */}
-      <section className="w-full py-20 px-4 bg-gray-50 dark:bg-gray-900">
+      <section className="w-full py-20 px-4 bg-slate-50 dark:bg-slate-900">
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4 px-4 py-2">
-              <Brain className="h-4 w-4 mr-2" />
-              AI-Powered Intelligence
-            </Badge>
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
               Intelligent Flashcard Grading
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Experience instant, nuanced feedback with our GPT-4 powered grading system 
-              that understands context, provides detailed explanations, and adapts to your learning style.
+              Experience instant, nuanced feedback with the AI powered grading system 
+              that understands context, provides detailed explanations, and adapts to your difficult settings.
             </p>
           </div>
 
@@ -69,20 +58,15 @@ export default function Home() {
       </section>
 
       {/* AI Deck Generator */}
-      <section className="w-full py-20 px-4 bg-gradient-to-br from-purple-50 via-pink-50 to-indigo-50 dark:from-purple-950/20 dark:via-pink-950/20 dark:to-indigo-950/20">
+      <section className="w-full py-20 px-4 bg-gradient-to-br from-emerald-50 via-teal-50 to-cyan-50 dark:from-emerald-950/20 dark:via-teal-950/20 dark:to-cyan-950/20">
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4 px-4 py-2">
-              <Wand2 className="h-4 w-4 mr-2" />
-              AI Deck Generator
-            </Badge>
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
-              Create Entire Decks Instantly ✨
+              Generate Entire Decks Instantly
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
               Simply enter any topic and watch our AI generate a complete, 
-              intelligent flashcard deck in seconds. From programming to history to science - 
-              the AI understands context and creates perfectly structured learning material.
+              intelligent flashcard deck in seconds. Adjust the AI prompt however you wish to tailor the deck to your needs.
             </p>
           </div>
 
@@ -94,10 +78,6 @@ export default function Home() {
       <section className="w-full py-20 px-4 bg-white dark:bg-gray-950">
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4 px-4 py-2">
-              <Zap className="h-4 w-4 mr-2" />
-              Rapid Content Creation
-            </Badge>
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
               Import Cards in Seconds
             </h2>
@@ -112,13 +92,9 @@ export default function Home() {
       </section>
 
       {/* Markdown & Rich Content */}
-      <section className="w-full py-20 px-4 bg-gradient-to-br from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20">
+      <section className="w-full py-20 px-4 bg-gradient-to-br from-teal-50 to-emerald-50 dark:from-teal-950/20 dark:to-emerald-950/20">
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4 px-4 py-2">
-              <Sparkles className="h-4 w-4 mr-2" />
-              Rich Content Support
-            </Badge>
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
               Beyond Basic Text
             </h2>
@@ -133,13 +109,9 @@ export default function Home() {
       </section>
 
       {/* Smart Insights */}
-      <section className="w-full py-20 px-4 bg-white dark:bg-gray-950">
+      <section className="w-full py-20 px-4 bg-slate-50 dark:bg-slate-900">
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4 px-4 py-2">
-              <Brain className="h-4 w-4 mr-2" />
-              Data-Driven Learning
-            </Badge>
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
               Smart Analytics & Insights
             </h2>
@@ -154,13 +126,9 @@ export default function Home() {
       </section>
 
       {/* Spaced Repetition Algorithm */}
-      <section className="w-full py-20 px-4 bg-gradient-to-br from-green-50 to-emerald-50 dark:from-green-950/20 dark:to-emerald-950/20">
+      <section className="w-full py-20 px-4 bg-gradient-to-br from-emerald-50 to-teal-50 dark:from-emerald-950/20 dark:to-teal-950/20">
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-16">
-            <Badge variant="outline" className="mb-4 px-4 py-2">
-              <Target className="h-4 w-4 mr-2" />
-              Science-Based Learning
-            </Badge>
             <h2 className="text-3xl md:text-5xl font-bold mb-6">
               Optimized Spaced Repetition
             </h2>
@@ -192,14 +160,16 @@ export default function Home() {
       </section>
 
       {/* Features Grid */}
-      <section className="w-full py-20 px-4 bg-gray-50 dark:bg-gray-900">
+      <section className="w-full py-20 px-4 bg-slate-50 dark:bg-slate-900">
         <div className="container max-w-6xl mx-auto">
           <div className="text-center mb-16">
             <h2 className="text-3xl md:text-4xl font-bold mb-4">
               Powerful Features for Efficient Learning
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-            `Flashcards with AI Grading` combines the best of spaced repetition with modern AI
+            <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-teal-600 font-semibold">
+              Flashcards with AI Grading
+            </span> combines the best of spaced repetition with modern AI
               capabilities and user-friendly design.
             </p>
           </div>
@@ -209,14 +179,14 @@ export default function Home() {
       </section>
 
       {/* Final CTA */}
-      <section className="w-full py-20 px-4 bg-gradient-to-r from-blue-600 via-purple-600 to-cyan-600">
+      <section className="w-full py-20 px-4 bg-gradient-to-r from-emerald-700 via-teal-600 to-cyan-600">
         <div className="container max-w-4xl mx-auto text-center">
           <h2 className="text-3xl md:text-5xl font-bold mb-6 text-white">
             Ready to Transform Your Learning?
           </h2>
           <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
             Join thousands of learners who are optimizing their study sessions 
-            with `Flashcards with AI Grading`&apos;s intelligent flashcard system.
+            with <span className="font-semibold text-white">Flashcards with AI Grading</span>&apos;s intelligent flashcard system.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/app">
@@ -234,9 +204,9 @@ export default function Home() {
       </section>
 
       {/* Footer */}
-      <footer className="w-full py-8 px-4 bg-gray-100 dark:bg-gray-900">
+      <footer className="w-full py-8 px-4 bg-emerald-100 dark:bg-emerald-900/20">
         <div className="container max-w-6xl mx-auto text-center text-gray-600 dark:text-gray-400">
-          <p>© {new Date().getFullYear()} Flashcards with AI Grading. Revolutionizing learning through intelligent technology.</p>
+          <p>© {new Date().getFullYear()} <span className="bg-clip-text text-transparent bg-gradient-to-r from-emerald-700 to-teal-600 font-semibold">Flashcards with AI Grading</span>. Revolutionizing learning through intelligent technology.</p>
         </div>
       </footer>
     </main>
