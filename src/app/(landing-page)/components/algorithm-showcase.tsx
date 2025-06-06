@@ -229,11 +229,6 @@ export default function AlgorithmShowcase() {
                         </div>
                         <p className="text-xs text-gray-600 dark:text-gray-400">Queue Position</p>
                       </div>
-                      <div className="text-center p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
-                        <Badge variant="outline" className={`w-full ${getPriorityColor(currentStepData.priority)}`}>
-                          {currentStepData.priority} Priority
-                        </Badge>
-                      </div>
                     </div>
                   </motion.div>
                 </AnimatePresence>
@@ -285,16 +280,6 @@ export default function AlgorithmShowcase() {
                 </div>
               </div>
 
-              <div className="flex items-start gap-3">
-                <Timer className="h-5 w-5 text-blue-500 mt-0.5 flex-shrink-0" />
-                <div>
-                  <p className="font-medium text-sm">Optimal Intervals</p>
-                  <p className="text-xs text-gray-600 dark:text-gray-400">
-                    Reviews spaced for maximum retention efficiency
-                  </p>
-                </div>
-              </div>
-
               <div className="mt-6 p-3 bg-gray-50 dark:bg-gray-900 rounded-lg">
                 <h4 className="font-medium text-sm mb-2">AI Score Impact:</h4>
                 <div className="space-y-2 text-xs">
@@ -330,7 +315,7 @@ export default function AlgorithmShowcase() {
                 </div>
                 <p className="text-xs text-purple-800 dark:text-purple-200">
                   Unlike traditional spaced repetition, our algorithm directly uses AI grading percentages 
-                  for more nuanced difficulty adjustment and intelligent scheduling.
+                  for more nuanced ease factor adjustment and intelligent scheduling.
                 </p>
               </div>
             </div>

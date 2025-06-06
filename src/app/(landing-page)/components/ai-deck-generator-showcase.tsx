@@ -33,7 +33,8 @@ export default function AIDeckGeneratorShowcase() {
   ]);
   const [cardCount, setCardCount] = useState(5);
   const [currentExample, setCurrentExample] = useState(0);
-  const [aiPrompt, setAiPrompt] = useState("Create educational flashcards for the topic: {topic}. Make them comprehensive and progressively challenging. Focus on key concepts, definitions, and practical applications.");
+  const originalPromptTemplate = "Create educational flashcards for the topic: {topic}. Make them comprehensive and progressively challenging. Focus on key concepts, definitions, and practical applications.";
+  const [aiPrompt, setAiPrompt] = useState(originalPromptTemplate);
   const [targetCardCount, setTargetCardCount] = useState(5);
 
   const exampleTopics = [
@@ -102,9 +103,17 @@ export default function AIDeckGeneratorShowcase() {
   };
 
   const handleExampleClick = (topic: string, index: number) => {
-    // Update the current example and topic when user clicks
+    // Update the current example and replace {topic} in the prompt
     setCurrentExample(index);
     setCurrentTopic(topic);
+    // Always replace from the original template or current prompt if it contains {topic}
+    let promptToUpdate = aiPrompt;
+    if (!aiPrompt.includes('{topic}')) {
+      // If no {topic} placeholder exists, use the original template
+      promptToUpdate = originalPromptTemplate;
+    }
+    const updatedPrompt = promptToUpdate.replace(/{topic}/g, topic);
+    setAiPrompt(updatedPrompt);
   };
 
   const currentExampleData = exampleTopics[currentExample];
@@ -127,69 +136,35 @@ export default function AIDeckGeneratorShowcase() {
           </CardHeader>
           <CardContent className="relative">
             <div className="space-y-6">
-              {/* Topic Input */}
-              <div className="space-y-2">
-                <label className="text-sm font-medium">Topic:</label>
-                <div className="relative">
-                  <Input
-                    value={currentTopic || currentExampleData.topic}
-                    onChange={(e) => setCurrentTopic(e.target.value)}
-                    placeholder="e.g., React Hooks, Quantum Physics, French Revolution..."
-                    className="pr-12"
-                    disabled={isGenerating}
-                  />
-                  <div className="absolute right-3 top-1/2 transform -translate-y-1/2 text-xl">
-                    {currentExampleData.icon}
-                  </div>
-                </div>
-              </div>
-
               {/* AI Prompt Customization */}
               <div className="space-y-2">
-                <label className="text-sm font-medium">AI Prompt:</label>
+                <label className="text-sm font-medium">Customizable AI Prompt:</label>
                 <Textarea
                   value={aiPrompt}
                   onChange={(e) => setAiPrompt(e.target.value)}
                   placeholder="Customize how AI generates your flashcards..."
-                  className="h-20 text-sm"
+                  className="h-24 text-sm"
                   disabled={isGenerating}
                 />
-                <p className="text-xs text-gray-500">
-                  Use {"{topic}"} as a placeholder for your topic
-                </p>
               </div>
 
               {/* Card Count Setting */}
-              <div className="grid grid-cols-2 gap-4">
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Number of Cards:</label>
-                  <Input
-                    type="number"
-                    min="1"
-                    max="10"
-                    value={targetCardCount}
-                    onChange={(e) => setTargetCardCount(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
-                    className="text-center"
-                    disabled={isGenerating}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <label className="text-sm font-medium">Difficulty:</label>
-                  <select 
-                    className="w-full p-2 border rounded-md dark:bg-gray-800 text-sm"
-                    disabled={isGenerating}
-                  >
-                    <option>Beginner</option>
-                    <option>Intermediate</option>
-                    <option>Advanced</option>
-                    <option>Mixed</option>
-                  </select>
-                </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium">Number of Cards:</label>
+                <Input
+                  type="number"
+                  min="1"
+                  max="10"
+                  value={targetCardCount}
+                  onChange={(e) => setTargetCardCount(Math.max(1, Math.min(10, parseInt(e.target.value) || 1)))}
+                  className="text-center"
+                  disabled={isGenerating}
+                />
               </div>
 
               {/* Example Topics */}
               <div className="space-y-3">
-                <p className="text-sm font-medium">Quick examples:</p>
+                <p className="text-sm font-medium">Quick Examples:</p>
                 <div className="grid gap-2">
                   {exampleTopics.map((example, index) => (
                     <motion.button
@@ -248,7 +223,7 @@ export default function AIDeckGeneratorShowcase() {
                 <div className="flex items-center gap-2 mb-2">
                   <Lightbulb className="h-4 w-4 text-purple-600" />
                   <span className="font-medium text-purple-900 dark:text-purple-100 text-sm">
-                    AI Magic Features
+                    AI Features
                   </span>
                 </div>
                 <ul className="text-xs text-purple-800 dark:text-purple-200 space-y-1">

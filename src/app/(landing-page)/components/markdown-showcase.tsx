@@ -24,6 +24,7 @@ import "katex/dist/contrib/mhchem";
 export default function MarkdownShowcase() {
   const [currentCard, setCurrentCard] = useState(0);
   const [isFlipped, setIsFlipped] = useState(false);
+  const [direction, setDirection] = useState(0); // 1 for next, -1 for prev
 
   const markdownCards = [
     {
@@ -51,23 +52,43 @@ export default function MarkdownShowcase() {
 
   const handleNext = () => {
     setIsFlipped(false);
-    setTimeout(() => {
-      setCurrentCard((prev) => (prev + 1) % markdownCards.length);
-    }, 150);
+    setDirection(1);
+    setCurrentCard((prev) => (prev + 1) % markdownCards.length);
   };
 
   const handlePrev = () => {
     setIsFlipped(false);
-    setTimeout(() => {
-      setCurrentCard((prev) => (prev - 1 + markdownCards.length) % markdownCards.length);
-    }, 150);
+    setDirection(-1);
+    setCurrentCard((prev) => (prev - 1 + markdownCards.length) % markdownCards.length);
   };
 
   const handleFlip = () => {
     setIsFlipped(!isFlipped);
   };
 
+  const handleDotClick = (index: number) => {
+    setIsFlipped(false);
+    setDirection(index > currentCard ? 1 : -1);
+    setCurrentCard(index);
+  };
+
   const currentCardData = markdownCards[currentCard];
+
+  // Slide animation variants for card navigation
+  const slideVariants = {
+    enter: (direction: number) => ({
+      x: direction > 0 ? 300 : -300,
+      opacity: 0
+    }),
+    center: {
+      x: 0,
+      opacity: 1
+    },
+    exit: (direction: number) => ({
+      x: direction > 0 ? -300 : 300,
+      opacity: 0
+    })
+  };
 
   return (
     <div className="max-w-4xl mx-auto">
@@ -75,7 +96,6 @@ export default function MarkdownShowcase() {
         {/* Card Preview */}
         <div className="lg:col-span-3">
           <Card className="relative overflow-hidden border-2 bg-white dark:bg-gray-800 min-h-[400px]">
-            <div className={`absolute inset-0 bg-gradient-to-br ${currentCardData.color} opacity-5`} />
             
             <CardHeader className="relative">
               <div className="flex items-center justify-between">
@@ -91,31 +111,51 @@ export default function MarkdownShowcase() {
             </CardHeader>
 
             <CardContent className="relative">
-              <AnimatePresence mode="wait">
-                <motion.div
-                  key={`${currentCard}-${isFlipped ? 'back' : 'front'}`}
-                  initial={{ opacity: 0, rotateY: isFlipped ? -90 : 90 }}
-                  animate={{ opacity: 1, rotateY: 0 }}
-                  exit={{ opacity: 0, rotateY: isFlipped ? 90 : -90 }}
-                  transition={{ duration: 0.3 }}
-                  className="h-[320px] flex flex-col"
-                >
-                  <div className="mb-4 flex-shrink-0">
-                    <Badge variant="secondary" className="text-xs">
-                      {isFlipped ? "Back (Answer)" : "Front (Question)"}
-                    </Badge>
-                  </div>
-                  
-                  <div className="prose prose-sm dark:prose-invert max-w-none flex-1 overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
-                    <ReactMarkdown
-                      remarkPlugins={[remarkGfm, remarkMath]}
-                      rehypePlugins={[rehypeHighlight, rehypeKatex]}
-                    >
-                      {isFlipped ? currentCardData.back : currentCardData.front}
-                    </ReactMarkdown>
-                  </div>
-                </motion.div>
-              </AnimatePresence>
+              <div className="h-[320px] flex flex-col">
+                {/* Card sliding container */}
+                <AnimatePresence mode="wait" custom={direction}>
+                  <motion.div
+                    key={currentCard}
+                    custom={direction}
+                    variants={slideVariants}
+                    initial="enter"
+                    animate="center"
+                    exit="exit"
+                    transition={{ duration: 0.3, ease: "easeInOut" }}
+                    className="h-full flex flex-col"
+                  >
+                    <div className="mb-4 flex-shrink-0">
+                      <Badge variant="secondary" className="text-xs">
+                        {isFlipped ? "Back (Answer)" : "Front (Question)"}
+                      </Badge>
+                    </div>
+                    
+                    {/* Flip container */}
+                    <div className="flex-1 relative" style={{ perspective: "1000px" }}>
+                      <AnimatePresence mode="wait">
+                        <motion.div
+                          key={isFlipped ? 'back' : 'front'}
+                          initial={{ rotateY: isFlipped ? 0 : 0, opacity: 0 }}
+                          animate={{ rotateY: 0, opacity: 1 }}
+                          exit={{ rotateY: isFlipped ? 0 : 0, opacity: 0 }}
+                          transition={{ duration: 0.1, ease: "easeInOut" }}
+                          className="absolute inset-0 w-full h-full"
+                          style={{ backfaceVisibility: "hidden" }}
+                        >
+                          <div className="prose prose-sm dark:prose-invert max-w-none h-full overflow-y-auto pr-2 scrollbar-thin scrollbar-thumb-gray-300 dark:scrollbar-thumb-gray-600 scrollbar-track-transparent">
+                            <ReactMarkdown
+                              remarkPlugins={[remarkGfm, remarkMath]}
+                              rehypePlugins={[rehypeHighlight, rehypeKatex]}
+                            >
+                              {isFlipped ? currentCardData.back : currentCardData.front}
+                            </ReactMarkdown>
+                          </div>
+                        </motion.div>
+                      </AnimatePresence>
+                    </div>
+                  </motion.div>
+                </AnimatePresence>
+              </div>
 
               <div className="flex justify-between mt-6 flex-shrink-0">
                 <Button variant="outline" onClick={handlePrev} size="sm">
@@ -200,10 +240,7 @@ export default function MarkdownShowcase() {
         {markdownCards.map((_, index) => (
           <button
             key={index}
-            onClick={() => {
-              setCurrentCard(index);
-              setIsFlipped(false);
-            }}
+            onClick={() => handleDotClick(index)}
             className={`w-2 h-2 rounded-full transition-all duration-200 ${
               index === currentCard
                 ? 'bg-blue-500 w-6'

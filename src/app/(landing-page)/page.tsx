@@ -165,7 +165,7 @@ export default function Home() {
               Optimized Spaced Repetition
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-3xl mx-auto">
-              Our advanced algorithm adapts to your performance, scheduling reviews 
+              Our algorithm adapts to your performance, scheduling reviews 
               at the perfect moment for maximum retention and efficiency.
             </p>
           </div>
