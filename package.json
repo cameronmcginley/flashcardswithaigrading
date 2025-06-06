@@ -1,5 +1,5 @@
 {
-  "name": "ez-anki",
+  "name": "flashcardswithaigrading",
   "version": "0.1.0",
   "private": true,
   "scripts": {
@@ -12,7 +12,7 @@
     "db:status": "npx supabase status",
     "db:new": "npx supabase migration new",
     "db:push": "npx supabase db push",
-    "db:reset": "npx supabase stop && (docker volume rm $(docker volume ls -q --filter label=com.supabase.cli.project=ez-anki) || true) && npx supabase start",
+    "db:reset": "npx supabase stop && (docker volume rm $(docker volume ls -q --filter label=com.supabase.cli.project=flashcardswithaigrading) || true) && npx supabase start",
     "db:types": "npx supabase gen types typescript --local > src/types/supabase.ts",
     "db:seed": "npx supabase db reset",
     "db:hardreset": "npm run db:reset && npm run db:seed"

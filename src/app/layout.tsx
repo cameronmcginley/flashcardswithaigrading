@@ -9,7 +9,7 @@ import { AuthProvider } from "@/lib/auth-context";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "EZ Anki - Flashcard Learning App",
+  title: "Flashcards with AI Grading",
   description: "A modern flashcard learning web app with AI grading",
 };
 

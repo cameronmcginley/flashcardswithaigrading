@@ -150,7 +150,7 @@ export const Flashcard = ({
     setIsFlipped(!isFlipped);
 
     // Get auto-grade setting from localStorage
-    const savedSettings = localStorage.getItem("ez-anki-settings");
+    const savedSettings = localStorage.getItem("flashcardswithaigrading-settings");
     let autoGrade = false;
     if (savedSettings) {
       try {
@@ -188,7 +188,7 @@ export const Flashcard = ({
     setIsGrading(true);
 
     // Get the global difficulty setting from localStorage
-    const savedSettings = localStorage.getItem("ez-anki-settings");
+    const savedSettings = localStorage.getItem("flashcardswithaigrading-settings");
     let gradingDifficulty = 2; // Default to adept (2) if not found
 
     if (savedSettings) {
@@ -348,7 +348,7 @@ Can you help me understand this feedback better and suggest how I can improve my
         <div>
           {(() => {
             // Check if debug mode is enabled
-            const savedSettings = localStorage.getItem("ez-anki-settings");
+            const savedSettings = localStorage.getItem("flashcardswithaigrading-settings");
             let debugMode = false;
             if (savedSettings) {
               try {
@@ -673,7 +673,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                   (() => {
                     // Check if auto-grade is enabled in localStorage
                     const savedSettings =
-                      localStorage.getItem("ez-anki-settings");
+                      localStorage.getItem("flashcardswithaigrading-settings");
                     let autoGrade = false;
                     if (savedSettings) {
                       try {

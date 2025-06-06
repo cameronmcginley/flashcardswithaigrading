@@ -69,9 +69,9 @@ export const Main = () => {
 
   const toggleSimulateDelay = () => {
     try {
-      const settings = JSON.parse(localStorage.getItem("ez-anki-settings") || "{}");
+      const settings = JSON.parse(localStorage.getItem("flashcardswithaigrading-settings") || "{}");
       settings.simulateDelay = !settings.simulateDelay;
-      localStorage.setItem("ez-anki-settings", JSON.stringify(settings));
+      localStorage.setItem("flashcardswithaigrading-settings", JSON.stringify(settings));
       toast.success(`Simulate delay ${settings.simulateDelay ? "enabled" : "disabled"}`);
       window.location.reload();
     } catch {
@@ -81,9 +81,9 @@ export const Main = () => {
 
   const toggleSimulateEmptyDecks = () => {
     try {
-      const settings = JSON.parse(localStorage.getItem("ez-anki-settings") || "{}");
+      const settings = JSON.parse(localStorage.getItem("flashcardswithaigrading-settings") || "{}");
       settings.simulateEmptyDecks = !settings.simulateEmptyDecks;
-      localStorage.setItem("ez-anki-settings", JSON.stringify(settings));
+      localStorage.setItem("flashcardswithaigrading-settings", JSON.stringify(settings));
       toast.success(`Simulate empty decks ${settings.simulateEmptyDecks ? "enabled" : "disabled"}`);
       window.location.reload();
     } catch {
@@ -95,7 +95,7 @@ export const Main = () => {
   const fetchCategories = async () => {
     setIsLoading(true);
     try {
-      const savedSettings = localStorage.getItem("ez-anki-settings");
+      const savedSettings = localStorage.getItem("flashcardswithaigrading-settings");
       let simulateDelay = false, simulateEmptyDecks = false;
       if (savedSettings) {
         try {

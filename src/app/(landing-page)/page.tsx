@@ -28,7 +28,7 @@ export default function Home() {
             </span>
           </h1>
           <p className="text-xl md:text-2xl text-gray-600 dark:text-gray-400 mb-12 max-w-3xl mx-auto leading-relaxed">
-            EZ Anki revolutionizes flashcard learning with AI-powered grading, 
+            `Flashcards with AI Grading` revolutionizes flashcard learning with AI-powered grading, 
             adaptive algorithms, and powerful features that make studying efficient and engaging.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
@@ -199,7 +199,7 @@ export default function Home() {
               Powerful Features for Efficient Learning
             </h2>
             <p className="text-lg text-gray-600 dark:text-gray-400 max-w-2xl mx-auto">
-              EZ Anki combines the best of spaced repetition with modern AI
+            `Flashcards with AI Grading` combines the best of spaced repetition with modern AI
               capabilities and user-friendly design.
             </p>
           </div>
@@ -216,7 +216,7 @@ export default function Home() {
           </h2>
           <p className="text-lg text-blue-100 mb-8 max-w-2xl mx-auto">
             Join thousands of learners who are optimizing their study sessions 
-            with EZ Anki&apos;s intelligent flashcard system.
+            with `Flashcards with AI Grading`&apos;s intelligent flashcard system.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Link href="/app">
@@ -236,7 +236,7 @@ export default function Home() {
       {/* Footer */}
       <footer className="w-full py-8 px-4 bg-gray-100 dark:bg-gray-900">
         <div className="container max-w-6xl mx-auto text-center text-gray-600 dark:text-gray-400">
-          <p>© {new Date().getFullYear()} EZ Anki. Revolutionizing learning through intelligent technology.</p>
+          <p>© {new Date().getFullYear()} Flashcards with AI Grading. Revolutionizing learning through intelligent technology.</p>
         </div>
       </footer>
     </main>

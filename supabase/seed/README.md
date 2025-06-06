@@ -1,6 +1,6 @@
 # Database Seed Files
 
-This directory contains the seed files for initializing the EZ Anki database with test data.
+This directory contains the seed files for initializing the database with test data.
 
 ## Files
 

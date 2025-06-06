@@ -30,7 +30,7 @@ export default function Topbar({ onDebugModeChange }: TopbarProps) {
 
   // Load settings from localStorage on mount
   useEffect(() => {
-    const savedSettings = localStorage.getItem("ez-anki-settings");
+    const savedSettings = localStorage.getItem("flashcardswithaigrading-settings");
     if (savedSettings) {
       const parsedSettings = JSON.parse(savedSettings);
       setSettings({
@@ -48,7 +48,7 @@ export default function Topbar({ onDebugModeChange }: TopbarProps) {
 
   const handleSettingsChange = (newSettings: typeof settings) => {
     setSettings(newSettings);
-    localStorage.setItem("ez-anki-settings", JSON.stringify(newSettings));
+    localStorage.setItem("flashcardswithaigrading-settings", JSON.stringify(newSettings));
 
     // Notify parent about debug mode changes
     if (onDebugModeChange && newSettings.debugMode !== settings.debugMode) {
@@ -76,7 +76,7 @@ export default function Topbar({ onDebugModeChange }: TopbarProps) {
           href="/"
           className="font-semibold text-lg hover:text-gray-600 transition-colors"
         >
-          EZ Anki
+          Flashcards with AI Grading
         </Link>
 
         <div className="flex items-center gap-2">

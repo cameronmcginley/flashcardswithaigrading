@@ -111,7 +111,7 @@ export default function SettingsModal({
     }
 
     // Save settings to localStorage
-    localStorage.setItem("ez-anki-settings", JSON.stringify(settings));
+    localStorage.setItem("flashcardswithaigrading-settings", JSON.stringify(settings));
 
     toast.success("Settings saved successfully");
     onOpenChange(false);
