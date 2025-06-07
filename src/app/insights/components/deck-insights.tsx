@@ -45,6 +45,7 @@ import {
 import { getDeckStats } from "@/api/insights/insights";
 import type { DeckStatsResponse } from "@/api/insights/insights";
 import { toast } from "sonner";
+import { ResponsivePie } from "@nivo/pie";
 
 interface DeckInsightsProps {
   timeRange: string;
