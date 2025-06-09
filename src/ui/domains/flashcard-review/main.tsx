@@ -2,10 +2,25 @@
 
 import { useState, useEffect } from "react";
 import { AppSidebar } from "./sidebar/app-sidebar";
-import { SidebarInset, SidebarProvider, SidebarTrigger } from "@/components/ui/sidebar";
-import { getAllCategoriesWithDecks, createCategory, updateItemsOrder } from "@/api/categories/category";
-import { getAllCardsInDeck, createCard, updateCardFrontAndOrBack, deleteCard, createManyCards } from "@/api/cards/card";
-import { updateDeck, createDeck } from "@/api/decks/deck";
+import {
+  SidebarInset,
+  SidebarProvider,
+  SidebarTrigger,
+} from "@/components/ui/sidebar";
+import {
+  getAllCategoriesWithDecks,
+  createCategory,
+  updateItemsOrder,
+} from "@/api/categories/category";
+import {
+  getAllCardsInDeck,
+  createCard,
+  updateCardFrontAndOrBack,
+  deleteCard,
+  createManyCards,
+  deleteAllCardsInDeck,
+} from "@/api/cards/card";
+import { updateDeck, createDeck, deleteDeck } from "@/api/decks/deck";
 import { toast } from "sonner";
 import { AddDeckModal } from "./modals/add-deck-modal";
 import { MagicDeckModal } from "./modals/magic-deck-modal";
@@ -15,23 +30,23 @@ import { LoadingScreen } from "./loading-screen/loading-screen";
 import { FreshAccountScreen } from "./fresh-account-screen/fresh-account-screen";
 import { DeleteConfirmationDialog } from "./modals/delete-confirmation-dialog";
 import { Content } from "./content/content";
-import {
-  UICategoryWithDecks,
-  DeleteItem,
-  UICard,
-} from "./types";
+import { UICategoryWithDecks, DeleteItem, UICard } from "./types";
 import { AddCategoryModal } from "./modals/add-category-modal";
 
 export const Main = () => {
   const [categories, setCategories] = useState<UICategoryWithDecks[]>([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [selectedDecks, setSelectedDecks] = useState<{ deckId: string; cardCount: number }[]>([]);
+  const [selectedDecks, setSelectedDecks] = useState<
+    { deckId: string; cardCount: number }[]
+  >([]);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
   const [newCategoryName, setNewCategoryName] = useState("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState<DeleteItem | null>(null);
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
-  const [selectedCategoryIdForDeck, setSelectedCategoryIdForDeck] = useState<string | null>(null);
+  const [selectedCategoryIdForDeck, setSelectedCategoryIdForDeck] = useState<
+    string | null
+  >(null);
   const [isMagicDeckModalOpen, setIsMagicDeckModalOpen] = useState(false);
 
   // Deck Info Modal state
@@ -47,12 +62,16 @@ export const Main = () => {
 
   // Add Card Modal state (for deck info modal)
   const [isAddCardModalOpen, setIsAddCardModalOpen] = useState(false);
-  const [selectedCardForEdit, setSelectedCardForEdit] = useState<UICard | null>(null);
+  const [selectedCardForEdit, setSelectedCardForEdit] = useState<UICard | null>(
+    null
+  );
   const [isDeleteCardModalOpen, setIsDeleteCardModalOpen] = useState(false);
 
   // -------- Helpers --------
   const showFreshAccountPage = () =>
-    categories.length === 1 && categories[0].name === "Default" && categories[0].decks.length === 0;
+    categories.length === 1 &&
+    categories[0].name === "Default" &&
+    categories[0].decks.length === 0;
 
   // -------- Hotkey Simulate Features --------
   useEffect(() => {
@@ -69,10 +88,17 @@ export const Main = () => {
 
   const toggleSimulateDelay = () => {
     try {
-      const settings = JSON.parse(localStorage.getItem("flashcardswithaigrading-settings") || "{}");
+      const settings = JSON.parse(
+        localStorage.getItem("flashcardswithaigrading-settings") || "{}"
+      );
       settings.simulateDelay = !settings.simulateDelay;
-      localStorage.setItem("flashcardswithaigrading-settings", JSON.stringify(settings));
-      toast.success(`Simulate delay ${settings.simulateDelay ? "enabled" : "disabled"}`);
+      localStorage.setItem(
+        "flashcardswithaigrading-settings",
+        JSON.stringify(settings)
+      );
+      toast.success(
+        `Simulate delay ${settings.simulateDelay ? "enabled" : "disabled"}`
+      );
       window.location.reload();
     } catch {
       toast.error("Failed to toggle simulate delay setting");
@@ -81,10 +107,19 @@ export const Main = () => {
 
   const toggleSimulateEmptyDecks = () => {
     try {
-      const settings = JSON.parse(localStorage.getItem("flashcardswithaigrading-settings") || "{}");
+      const settings = JSON.parse(
+        localStorage.getItem("flashcardswithaigrading-settings") || "{}"
+      );
       settings.simulateEmptyDecks = !settings.simulateEmptyDecks;
-      localStorage.setItem("flashcardswithaigrading-settings", JSON.stringify(settings));
-      toast.success(`Simulate empty decks ${settings.simulateEmptyDecks ? "enabled" : "disabled"}`);
+      localStorage.setItem(
+        "flashcardswithaigrading-settings",
+        JSON.stringify(settings)
+      );
+      toast.success(
+        `Simulate empty decks ${
+          settings.simulateEmptyDecks ? "enabled" : "disabled"
+        }`
+      );
       window.location.reload();
     } catch {
       toast.error("Failed to toggle simulate empty decks setting");
@@ -95,8 +130,11 @@ export const Main = () => {
   const fetchCategories = async () => {
     setIsLoading(true);
     try {
-      const savedSettings = localStorage.getItem("flashcardswithaigrading-settings");
-      let simulateDelay = false, simulateEmptyDecks = false;
+      const savedSettings = localStorage.getItem(
+        "flashcardswithaigrading-settings"
+      );
+      let simulateDelay = false,
+        simulateEmptyDecks = false;
       if (savedSettings) {
         try {
           const settings = JSON.parse(savedSettings);
@@ -129,7 +167,9 @@ export const Main = () => {
       setIsLoading(false);
     }
   };
-  useEffect(() => { fetchCategories(); }, []);
+  useEffect(() => {
+    fetchCategories();
+  }, []);
 
   // -------- Deck Info Modal Functions --------
   const fetchDeckCards = async (deckId: string) => {
@@ -146,7 +186,9 @@ export const Main = () => {
         correct_count: card.correct_count ?? 0,
         partial_correct_count: card.partial_correct_count ?? 0,
         incorrect_count: card.incorrect_count ?? 0,
-        last_reviewed: card.last_reviewed ? new Date(card.last_reviewed) : new Date(0),
+        last_reviewed: card.last_reviewed
+          ? new Date(card.last_reviewed)
+          : new Date(0),
       }));
       setDeckCards(transformedCards);
     } catch (error) {
@@ -161,7 +203,7 @@ export const Main = () => {
   const handleUpdateDeckName = async (deckId: string, newName: string) => {
     try {
       await updateDeck(deckId, newName);
-      
+
       // Update local state
       setCategories((prev) =>
         prev.map((category) => ({
@@ -174,7 +216,9 @@ export const Main = () => {
 
       // Update selected deck info if it matches
       if (selectedDeckInfo?.deckId === deckId) {
-        setSelectedDeckInfo((prev) => prev ? { ...prev, deckName: newName } : null);
+        setSelectedDeckInfo((prev) =>
+          prev ? { ...prev, deckName: newName } : null
+        );
       }
 
       toast.success("Deck name updated successfully");
@@ -184,7 +228,11 @@ export const Main = () => {
     }
   };
 
-  const handleAddCardToDeck = async (deckId: string, front: string, back: string) => {
+  const handleAddCardToDeck = async (
+    deckId: string,
+    front: string,
+    back: string
+  ) => {
     try {
       const newCard = await createCard(deckId, front, back);
       const transformedCard: UICard = {
@@ -197,9 +245,11 @@ export const Main = () => {
         correct_count: newCard.correct_count ?? 0,
         partial_correct_count: newCard.partial_correct_count ?? 0,
         incorrect_count: newCard.incorrect_count ?? 0,
-        last_reviewed: newCard.last_reviewed ? new Date(newCard.last_reviewed) : new Date(0),
+        last_reviewed: newCard.last_reviewed
+          ? new Date(newCard.last_reviewed)
+          : new Date(0),
       };
-      
+
       setDeckCards((prev) => [...prev, transformedCard]);
 
       // Update card count in categories
@@ -207,7 +257,7 @@ export const Main = () => {
         prev.map((category) => ({
           ...category,
           decks: category.decks.map((deck) =>
-            deck.id === deckId 
+            deck.id === deckId
               ? { ...deck, cardCount: (deck.cardCount ?? 0) + 1 }
               : deck
           ),
@@ -221,10 +271,14 @@ export const Main = () => {
     }
   };
 
-  const handleUpdateCard = async (cardId: string, front: string, back: string) => {
+  const handleUpdateCard = async (
+    cardId: string,
+    front: string,
+    back: string
+  ) => {
     try {
       await updateCardFrontAndOrBack(cardId, front, back);
-      
+
       setDeckCards((prev) =>
         prev.map((card) =>
           card.id === cardId ? { ...card, front, back } : card
@@ -241,8 +295,8 @@ export const Main = () => {
   const handleDeleteCard = async (cardId: string) => {
     try {
       await deleteCard(cardId);
-      
-      const deletedCard = deckCards.find(card => card.id === cardId);
+
+      const deletedCard = deckCards.find((card) => card.id === cardId);
       setDeckCards((prev) => prev.filter((card) => card.id !== cardId));
 
       // Update card count in categories
@@ -251,7 +305,7 @@ export const Main = () => {
           prev.map((category) => ({
             ...category,
             decks: category.decks.map((deck) =>
-              deck.id === deletedCard.deckId 
+              deck.id === deletedCard.deckId
                 ? { ...deck, cardCount: Math.max((deck.cardCount ?? 0) - 1, 0) }
                 : deck
             ),
@@ -273,7 +327,10 @@ export const Main = () => {
     if (!newCategoryName.trim()) return;
     try {
       const createdCategory = await createCategory(newCategoryName);
-      setCategories([...categories, { id: createdCategory.id, name: createdCategory.name, decks: [] }]);
+      setCategories([
+        ...categories,
+        { id: createdCategory.id, name: createdCategory.name, decks: [] },
+      ]);
       toast.success(`Category "${newCategoryName}" added`);
       setNewCategoryName("");
       setIsAddCategoryModalOpen(false);
@@ -291,9 +348,13 @@ export const Main = () => {
     setIsMagicDeckModalOpen(true);
   };
 
-  const handleAddDeckModalSubmit = async (name: string, deckId: string, jsonContent?: string) => {
+  const handleAddDeckModalSubmit = async (
+    name: string,
+    deckId: string,
+    jsonContent?: string
+  ) => {
     if (!selectedCategoryIdForDeck) return;
-    
+
     try {
       let createdDeck;
       let cardCount = 0;
@@ -343,20 +404,24 @@ export const Main = () => {
                 ...category,
                 decks: [
                   ...category.decks,
-                  { 
-                    id: createdDeck.id, 
-                    name, 
-                    selected: false, 
-                    cardCount: cardCount, 
-                    categoryId: category.id 
+                  {
+                    id: createdDeck.id,
+                    name,
+                    selected: false,
+                    cardCount: cardCount,
+                    categoryId: category.id,
                   },
                 ],
               }
             : category
         )
       );
-      
-      toast.success(`Deck "${name}" added successfully${cardCount > 0 ? ` with ${cardCount} cards` : ""}`);
+
+      toast.success(
+        `Deck "${name}" added successfully${
+          cardCount > 0 ? ` with ${cardCount} cards` : ""
+        }`
+      );
       setIsAddDeckModalOpen(false);
     } catch (error) {
       console.error("Error creating deck:", error);
@@ -399,18 +464,39 @@ export const Main = () => {
 
   const handleDeleteConfirm = async () => {
     if (!deleteItem) return;
-    if (deleteItem.type === "category") {
-      setCategories((prev) => prev.filter((c) => c.id !== deleteItem.id));
-      toast.success(`Category "${deleteItem.name}" deleted`);
-    } else {
-      setCategories((prev) =>
-        prev.map((cat) =>
-          cat.id === deleteItem.categoryId
-            ? { ...cat, decks: cat.decks.filter((d) => d.id !== deleteItem.id) }
-            : cat
-        )
-      );
-      toast.success(`Deck "${deleteItem.name}" deleted`);
+    try {
+      if (deleteItem.type === "category") {
+        setCategories((prev) => prev.filter((c) => c.id !== deleteItem.id));
+        toast.success(`Category "${deleteItem.name}" deleted`);
+      } else {
+        // Delete all cards in the deck first
+        await deleteAllCardsInDeck(deleteItem.id);
+        // Then delete the deck
+        await deleteDeck(deleteItem.id);
+
+        // Update UI state
+        setCategories((prev) =>
+          prev.map((cat) =>
+            cat.id === deleteItem.categoryId
+              ? {
+                  ...cat,
+                  decks: cat.decks.filter((d) => d.id !== deleteItem.id),
+                }
+              : cat
+          )
+        );
+
+        // Remove the deck from selected decks if it was selected
+        setSelectedDecks((prev) =>
+          prev.filter((deck) => deck.deckId !== deleteItem.id)
+        );
+
+        toast.success(`Deck "${deleteItem.name}" deleted`);
+      }
+    } catch (error) {
+      console.error("Failed to delete:", error);
+      toast.error(`Failed to delete ${deleteItem.type}`);
+      return;
     }
     setIsDeleteDialogOpen(false);
     setDeleteItem(null);
@@ -423,20 +509,23 @@ export const Main = () => {
           ? {
               ...category,
               decks: category.decks.map((deck) =>
-                deck.id === deckId ? { ...deck, selected: !deck.selected } : deck
+                deck.id === deckId
+                  ? { ...deck, selected: !deck.selected }
+                  : deck
               ),
             }
           : category
       );
-      
+
       // Update selectedDecks based on the updated categories state
       setSelectedDecks(
-        updatedCategories
-          .flatMap((c) =>
-            c.decks.filter((d) => d.selected).map((d) => ({ deckId: d.id, cardCount: d.cardCount ?? 0 }))
-          )
+        updatedCategories.flatMap((c) =>
+          c.decks
+            .filter((d) => d.selected)
+            .map((d) => ({ deckId: d.id, cardCount: d.cardCount ?? 0 }))
+        )
       );
-      
+
       return updatedCategories;
     });
   };
@@ -444,7 +533,7 @@ export const Main = () => {
   const handleEditDeck = (deckId: string, categoryId: string) => {
     const category = categories.find((c) => c.id === categoryId);
     const deck = category?.decks.find((d) => d.id === deckId);
-    
+
     if (category && deck) {
       setSelectedDeckInfo({
         deckId: deck.id,
@@ -488,7 +577,9 @@ export const Main = () => {
         open={isDeleteDialogOpen}
         onOpenChange={setIsDeleteDialogOpen}
         onConfirm={handleDeleteConfirm}
-        title={`Delete ${deleteItem?.type === "category" ? "Category" : "Deck"}`}
+        title={`Delete ${
+          deleteItem?.type === "category" ? "Category" : "Deck"
+        }`}
         description={
           deleteItem
             ? deleteItem.type === "category"
@@ -500,7 +591,11 @@ export const Main = () => {
 
       <SidebarProvider
         className="flex-1 flex"
-        style={{ "--sidebar-width": "clamp(22rem, 20vw, 30rem)" } as React.CSSProperties}
+        style={
+          {
+            "--sidebar-width": "clamp(22rem, 20vw, 30rem)",
+          } as React.CSSProperties
+        }
       >
         <AppSidebar
           categories={categories}
@@ -585,13 +680,21 @@ export const Main = () => {
       <AddCardModal
         open={isAddCardModalOpen}
         onOpenChange={setIsAddCardModalOpen}
-        onAddCard={(front, back, deckId) => handleAddCardToDeck(deckId, front, back)}
+        onAddCard={(front, back, deckId) =>
+          handleAddCardToDeck(deckId, front, back)
+        }
         onUpdateCard={handleUpdateCard}
-        availableDecks={selectedDeckInfo ? [{
-          id: selectedDeckInfo.deckId,
-          name: selectedDeckInfo.deckName,
-          categoryId: selectedDeckInfo.categoryId
-        }] : []}
+        availableDecks={
+          selectedDeckInfo
+            ? [
+                {
+                  id: selectedDeckInfo.deckId,
+                  name: selectedDeckInfo.deckName,
+                  categoryId: selectedDeckInfo.categoryId,
+                },
+              ]
+            : []
+        }
         defaultDeckId={selectedDeckInfo?.deckId}
         editMode={!!selectedCardForEdit}
         initialCard={selectedCardForEdit || undefined}
@@ -608,8 +711,10 @@ export const Main = () => {
           }
         }}
         title="Delete Card"
-        description={`Are you sure you want to delete "${selectedCardForEdit?.front || 'this card'}"? This action cannot be undone.`}
+        description={`Are you sure you want to delete "${
+          selectedCardForEdit?.front || "this card"
+        }"? This action cannot be undone.`}
       />
     </div>
   );
-}
+};
