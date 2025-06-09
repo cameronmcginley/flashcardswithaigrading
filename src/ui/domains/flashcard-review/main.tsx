@@ -19,7 +19,6 @@ import {
   updateCardFrontAndOrBack,
   deleteCard,
   createManyCards,
-  deleteAllCardsInDeck,
 } from "@/api/cards/card";
 import { updateDeck, createDeck, deleteDeck } from "@/api/decks/deck";
 import { toast } from "sonner";
@@ -488,9 +487,7 @@ export const Main = () => {
         setCategories((prev) => prev.filter((c) => c.id !== deleteItem.id));
         toast.success(`Category "${deleteItem.name}" deleted`);
       } else {
-        // Delete all cards in the deck first
-        await deleteAllCardsInDeck(deleteItem.id);
-        // Then delete the deck
+        // Delete the deck and all its cards
         await deleteDeck(deleteItem.id);
 
         // Update UI state

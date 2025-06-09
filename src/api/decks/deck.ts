@@ -29,17 +29,22 @@ export const createDeck = async (name: string, categoryId: string) => {
   }
 
   // Get the current user's ID
-  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
   if (userError) throw userError;
   if (!user) throw new Error("Not authenticated");
 
   const { data, error } = await supabase
     .from("decks")
-    .insert([{ 
-      name, 
-      category_id: categoryId,
-      profile_id: user.id 
-    }])
+    .insert([
+      {
+        name,
+        category_id: categoryId,
+        profile_id: user.id,
+      },
+    ])
     .select()
     .single();
 
@@ -72,12 +77,12 @@ export const deleteDeck = async (deckId: string) => {
     throw new Error("Missing required fields");
   }
 
-  const { data, error } = await supabase
-    .from("decks")
-    .update({ deleted_at: new Date() })
-    .eq("id", deckId)
-    .select()
-    .single();
+  const now = new Date().toISOString();
+
+  const { data, error } = await supabase.rpc("delete_deck_with_contents", {
+    deck_id: deckId,
+    deletion_time: now,
+  });
 
   if (error) throw error;
   return data;
