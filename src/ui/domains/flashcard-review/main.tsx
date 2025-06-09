@@ -583,8 +583,26 @@ export const Main = () => {
   };
 
   // For Add Content FAB -> "Add Card" (just show error)
-  const handleFabAddCard = () => {
-    toast("Add Card via FAB: Not implemented");
+  const handleFabAddCard = (deckId?: string) => {
+    if (deckId) {
+      // Find the deck and its category
+      const category = categories.find((c) =>
+        c.decks.some((d) => d.id === deckId)
+      );
+      const deck = category?.decks.find((d) => d.id === deckId);
+
+      if (deck && category) {
+        setSelectedDeckInfo({
+          deckId: deck.id,
+          deckName: deck.name,
+          categoryId: category.id,
+          categoryName: category.name,
+        });
+        setIsAddCardModalOpen(true);
+      }
+    } else {
+      toast.error("Please select a deck first");
+    }
   };
 
   return (

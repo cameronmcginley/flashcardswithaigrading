@@ -50,7 +50,11 @@ import {
   useSortable,
 } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
-import type { ReorderableCategory, SortableItemProps, SortableItem } from "./types";
+import type {
+  ReorderableCategory,
+  SortableItemProps,
+  SortableItem,
+} from "./types";
 import { UICategoryWithDecks } from "../types";
 
 // SortableItem for DnD
@@ -113,7 +117,7 @@ interface AppSidebarProps {
   onDeckSelect: (categoryId: string, deckId: string) => void;
   onEditDeck: (deckId: string, categoryId: string) => void;
   onDeleteDeck: (deckId: string, categoryId: string) => void;
-  onFabAddCard: () => void;
+  onFabAddCard: (deckId?: string) => void;
   onMagicDeck: () => void;
   onSaveOrder: (categories: UICategoryWithDecks[]) => void;
 }
@@ -168,7 +172,9 @@ export function AppSidebar({
     });
   };
 
-  const convertToReorderableCategories = (categories: UICategoryWithDecks[]): ReorderableCategory[] =>
+  const convertToReorderableCategories = (
+    categories: UICategoryWithDecks[]
+  ): ReorderableCategory[] =>
     categories.map((category) => ({
       id: category.id,
       name: category.name,
@@ -217,7 +223,8 @@ export function AppSidebar({
             }
             checkIndex--;
           }
-          if (targetCategoryId && targetCategoryId !== activeItem.categoryId) return prevItems;
+          if (targetCategoryId && targetCategoryId !== activeItem.categoryId)
+            return prevItems;
         }
         return arrayMove(prevItems, oldIndex, newIndex);
       });
@@ -272,7 +279,11 @@ export function AppSidebar({
                 <Check className="h-4 w-4 mr-1" />
                 Save Changes
               </Button>
-              <Button variant="outline" size="sm" onClick={() => setIsReorderingMode(false)}>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => setIsReorderingMode(false)}
+              >
                 <X className="h-4 w-4 mr-1" />
                 Cancel
               </Button>
@@ -314,14 +325,27 @@ export function AppSidebar({
           <div className="flex items-center justify-between p-4">
             <h2 className="font-semibold">Categories</h2>
             <div className="flex">
-              <TextTooltip text="Reorder categories and decks" showOnlyIfTruncated={false}>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={startReordering}>
+              <TextTooltip
+                text="Reorder categories and decks"
+                showOnlyIfTruncated={false}
+              >
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={startReordering}
+                >
                   <MoveVertical className="h-4 w-4" />
                   <span className="sr-only">Reorder items</span>
                 </Button>
               </TextTooltip>
               <TextTooltip text="Add new category" showOnlyIfTruncated={false}>
-                <Button variant="ghost" size="icon" className="h-8 w-8" onClick={onAddCategory}>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8"
+                  onClick={onAddCategory}
+                >
                   <Plus className="h-4 w-4" />
                   <span className="sr-only">Add category</span>
                 </Button>
@@ -386,7 +410,10 @@ export function AppSidebar({
                             </Button>
                           </div>
                         ) : (
-                          <TextTooltip text={category.name} className="flex-1 min-w-0">
+                          <TextTooltip
+                            text={category.name}
+                            className="flex-1 min-w-0"
+                          >
                             <span className="truncate">{category.name}</span>
                           </TextTooltip>
                         )}
@@ -465,6 +492,24 @@ export function AppSidebar({
                           </div>
                         </div>
                         <div className="flex items-center gap-1 ml-4">
+                          <TextTooltip
+                            text="Add cards to deck"
+                            showOnlyIfTruncated={false}
+                          >
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity data-[state=open]:opacity-100"
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                console.log("Adding cards to deck:", deck.id);
+                                onFabAddCard(deck.id);
+                              }}
+                            >
+                              <Plus className="h-3 w-3" />
+                              <span className="sr-only">Add cards</span>
+                            </Button>
+                          </TextTooltip>
                           <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                               <div
@@ -482,7 +527,9 @@ export function AppSidebar({
                                 Edit Deck
                               </DropdownMenuItem>
                               <DropdownMenuItem
-                                onClick={() => onDeleteDeck(deck.id, category.id)}
+                                onClick={() =>
+                                  onDeleteDeck(deck.id, category.id)
+                                }
                                 className="text-destructive"
                               >
                                 Delete Deck
@@ -521,7 +568,11 @@ export function AppSidebar({
                   : "max-h-0 opacity-0 pointer-events-none"
               )}
             >
-              <TextTooltip text="Create a new category" showOnlyIfTruncated={false} className="w-full">
+              <TextTooltip
+                text="Create a new category"
+                showOnlyIfTruncated={false}
+                className="w-full"
+              >
                 <Button
                   variant="ghost"
                   className="justify-start rounded-none h-10 px-4 py-2 text-sm font-medium"
@@ -533,7 +584,11 @@ export function AppSidebar({
                   Add Category
                 </Button>
               </TextTooltip>
-              <TextTooltip text="Create a new deck in a category" showOnlyIfTruncated={false} className="w-full">
+              <TextTooltip
+                text="Create a new deck in a category"
+                showOnlyIfTruncated={false}
+                className="w-full"
+              >
                 <Button
                   variant="ghost"
                   className="justify-start rounded-none h-10 px-4 py-2 text-sm font-medium"
@@ -547,12 +602,16 @@ export function AppSidebar({
                   Add Deck
                 </Button>
               </TextTooltip>
-              <TextTooltip text="Add a new flashcard to a deck" showOnlyIfTruncated={false} className="w-full">
+              <TextTooltip
+                text="Add a new flashcard to a deck"
+                showOnlyIfTruncated={false}
+                className="w-full"
+              >
                 <Button
                   variant="ghost"
                   className="justify-start rounded-none h-10 px-4 py-2 text-sm font-medium"
                   onClick={() => {
-                    onFabAddCard();
+                    onFabAddCard(undefined);
                     setIsFabExpanded(false);
                   }}
                 >
