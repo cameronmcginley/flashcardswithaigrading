@@ -150,7 +150,9 @@ export const Flashcard = ({
     setIsFlipped(!isFlipped);
 
     // Get auto-grade setting from localStorage
-    const savedSettings = localStorage.getItem("flashcardswithaigrading-settings");
+    const savedSettings = localStorage.getItem(
+      "flashcardswithaigrading-settings"
+    );
     let autoGrade = false;
     if (savedSettings) {
       try {
@@ -188,7 +190,9 @@ export const Flashcard = ({
     setIsGrading(true);
 
     // Get the global difficulty setting from localStorage
-    const savedSettings = localStorage.getItem("flashcardswithaigrading-settings");
+    const savedSettings = localStorage.getItem(
+      "flashcardswithaigrading-settings"
+    );
     let gradingDifficulty = 2; // Default to adept (2) if not found
 
     if (savedSettings) {
@@ -348,7 +352,9 @@ Can you help me understand this feedback better and suggest how I can improve my
         <div>
           {(() => {
             // Check if debug mode is enabled
-            const savedSettings = localStorage.getItem("flashcardswithaigrading-settings");
+            const savedSettings = localStorage.getItem(
+              "flashcardswithaigrading-settings"
+            );
             let debugMode = false;
             if (savedSettings) {
               try {
@@ -457,9 +463,7 @@ Can you help me understand this feedback better and suggest how I can improve my
                   <div className="text-muted-foreground">Partial Backs:</div>
                   <div>{cardStats.partial}</div>
 
-                  <div className="text-muted-foreground">
-                    Incorrect Backs:
-                  </div>
+                  <div className="text-muted-foreground">Incorrect Backs:</div>
                   <div>{cardStats.incorrect}</div>
 
                   <div className="text-muted-foreground">Last Reviewed:</div>
@@ -672,8 +676,9 @@ Can you help me understand this feedback better and suggest how I can improve my
                   !isGrading &&
                   (() => {
                     // Check if auto-grade is enabled in localStorage
-                    const savedSettings =
-                      localStorage.getItem("flashcardswithaigrading-settings");
+                    const savedSettings = localStorage.getItem(
+                      "flashcardswithaigrading-settings"
+                    );
                     let autoGrade = false;
                     if (savedSettings) {
                       try {
@@ -737,8 +742,8 @@ Can you help me understand this feedback better and suggest how I can improve my
             transition={{ duration: 0.4, delay: 0.2 }}
             className="mt-8"
           >
-            <Card className="p-6 border-2 border-border bg-muted/20 relative">
-              <div className="absolute -top-3 left-10 w-6 h-6 bg-muted/20 border-t-2 border-l-2 border-border transform rotate-45"></div>
+            <Card className="p-6 border border-border bg-white relative">
+              <div className="absolute -top-3 left-10 w-6 h-6 bg-white border-t border-l-2 border-border transform rotate-45"></div>
               <div className="flex items-start gap-4">
                 <div className="bg-muted p-2 rounded-full">
                   <Brain className="h-6 w-6 text-foreground" />
@@ -752,17 +757,17 @@ Can you help me understand this feedback better and suggest how I can improve my
                       </span>
                       {aiGrade.grade >= 80 && (
                         <span className="inline-flex items-center rounded-full bg-green-100 px-2 py-0.5 ml-2 text-xs font-medium text-green-700">
-                          Correct
+                          Correct (+5% ease)
                         </span>
                       )}
                       {aiGrade.grade >= 60 && aiGrade.grade < 80 && (
                         <span className="inline-flex items-center rounded-full bg-yellow-100 px-2 py-0.5 ml-2 text-xs font-medium text-yellow-700">
-                          Partially Correct
+                          Partially Correct (-5% ease)
                         </span>
                       )}
                       {aiGrade.grade < 60 && (
                         <span className="inline-flex items-center rounded-full bg-red-100 px-2 py-0.5 ml-2 text-xs font-medium text-red-700">
-                          Incorrect
+                          Incorrect (-15% ease)
                         </span>
                       )}
                     </div>
@@ -801,7 +806,10 @@ Can you help me understand this feedback better and suggest how I can improve my
                         </Button>
                       </TooltipTrigger>
                       <TooltipContent side="top" align="center">
-                        <p className="text-sm">Copies your front and answer to clipboard and opens ChatGPT</p>
+                        <p className="text-sm">
+                          Copies your the card details and your answer to
+                          clipboard and opens ChatGPT
+                        </p>
                       </TooltipContent>
                     </Tooltip>
                   </TooltipProvider>
