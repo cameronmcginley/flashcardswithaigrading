@@ -11,6 +11,7 @@ import {
   getAllCategoriesWithDecks,
   createCategory,
   updateItemsOrder,
+  deleteCategory,
 } from "@/api/categories/category";
 import {
   getAllCardsInDeck,
@@ -466,6 +467,24 @@ export const Main = () => {
     if (!deleteItem) return;
     try {
       if (deleteItem.type === "category") {
+        // Find the category to get its decks for updating selected state
+        const categoryToDelete = categories.find((c) => c.id === deleteItem.id);
+        if (categoryToDelete) {
+          // Delete the category and all its contents
+          await deleteCategory(deleteItem.id);
+
+          // Remove any selected decks that were in this category
+          setSelectedDecks((prev) =>
+            prev.filter(
+              (deck) =>
+                !categoryToDelete.decks.some(
+                  (catDeck) => catDeck.id === deck.deckId
+                )
+            )
+          );
+        }
+
+        // Update UI state
         setCategories((prev) => prev.filter((c) => c.id !== deleteItem.id));
         toast.success(`Category "${deleteItem.name}" deleted`);
       } else {

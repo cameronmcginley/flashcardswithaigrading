@@ -99,23 +99,13 @@ export const deleteCategory = async (categoryId: string) => {
     throw new Error("Missing required fields");
   }
 
-  // Check if the category has any decks associated with it
-  const { data: decks, error: decksError } = await supabase
-    .from("decks")
-    .select("*")
-    .eq("category_id", categoryId);
+  const now = new Date().toISOString();
 
-  if (decksError) throw decksError;
-  if (decks.length > 0) {
-    throw new Error("Cannot delete category with associated decks");
-  }
-
-  const { data, error } = await supabase
-    .from("categories")
-    .update({ deleted_at: new Date() })
-    .eq("id", categoryId)
-    .select()
-    .single();
+  // Use a transaction to ensure all deletes happen or none do
+  const { data, error } = await supabase.rpc("delete_category_with_contents", {
+    category_id: categoryId,
+    deletion_time: now,
+  });
 
   if (error) throw error;
   return data;
