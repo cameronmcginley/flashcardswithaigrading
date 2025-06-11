@@ -20,6 +20,7 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
+import { validateCards } from "../utils";
 
 interface Category {
   id: string;
@@ -80,22 +81,16 @@ export const AddDeckModal = ({
       try {
         setIsSubmitting(true);
 
-        // Validate JSON structure before passing to parent
-        const parsed = JSON.parse(jsonContent);
-        if (!Array.isArray(parsed)) {
-          toast.error("Validation Error", {
-            description: "JSON must be an array of cards.",
-          });
-          return;
-        }
-
-        // Check if each card has front and back
-        const isValid = parsed.every((card) => card.front && card.back);
-        if (!isValid) {
-          toast.error("Validation Error", {
-            description: "Each card must have 'front' and 'back' fields.",
-          });
-          return;
+        if (jsonContent) {
+          // Validate JSON structure
+          const parsed = JSON.parse(jsonContent);
+          const validation = validateCards(parsed);
+          if (!validation.isValid) {
+            toast.error("Validation Error", {
+              description: validation.error,
+            });
+            return;
+          }
         }
 
         // Pass to parent component to handle the actual creation
@@ -115,7 +110,6 @@ export const AddDeckModal = ({
             2
           )
         );
-
       } catch (error) {
         console.error("Error in modal validation:", error);
         toast.error("Validation Error", {
@@ -188,4 +182,4 @@ export const AddDeckModal = ({
       </DialogContent>
     </Dialog>
   );
-}
+};

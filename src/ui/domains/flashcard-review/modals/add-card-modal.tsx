@@ -23,6 +23,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "sonner";
 import { Info } from "lucide-react";
 import { UIDeck } from "../types";
+import { validateCards } from "../utils";
 
 interface AddCardModalProps {
   open: boolean;
@@ -37,7 +38,7 @@ interface AddCardModalProps {
   availableDecks: UIDeck[];
   defaultDeckId?: string;
   editMode?: boolean;
-  initialCard?: { id?:string, front:string, back:string };
+  initialCard?: { id?: string; front: string; back: string };
 }
 
 export const AddCardModal = ({
@@ -145,66 +146,64 @@ export const AddCardModal = ({
       return;
     }
 
-    try {
+    if (jsonContent) {
+      // Validate JSON structure
       const parsed = JSON.parse(jsonContent);
+      const validation = validateCards(parsed);
+      if (!validation.isValid) {
+        toast.error("Validation Error", {
+          description: validation.error,
+        });
+        return;
+      }
 
-      // Check if it's an array
-      if (Array.isArray(parsed)) {
-        // Validate each card in the array
-        const isValid = parsed.every((card) => card.front && card.back);
-        if (!isValid) {
+      const normalizedCards = validation.normalizedCards;
+
+      if (editMode) {
+        if (parsed.length > 1) {
           toast.error("Validation Error", {
-            description: "Each card must have 'front' and 'back' fields.",
+            description: "Cannot edit multiple cards at once.",
           });
           return;
         }
-
-        if (editMode) {
-          if (parsed.length > 1) {
+        if (initialCard?.id && onUpdateCard) {
+          const normalizedCard = normalizedCards![0];
+          onUpdateCard(
+            initialCard.id,
+            normalizedCard.front,
+            normalizedCard.back
+          );
+        }
+      } else {
+        // If we have a handler for multiple cards, use it
+        if (onAddMultipleCards) {
+          onAddMultipleCards(normalizedCards!, selectedDeckId);
+          toast.success("Success", {
+            description: `Added ${normalizedCards!.length} cards to the deck.`,
+          });
+        } else {
+          // Otherwise, add just the first card
+          if (normalizedCards!.length > 0) {
+            const firstCard = normalizedCards![0];
+            onAddCard(firstCard.front, firstCard.back, selectedDeckId);
+            if (normalizedCards!.length > 1) {
+              toast.warning("Warning", {
+                description:
+                  "Only the first card was added. Multiple card support is not enabled.",
+              });
+            }
+          } else {
             toast.error("Validation Error", {
-              description: "Cannot edit multiple cards at once.",
+              description: "No cards found in the JSON array.",
             });
             return;
           }
-          if (initialCard?.id && onUpdateCard) {
-            onUpdateCard(initialCard.id, parsed[0].front, parsed[0].back);
-          }
-        } else {
-          // If we have a handler for multiple cards, use it
-          if (onAddMultipleCards) {
-            onAddMultipleCards(parsed, selectedDeckId);
-            toast.success("Success", {
-              description: `Added ${parsed.length} cards to the deck.`,
-            });
-          } else {
-            // Otherwise, add just the first card
-            if (parsed.length > 0) {
-              const firstCard = parsed[0];
-              onAddCard(firstCard.front, firstCard.back, selectedDeckId);
-              if (parsed.length > 1) {
-                toast.warning("Warning", {
-                  description:
-                    "Only the first card was added. Multiple card support is not enabled.",
-                });
-              }
-            } else {
-              toast.error("Validation Error", {
-                description: "No cards found in the JSON array.",
-              });
-              return;
-            }
-          }
         }
-        resetForm();
-      } else {
-        toast.error("Validation Error", {
-          description:
-            "JSON must be an array of cards with 'front' and 'back' fields.",
-        });
       }
-    } catch {
-      toast.error("Error", {
-        description: "Failed to parse JSON.",
+      resetForm();
+    } else {
+      toast.error("Validation Error", {
+        description: "No JSON content provided.",
       });
     }
   };

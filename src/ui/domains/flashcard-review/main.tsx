@@ -32,6 +32,7 @@ import { DeleteConfirmationDialog } from "./modals/delete-confirmation-dialog";
 import { Content } from "./content/content";
 import { UICategoryWithDecks, DeleteItem, UICard } from "./types";
 import { AddCategoryModal } from "./modals/add-category-modal";
+import { validateCards } from "./utils";
 
 export const Main = () => {
   const [categories, setCategories] = useState<UICategoryWithDecks[]>([]);
@@ -360,35 +361,23 @@ export const Main = () => {
       if (jsonContent) {
         // Validate JSON structure
         const parsed = JSON.parse(jsonContent);
-        if (!Array.isArray(parsed)) {
+        const validation = validateCards(parsed);
+        if (!validation.isValid) {
           toast.error("Validation Error", {
-            description: "JSON must be an array of cards.",
+            description: validation.error,
           });
           return;
         }
 
-        // Check if each card has front and back
-        const isValid = parsed.every((card) => card.front && card.back);
-        if (!isValid) {
-          toast.error("Validation Error", {
-            description: "Each card must have 'front' and 'back' fields.",
-          });
-          return;
-        }
+        const normalizedCards = validation.normalizedCards;
 
         // Create the deck
         createdDeck = await createDeck(name, selectedCategoryIdForDeck);
 
-        // Create the cards
-        await createManyCards(
-          createdDeck.id,
-          parsed.map((card) => ({
-            front: card.front,
-            back: card.back,
-          }))
-        );
+        // Create the cards using normalized data
+        await createManyCards(createdDeck.id, normalizedCards!);
 
-        cardCount = parsed.length;
+        cardCount = normalizedCards!.length;
       } else {
         // If no JSON content, just create an empty deck
         createdDeck = await createDeck(name, selectedCategoryIdForDeck);
