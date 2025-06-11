@@ -31,6 +31,5 @@ jobs:
               git pull
             fi
 
-            # Deploy your app (change 'sitewatch' for other apps)
-            cd "$DEPLOY_DIR/apps/sitewatch"
+            cd "$DEPLOY_DIR/apps/flashcardswithaigrading"
             ./deploy.sh
