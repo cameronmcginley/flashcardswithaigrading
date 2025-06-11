@@ -15,6 +15,7 @@ import {
   ExternalLink,
   ChevronLeft,
   ChevronRight,
+  Lightbulb,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -88,11 +89,14 @@ export const Flashcard = ({
     grade: number;
     response: string;
   } | null>(null);
+  const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
+  const [explanation, setExplanation] = useState<string | null>(null);
 
   const resetGrading = () => {
     setIsGraded(false);
     setAiGrade(null);
     setIsGrading(false);
+    setExplanation(null);
   };
 
   useEffect(() => {
@@ -252,6 +256,37 @@ export const Flashcard = ({
       });
     } finally {
       setIsGrading(false);
+    }
+  };
+
+  const handleGetExplanation = async () => {
+    if (explanation) {
+      setExplanation(null);
+      return;
+    }
+    setIsLoadingExplanation(true);
+    try {
+      const response = await fetch("/api/explain", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          front: card.front,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to get explanation");
+      }
+
+      const data = await response.json();
+      setExplanation(data.explanation);
+    } catch (error) {
+      toast.error("Failed to get explanation");
+      console.error(error);
+    } finally {
+      setIsLoadingExplanation(false);
     }
   };
 
@@ -792,26 +827,65 @@ Can you help me understand this feedback better and suggest how I can improve my
 
                   {/* Ask ChatGPT Button */}
                   <TooltipProvider>
-                    <Tooltip>
-                      <TooltipTrigger asChild>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          className="flex items-center gap-1.5"
-                          onClick={copyFeedbackAndOpenChatGPT}
-                        >
-                          <Copy className="h-3.5 w-3.5" />
-                          <ExternalLink className="h-3.5 w-3.5" />
-                          <span>Ask ChatGPT for Help</span>
-                        </Button>
-                      </TooltipTrigger>
-                      <TooltipContent side="top" align="center">
-                        <p className="text-sm">
-                          Copies your the card details and your answer to
-                          clipboard and opens ChatGPT
-                        </p>
-                      </TooltipContent>
-                    </Tooltip>
+                    <div className="flex items-center gap-2">
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1.5"
+                            onClick={copyFeedbackAndOpenChatGPT}
+                          >
+                            <Copy className="h-3.5 w-3.5" />
+                            <ExternalLink className="h-3.5 w-3.5" />
+                            <span>Ask ChatGPT for Help</span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="center">
+                          <p className="text-sm">
+                            Copies your the card details and your answer to
+                            clipboard and opens ChatGPT
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                      <Tooltip>
+                        <TooltipTrigger asChild>
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            className="flex items-center gap-1.5 ml-2"
+                            onClick={handleGetExplanation}
+                            disabled={isLoadingExplanation}
+                          >
+                            {isLoadingExplanation ? (
+                              <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{
+                                  duration: 1,
+                                  repeat: Infinity,
+                                  ease: "linear",
+                                }}
+                                className="mr-2"
+                              >
+                                <Brain className="h-3.5 w-3.5" />
+                              </motion.div>
+                            ) : (
+                              <Lightbulb className="h-3.5 w-3.5" />
+                            )}
+                            <span>
+                              {explanation ? "Hide" : "Full Explanation"}
+                            </span>
+                          </Button>
+                        </TooltipTrigger>
+                        <TooltipContent side="top" align="center">
+                          <p className="text-sm">
+                            {explanation
+                              ? "Hide the detailed explanation"
+                              : "Get a detailed explanation of the concept"}
+                          </p>
+                        </TooltipContent>
+                      </Tooltip>
+                    </div>
                   </TooltipProvider>
                 </div>
               </div>
@@ -842,7 +916,7 @@ Can you help me understand this feedback better and suggest how I can improve my
           }}
           className={`flex items-center ${
             isFlipped && (isGraded || isGrading)
-              ? "bg-blue-100 border-blue-300 text-blue-800 animate-pulse"
+              ? "bg-blue-100 border-blue-300 text-blue-800"
               : ""
           }`}
         >
@@ -850,6 +924,36 @@ Can you help me understand this feedback better and suggest how I can improve my
           <ChevronRight className="h-4 w-4 ml-1" />
         </Button>
       </div>
+
+      <AnimatePresence>
+        {explanation && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: 20 }}
+            transition={{ duration: 0.4 }}
+            className="mt-8"
+          >
+            <Card className="p-6 border-2 border-border w-[150%] ml-[-25%] bg-white">
+              <div className="flex items-start gap-4">
+                <div className="flex-1">
+                  <div className="flex items-center gap-4 mb-4">
+                    <div className="bg-muted p-2 rounded-full">
+                      <Lightbulb className="h-6 w-6 text-foreground" />
+                    </div>
+                    <h4 className="font-semibold text-lg">
+                      Detailed Explanation
+                    </h4>
+                  </div>
+                  <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <MarkdownContent content={explanation} />
+                  </div>
+                </div>
+              </div>
+            </Card>
+          </motion.div>
+        )}
+      </AnimatePresence>
     </div>
   );
 };
