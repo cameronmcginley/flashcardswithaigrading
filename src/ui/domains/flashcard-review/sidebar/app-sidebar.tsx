@@ -575,7 +575,7 @@ export function AppSidebar({
               >
                 <Button
                   variant="ghost"
-                  className="justify-start rounded-none h-10 px-4 py-2 text-sm font-medium"
+                  className="w-full justify-start rounded-none h-10 px-4 py-2 text-sm font-medium"
                   onClick={() => {
                     onAddCategory();
                     setIsFabExpanded(false);
@@ -591,7 +591,7 @@ export function AppSidebar({
               >
                 <Button
                   variant="ghost"
-                  className="justify-start rounded-none h-10 px-4 py-2 text-sm font-medium"
+                  className="w-full justify-start rounded-none h-10 px-4 py-2 text-sm font-medium"
                   onClick={() => {
                     if (categories.length > 0) {
                       onAddDeck(categories[0].id);
@@ -609,7 +609,7 @@ export function AppSidebar({
               >
                 <Button
                   variant="ghost"
-                  className="justify-start rounded-none h-10 px-4 py-2 text-sm font-medium"
+                  className="w-full justify-start rounded-none h-10 px-4 py-2 text-sm font-medium"
                   onClick={() => {
                     onFabAddCard(undefined);
                     setIsFabExpanded(false);

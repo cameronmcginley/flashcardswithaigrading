@@ -64,9 +64,22 @@ export const createCategory = async (name: string) => {
     throw new Error(INVALID_CATEGORY_NAME_ERROR);
   }
 
+  // Get the current user's ID
+  const {
+    data: { user },
+    error: userError,
+  } = await supabase.auth.getUser();
+  if (userError) throw userError;
+  if (!user) throw new Error("Not authenticated");
+
   const { data, error } = await supabase
     .from("categories")
-    .insert([{ name }])
+    .insert([
+      {
+        name,
+        profile_id: user.id,
+      },
+    ])
     .select()
     .single();
 

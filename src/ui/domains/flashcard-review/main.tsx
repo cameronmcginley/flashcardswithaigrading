@@ -40,7 +40,6 @@ export const Main = () => {
     { deckId: string; cardCount: number }[]
   >([]);
   const [isAddCategoryModalOpen, setIsAddCategoryModalOpen] = useState(false);
-  const [newCategoryName, setNewCategoryName] = useState("");
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false);
   const [deleteItem, setDeleteItem] = useState<DeleteItem | null>(null);
   const [isAddDeckModalOpen, setIsAddDeckModalOpen] = useState(false);
@@ -323,16 +322,15 @@ export const Main = () => {
   // -------- Sidebar Actions --------
   const handleAddCategory = () => setIsAddCategoryModalOpen(true);
 
-  const handleAddCategorySubmit = async () => {
-    if (!newCategoryName.trim()) return;
+  const handleAddCategorySubmit = async (name: string) => {
+    if (!name.trim()) return;
     try {
-      const createdCategory = await createCategory(newCategoryName);
+      const createdCategory = await createCategory(name);
       setCategories([
         ...categories,
         { id: createdCategory.id, name: createdCategory.name, decks: [] },
       ]);
-      toast.success(`Category "${newCategoryName}" added`);
-      setNewCategoryName("");
+      toast.success(`Category "${name}" added`);
       setIsAddCategoryModalOpen(false);
     } catch {
       toast.error("Failed to create category");
@@ -582,7 +580,7 @@ export const Main = () => {
     }
   };
 
-  // For Add Content FAB -> "Add Card" (just show error)
+  // For Add Content FAB -> "Add Card"
   const handleFabAddCard = (deckId?: string) => {
     if (deckId) {
       // Find the deck and its category
@@ -598,11 +596,11 @@ export const Main = () => {
           categoryId: category.id,
           categoryName: category.name,
         });
-        setIsAddCardModalOpen(true);
       }
     } else {
-      toast.error("Please select a deck first");
+      setSelectedDeckInfo(null);
     }
+    setIsAddCardModalOpen(true);
   };
 
   return (
