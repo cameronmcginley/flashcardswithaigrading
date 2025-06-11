@@ -74,6 +74,16 @@ export async function POST(req: NextRequest) {
        • Adept → standard college‑level strictness.  
        • Expert → require full precision and relevant nuance.
 
+    ### Scoring Philosophy (Important)
+
+    - Do **not** reserve 100 for perfection. If an answer is essentially correct, even if casual or missing minor polish, **100 is appropriate**.
+    - Use 95 or 90 for answers that are mostly right but slightly incomplete or unclear.
+    - Don’t downgrade too harshly for casual tone, missing nuance, or minor phrasing issues.
+    - Assume the student is answering quickly, not writing an essay. Grade for **conceptual correctness**, not formality.
+    - If the user is flatly incorrect, or did not answer, give a score of 0.
+    - The user's answer length does not matter, the grade should not be focused on telling them to add more details.
+    - If the user is correct, but did not mention a specific detail mentioned on the card back, it is not a big deal.
+
     
     ${gradingRubrics[gradingDifficulty]}
     
@@ -97,7 +107,7 @@ export async function POST(req: NextRequest) {
     `.trim();
 
     const response = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
+      model: "o3",
       messages: [{ role: "user", content: prompt }],
     });
 
