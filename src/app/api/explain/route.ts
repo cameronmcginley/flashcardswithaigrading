@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { openai } from "@/lib/openai";
+import { logAction } from "src/lib/log";
 
 export async function POST(req: NextRequest) {
   try {
@@ -50,6 +51,13 @@ export async function POST(req: NextRequest) {
     });
 
     const content = response.choices[0].message.content;
+
+    logAction({
+      event: "AI Explain",
+      tags: {
+        front: front.substring(0, 50),
+      },
+    });
 
     return NextResponse.json({ explanation: content });
   } catch (error) {

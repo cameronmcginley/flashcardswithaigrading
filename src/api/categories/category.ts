@@ -1,3 +1,4 @@
+import { logAction } from "src/lib/log";
 import { supabase } from "@/lib/supabase/client";
 import { isValidCategoryName } from "./utils";
 import { INVALID_CATEGORY_NAME_ERROR } from "./constants";
@@ -84,6 +85,12 @@ export const createCategory = async (name: string) => {
     .single();
 
   if (error) throw error;
+
+  logAction({
+    event: "Category Created",
+    tags: { name: name },
+  });
+
   return data;
 };
 
@@ -104,6 +111,12 @@ export const updateCategory = async (categoryId: string, name: string) => {
     .single();
 
   if (error) throw error;
+
+  logAction({
+    event: "Category Updated",
+    tags: { category_id: categoryId, new_name: name },
+  });
+
   return data;
 };
 
@@ -121,6 +134,12 @@ export const deleteCategory = async (categoryId: string) => {
   });
 
   if (error) throw error;
+
+  logAction({
+    event: "Category Deleted",
+    tags: { category_id: categoryId },
+  });
+
   return data;
 };
 

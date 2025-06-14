@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState } from "react";
 import { User } from "@supabase/supabase-js";
 import { supabase } from "./supabase/client";
+import { logAction } from "src/lib/log";
 
 type AuthContextType = {
   user: User | null;
@@ -36,19 +37,31 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   const signUp = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signUp({
+    const { data, error } = await supabase.auth.signUp({
       email,
       password,
     });
     if (error) throw error;
+    if (data.user) {
+      logAction({
+        event: "User Signed Up",
+        tags: {},
+      });
+    }
   };
 
   const signIn = async (email: string, password: string) => {
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
     if (error) throw error;
+    if (data.user) {
+      logAction({
+        event: "User Signed In",
+        tags: {},
+      });
+    }
   };
 
   const signOut = async () => {

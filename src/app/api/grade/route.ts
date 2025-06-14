@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { openai } from "@/lib/openai";
+import { logAction } from "src/lib/log";
 
 const gradingDifficulties: Record<number, string> = {
   1: "Beginner: Lenient grading for new topics",
@@ -19,7 +20,7 @@ const gradingRubrics: Record<number, string> = {
 - **20–35** – Very unclear or mostly wrong, but some effort  
 - **0–15** – No real attempt or completely off-base
 
-➤ Bias toward encouragement. Don’t penalize casual language or slight technical looseness.
+➤ Bias toward encouragement. Don't penalize casual language or slight technical looseness.
 `,
   2: `#### Grading Rubric (Adept)
 
@@ -32,7 +33,7 @@ const gradingRubrics: Record<number, string> = {
 - **20–35** – Poor grasp of the concept, but not a blank answer  
 - **0–15** – No attempt or completely irrelevant
 
-➤ This is standard college-level strictness. Don’t dock for casual phrasing if meaning is correct.
+➤ This is standard college-level strictness. Don't dock for casual phrasing if meaning is correct.
 `,
   3: `#### Grading Rubric (Expert)
 
@@ -78,7 +79,7 @@ export async function POST(req: NextRequest) {
 
     - Do **not** reserve 100 for perfection. If an answer is essentially correct, even if casual or missing minor polish, **100 is appropriate**.
     - Use 95 or 90 for answers that are mostly right but slightly incomplete or unclear.
-    - Don’t downgrade too harshly for casual tone, missing nuance, or minor phrasing issues.
+    - Don't downgrade too harshly for casual tone, missing nuance, or minor phrasing issues.
     - Assume the student is answering quickly, not writing an essay. Grade for **conceptual correctness**, not formality.
     - If the user is flatly incorrect, or did not answer, give a score of 0.
     - The user's answer length does not matter, the grade should not be focused on telling them to add more details.
@@ -94,7 +95,7 @@ export async function POST(req: NextRequest) {
        • The answers are meant to be casual, short, and not perfect as if they were spoken in a quick chat. Do not grade harshly for small mistakes, tiny missing details, or casual language or terms.
        • Do not be overly harsh when assigning a score, giving a 100 sometimes is fine even if it could technically be a little better.
        • Highlight *one* thing correct (if any) and *one–two* specific gaps.  
-       • Provide a concrete study tip; **do not** say “just answer the front.”  
+       • Provide a concrete study tip; **do not** say "just answer the front."  
        • **Never quote the entire CorrectBack.** Paraphrase or hint instead.
        • Free to use Markdown formatting inside the response, use code blocks as necessary.
        • Feel free to add onto the correctBack that was provided if needed.
@@ -117,6 +118,14 @@ export async function POST(req: NextRequest) {
       const result = JSON.parse(
         content?.replace(/^```json\s*|\s*```$/g, "").trim() ?? "{}"
       );
+      logAction({
+        event: "AI Grade",
+        tags: {
+          front: front.substring(0, 50),
+          gradingDifficulty,
+          grade: result.grade,
+        },
+      });
       return NextResponse.json(result);
     } catch (err) {
       return NextResponse.json(

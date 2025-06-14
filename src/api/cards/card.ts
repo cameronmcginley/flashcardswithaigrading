@@ -1,3 +1,4 @@
+import { logAction } from "src/lib/log";
 import { supabase } from "@/lib/supabase/client";
 import { INVALID_CARD_FRONT_AND_BACK_ERROR } from "./constants";
 import { isValidCardFrontAndBack } from "./utils";
@@ -35,6 +36,12 @@ export const createCard = async (
     .single();
 
   if (error) throw error;
+
+  logAction({
+    event: "Card Created",
+    tags: { deck_id: deckId },
+  });
+
   return data;
 };
 
@@ -59,6 +66,12 @@ export const createManyCards = async (
     .select();
 
   if (error) throw error;
+
+  logAction({
+    event: "Multiple Cards Created",
+    tags: { deck_id: deckId, count: cards.length },
+  });
+
   return data;
 };
 
@@ -88,6 +101,12 @@ export const updateCardFrontAndOrBack = async (
     .single();
 
   if (error) throw error;
+
+  logAction({
+    event: "Card Updated",
+    tags: { card_id: cardId },
+  });
+
   return data;
 };
 
@@ -100,6 +119,12 @@ export const deleteCard = async (cardId: string) => {
     .select();
 
   if (error) throw error;
+
+  logAction({
+    event: "Card Deleted",
+    tags: { card_id: cardId },
+  });
+
   return data;
 };
 
@@ -111,6 +136,12 @@ export const deleteAllCardsInDeck = async (deckId: string) => {
     .eq("deck_id", deckId)
     .select();
   if (error) throw error;
+
+  logAction({
+    event: "All Cards in Deck Deleted",
+    tags: { deck_id: deckId },
+  });
+
   return data;
 };
 
@@ -126,6 +157,12 @@ export const restoreCards = async (cardIds: string[]) => {
     .in("id", cardIds)
     .select();
   if (error) throw error;
+
+  logAction({
+    event: "Cards Restored",
+    tags: { count: cardIds.length },
+  });
+
   return data;
 };
 
@@ -148,6 +185,11 @@ export const bulkEditDeckCards = async (
       throw new Error(INVALID_CARD_FRONT_AND_BACK_ERROR);
     }
   }
+
+  logAction({
+    event: "Card Bulk Edit",
+    tags: { deck_id: deckId, count: cards.length },
+  });
 
   const deletedCards = await deleteAllCardsInDeck(deckId);
 
@@ -222,6 +264,12 @@ export const markCardCorrect = async (cardId: string) => {
     .single();
 
   if (updateError) throw updateError;
+
+  logAction({
+    event: "Card Marked Correct",
+    tags: { card_id: cardId },
+  });
+
   return updatedCard;
 };
 
@@ -251,6 +299,12 @@ export const markCardPartiallyCorrect = async (cardId: string) => {
     .single();
 
   if (updateError) throw updateError;
+
+  logAction({
+    event: "Card Marked Partially Correct",
+    tags: { card_id: cardId },
+  });
+
   return updatedCard;
 };
 
@@ -280,5 +334,11 @@ export const markCardIncorrect = async (cardId: string) => {
     .single();
 
   if (updateError) throw updateError;
+
+  logAction({
+    event: "Card Marked Incorrect",
+    tags: { card_id: cardId },
+  });
+
   return updatedCard;
 };

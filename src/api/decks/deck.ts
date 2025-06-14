@@ -1,3 +1,4 @@
+import { logAction } from "src/lib/log";
 import { supabase } from "@/lib/supabase/client";
 import { isValidDeckName } from "./utils";
 import { INVALID_DECK_NAME_ERROR } from "./constants";
@@ -49,6 +50,12 @@ export const createDeck = async (name: string, categoryId: string) => {
     .single();
 
   if (error) throw error;
+
+  logAction({
+    event: "Deck Created",
+    tags: { name: name, category_id: categoryId },
+  });
+
   return data;
 };
 
@@ -69,6 +76,12 @@ export const updateDeck = async (deckId: string, name: string) => {
     .single();
 
   if (error) throw error;
+
+  logAction({
+    event: "Deck Updated",
+    tags: { deck_id: deckId, new_name: name },
+  });
+
   return data;
 };
 
@@ -85,6 +98,12 @@ export const deleteDeck = async (deckId: string) => {
   });
 
   if (error) throw error;
+
+  logAction({
+    event: "Deck Deleted",
+    tags: { deck_id: deckId },
+  });
+
   return data;
 };
 
@@ -99,5 +118,11 @@ export const updateDeckOrder = async (deckId: string, newOrder: number) => {
   });
 
   if (error) throw error;
+
+  logAction({
+    event: "Deck Order Updated",
+    tags: { deck_id: deckId, new_order: newOrder },
+  });
+
   return true;
 };
