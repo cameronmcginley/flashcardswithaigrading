@@ -5,22 +5,24 @@ import { MarkdownContent } from "@/components/markdown-content";
 
 const FlashcardDemo = () => {
   const aiGrade = {
-    grade: 90,
+    grade: 82,
     response:
-      "**Excellent understanding!** You correctly identified the quadratic formula and its components. Your explanation of the discriminant's role is spot-on. Minor note: you could mention that when b² - 4ac < 0, the solutions are complex numbers.",
+      "**Good start!** You understand that Big O describes efficiency and correctly identified $$O(n^2)$$ for nested loops. You could improve by mentioning it describes **worst-case** complexity and including space complexity.",
   };
 
-  const questionContent = `Explain the **quadratic formula** and what the discriminant tells us about the solutions.
+  const questionContent = `What is **Big O notation** for?`;
 
-$$x = \\frac{-b \\pm \\sqrt{b^2 - 4ac}}{2a}$$`;
+  const answerContent = `Big O describes algorithm efficiency. 
 
-  const answerContent = `The quadratic formula solves equations of the form \`ax² + bx + c = 0\`.
+Time complexity: $$O(n^2)$$ for nested loops.`;
 
-The **discriminant** is \`b² - 4ac\`:
+  const correctAnswerContent = `**Big O notation** describes the worst-case time/space complexity of algorithms.
 
-- If discriminant > 0: two real solutions
-- If discriminant = 0: one real solution  
-- If discriminant < 0: no real solutions`;
+Common examples:
+- $$O(1)$$ - constant time (e.g., \`array[index]\`)
+- $$O(n)$$ - linear time (e.g., \`for\` loops)  
+- $$O(n^2)$$ - quadratic time (e.g., nested loops)
+- $$O(\\\\log n)$$ - logarithmic time (e.g., binary search)`;
 
   const getGradeColor = (grade: number) => {
     if (grade >= 90) return "bg-green-500";
@@ -42,7 +44,7 @@ The **discriminant** is \`b² - 4ac\`:
       {/* Main Card */}
       <Card className="w-full shadow-lg">
         <CardContent className="p-6">
-          <div className="mb-6">
+          <div className="mb-4">
             <h3 className="text-sm font-medium text-gray-500 mb-2">
               Question:
             </h3>
@@ -50,12 +52,22 @@ The **discriminant** is \`b² - 4ac\`:
               <MarkdownContent content={questionContent} />
             </div>
           </div>
-          <div className="p-4 bg-slate-50 rounded-lg">
+
+          <div className="p-4 bg-slate-50 rounded-lg mb-4">
             <h3 className="text-sm font-medium text-gray-500 mb-2">
               Your Answer:
             </h3>
             <div className="text-gray-800 text-sm">
               <MarkdownContent content={answerContent} />
+            </div>
+          </div>
+
+          <div className="p-4 bg-blue-50 rounded-lg">
+            <h3 className="text-sm font-medium text-gray-500 mb-2">
+              Correct Answer:
+            </h3>
+            <div className="text-gray-800 text-sm">
+              <MarkdownContent content={correctAnswerContent} />
             </div>
           </div>
         </CardContent>
