@@ -1,9 +1,9 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { Settings, LogOut } from "lucide-react";
+import { Settings, LogOut, Github } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import SettingsModal from "./settings-modal";
+import { SettingsModal } from "./settings-modal";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useAuth } from "@/lib/auth-context";
@@ -30,7 +30,9 @@ export default function Topbar({ onDebugModeChange }: TopbarProps) {
 
   // Load settings from localStorage on mount
   useEffect(() => {
-    const savedSettings = localStorage.getItem("flashcardswithaigrading-settings");
+    const savedSettings = localStorage.getItem(
+      "flashcardswithaigrading-settings"
+    );
     if (savedSettings) {
       const parsedSettings = JSON.parse(savedSettings);
       setSettings({
@@ -48,7 +50,10 @@ export default function Topbar({ onDebugModeChange }: TopbarProps) {
 
   const handleSettingsChange = (newSettings: typeof settings) => {
     setSettings(newSettings);
-    localStorage.setItem("flashcardswithaigrading-settings", JSON.stringify(newSettings));
+    localStorage.setItem(
+      "flashcardswithaigrading-settings",
+      JSON.stringify(newSettings)
+    );
 
     // Notify parent about debug mode changes
     if (onDebugModeChange && newSettings.debugMode !== settings.debugMode) {
@@ -111,6 +116,16 @@ export default function Topbar({ onDebugModeChange }: TopbarProps) {
         </div>
       </div>
       <div className="flex items-center gap-2">
+        <Button variant="ghost" size="icon" asChild>
+          <Link
+            href="https://github.com/cameronmcginley/flashcardswithaigrading"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="p-0"
+          >
+            <Github className="h-5 w-5" />
+          </Link>
+        </Button>
         <Button
           variant="ghost"
           size="icon"

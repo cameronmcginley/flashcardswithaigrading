@@ -63,12 +63,12 @@ interface SettingsModalProps {
   }) => void;
 }
 
-export default function SettingsModal({
+export const SettingsModal = ({
   open,
   onOpenChange,
   initialSettings,
   onSettingsChange,
-}: SettingsModalProps) {
+}: SettingsModalProps) => {
   const [settings, setSettings] = useState({
     apiKey: "",
     aiPrompt:
@@ -111,7 +111,10 @@ export default function SettingsModal({
     }
 
     // Save settings to localStorage
-    localStorage.setItem("flashcardswithaigrading-settings", JSON.stringify(settings));
+    localStorage.setItem(
+      "flashcardswithaigrading-settings",
+      JSON.stringify(settings)
+    );
 
     toast.success("Settings saved successfully");
     onOpenChange(false);
@@ -358,4 +361,4 @@ export default function SettingsModal({
       </DialogContent>
     </Dialog>
   );
-}
+};
