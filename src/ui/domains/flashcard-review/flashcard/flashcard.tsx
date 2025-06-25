@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -16,6 +16,9 @@ import {
   ChevronLeft,
   ChevronRight,
   Lightbulb,
+  Mic,
+  Square,
+  Loader2,
 } from "lucide-react";
 import { toast } from "sonner";
 import { motion, AnimatePresence } from "framer-motion";
@@ -33,6 +36,54 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+
+// Add type declarations for Web Speech API
+declare global {
+  interface Window {
+    SpeechRecognition: typeof SpeechRecognition;
+    webkitSpeechRecognition: typeof SpeechRecognition;
+  }
+}
+
+interface SpeechRecognition extends EventTarget {
+  continuous: boolean;
+  interimResults: boolean;
+  lang: string;
+  start(): void;
+  stop(): void;
+  onresult: (event: SpeechRecognitionEvent) => void;
+  onerror: (event: SpeechRecognitionErrorEvent) => void;
+  onend: () => void;
+}
+
+interface SpeechRecognitionEvent {
+  resultIndex: number;
+  results: SpeechRecognitionResultList;
+}
+
+interface SpeechRecognitionErrorEvent {
+  error: string;
+}
+
+interface SpeechRecognitionResultList {
+  length: number;
+  [index: number]: SpeechRecognitionResult;
+}
+
+interface SpeechRecognitionResult {
+  isFinal: boolean;
+  [index: number]: SpeechRecognitionAlternative;
+}
+
+interface SpeechRecognitionAlternative {
+  transcript: string;
+  confidence: number;
+}
+
+declare const SpeechRecognition: {
+  prototype: SpeechRecognition;
+  new (): SpeechRecognition;
+};
 
 interface FlashcardProps {
   card: {
@@ -91,24 +142,144 @@ export const Flashcard = ({
   } | null>(null);
   const [isLoadingExplanation, setIsLoadingExplanation] = useState(false);
   const [explanation, setExplanation] = useState<string | null>(null);
+  const [isListening, setIsListening] = useState(false);
+  const [speechSupported, setSpeechSupported] = useState(false);
+  const [isProcessingSpeech, setIsProcessingSpeech] = useState(false);
+
+  // Audio recording states
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null
+  );
+  const audioChunksRef = useRef<Blob[]>([]);
+
+  // Initialize audio recording
+  useEffect(() => {
+    if (
+      typeof window !== "undefined" &&
+      navigator.mediaDevices &&
+      navigator.mediaDevices.getUserMedia
+    ) {
+      setSpeechSupported(true);
+    } else {
+      setSpeechSupported(false);
+    }
+  }, []);
+
+  const startRecording = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const recorder = new MediaRecorder(stream, {
+        mimeType: "audio/webm;codecs=opus",
+      });
+
+      audioChunksRef.current = [];
+
+      recorder.ondataavailable = (event) => {
+        if (event.data.size > 0) {
+          audioChunksRef.current.push(event.data);
+        }
+      };
+
+      recorder.onstop = async () => {
+        const audioBlob = new Blob(audioChunksRef.current, {
+          type: "audio/webm",
+        });
+        await transcribeAudio(audioBlob);
+
+        // Stop all tracks to release microphone
+        stream.getTracks().forEach((track) => track.stop());
+      };
+
+      recorder.start();
+      setMediaRecorder(recorder);
+      setIsListening(true);
+
+      toast.success("Recording...", {
+        description: "Click again to stop and transcribe your speech.",
+      });
+    } catch (error) {
+      console.error("Error starting recording:", error);
+      toast.error("Failed to start recording", {
+        description: "Please allow microphone access and try again.",
+      });
+    }
+  };
+
+  const stopRecording = () => {
+    if (mediaRecorder && isListening) {
+      mediaRecorder.stop();
+      setIsListening(false);
+      setIsProcessingSpeech(true);
+      toast.success("Processing speech...");
+    }
+  };
+
+  const transcribeAudio = async (audioBlob: Blob) => {
+    try {
+      const formData = new FormData();
+      formData.append("audio", audioBlob, "recording.webm");
+
+      const response = await fetch("/api/transcribe", {
+        method: "POST",
+        body: formData,
+      });
+
+      if (!response.ok) {
+        throw new Error("Failed to transcribe audio");
+      }
+
+      const result = await response.json();
+      const transcribedText = result.text.trim();
+
+      if (transcribedText) {
+        setUserBack((prev) => {
+          const newText = prev.trim() ? prev + " " : "";
+          return newText + transcribedText;
+        });
+        toast.success("Speech converted to text");
+      } else {
+        toast.error("No speech detected", {
+          description: "Please try speaking more clearly.",
+        });
+      }
+    } catch (error) {
+      console.error("Error transcribing audio:", error);
+      toast.error("Failed to transcribe speech", {
+        description: "Please try again or type your answer.",
+      });
+    } finally {
+      setIsProcessingSpeech(false);
+    }
+  };
+
+  const toggleRecording = () => {
+    if (isListening) {
+      stopRecording();
+    } else {
+      startRecording();
+    }
+  };
 
   const resetGrading = () => {
     setIsGraded(false);
     setAiGrade(null);
     setIsGrading(false);
     setExplanation(null);
+    // Stop recording when resetting grading
+    if (isListening && mediaRecorder) {
+      stopRecording();
+    }
   };
 
   useEffect(() => {
-    // Reset grading when card changes
     if (resetGradingOnCardChange) {
       resetGrading();
       setTempFront(card.front);
       setTempBack(card.back);
+      setUserBack("");
     }
   }, [card.id, resetGradingOnCardChange]);
 
-  // Separate effect to keep temp values in sync
   useEffect(() => {
     if (!editingFront) {
       setTempFront(card.front);
@@ -118,16 +289,22 @@ export const Flashcard = ({
     }
   }, [card.front, card.back, editingFront, editingBack]);
 
-  // Calculate card statistics from real data
+  // Cleanup effect for audio recording
+  useEffect(() => {
+    return () => {
+      if (mediaRecorder && mediaRecorder.state === "recording") {
+        mediaRecorder.stop();
+      }
+    };
+  }, [mediaRecorder]);
+
   const getCardStats = () => {
-    // Use only actual collected data
     const easeFactor = card.ease ?? 2.5;
     const reviews = card.review_count ?? 0;
     const correct = card.correct_count ?? 0;
     const partial = card.partial_correct_count ?? 0;
     const incorrect = card.incorrect_count ?? 0;
 
-    // Format dates
     let lastReviewed = "Never";
     if (card.last_reviewed) {
       const date =
@@ -153,7 +330,6 @@ export const Flashcard = ({
   const handleFlip = async () => {
     setIsFlipped(!isFlipped);
 
-    // Get auto-grade setting from localStorage
     const savedSettings = localStorage.getItem(
       "flashcardswithaigrading-settings"
     );
@@ -167,19 +343,16 @@ export const Flashcard = ({
       }
     }
 
-    // If flipping to answer and auto-grade is enabled and not already graded, trigger grading
     if (!isFlipped && autoGrade && userAnswer.trim() && !isGraded) {
       await handleGradeWithAI();
     }
 
-    // Notify parent that user has answered (viewed the answer)
     if (!isFlipped && onBacked) {
       onBacked();
     }
   };
 
   const handleGradeWithAI = async () => {
-    // Don't grade if answer is empty
     if (!userAnswer.trim()) {
       toast.error("Cannot grade empty answer", {
         description: "Please provide an answer before grading.",
@@ -187,17 +360,14 @@ export const Flashcard = ({
       return;
     }
 
-    // Reset any previous grading first
     resetGrading();
 
-    // Then start new grading process
     setIsGrading(true);
 
-    // Get the global difficulty setting from localStorage
     const savedSettings = localStorage.getItem(
       "flashcardswithaigrading-settings"
     );
-    let gradingDifficulty = 2; // Default to adept (2) if not found
+    let gradingDifficulty = 2;
 
     if (savedSettings) {
       try {
@@ -238,15 +408,11 @@ export const Flashcard = ({
       setAiGrade(result);
       setIsGraded(true);
 
-      // Auto-mark the card based on the AI grade, but don't advance to next card
       if (result.grade >= 80 && onCorrect) {
-        // ≥80% - Mark as correct
         await onCorrect();
       } else if (result.grade >= 60 && onPartiallyCorrect) {
-        // 60-79% - Mark as partially correct
         await onPartiallyCorrect();
       } else if (result.grade < 60 && onWrong) {
-        // <60% - Mark as incorrect
         await onWrong();
       }
     } catch (error) {
@@ -332,7 +498,6 @@ export const Flashcard = ({
     setTempBack(card.back);
   };
 
-  // Function to get color based on grade percentage
   const getGradeColor = (grade: number) => {
     if (grade >= 90) return "bg-green-500";
     if (grade >= 80) return "bg-green-400";
@@ -342,14 +507,12 @@ export const Flashcard = ({
     return "bg-red-500";
   };
 
-  // Function to get text color based on grade percentage
   const getGradeTextColor = (grade: number) => {
     if (grade >= 80) return "text-green-500";
     if (grade >= 60) return "text-yellow-500";
     return "text-red-500";
   };
 
-  // Function to copy feedback to clipboard and open ChatGPT
   const copyFeedbackAndOpenChatGPT = () => {
     if (!aiGrade) return;
 
@@ -363,12 +526,10 @@ Grade: ${aiGrade.grade}%
 
 Can you help me understand this feedback better and suggest how I can improve my answer?`;
 
-    // Copy to clipboard
     navigator.clipboard
       .writeText(feedbackText)
       .then(() => {
         toast.success("Feedback copied to clipboard");
-        // Open ChatGPT in a new tab
         window.open("https://chat.openai.com", "_blank");
       })
       .catch((err) => {
@@ -381,12 +542,9 @@ Can you help me understand this feedback better and suggest how I can improve my
 
   return (
     <div className="w-full max-w-2xl">
-      {/* Action buttons above the card */}
       <div className="flex justify-between mb-2">
-        {/* Debug Mode Info Button - only shown when debug mode is on (left side) */}
         <div>
           {(() => {
-            // Check if debug mode is enabled
             const savedSettings = localStorage.getItem(
               "flashcardswithaigrading-settings"
             );
@@ -430,7 +588,6 @@ Can you help me understand this feedback better and suggest how I can improve my
                           </thead>
                           <tbody>
                             {allCards.map((c, index) => {
-                              // Calculate score for sorting
                               const score = Math.round(
                                 scoreCard(
                                   {
@@ -474,7 +631,6 @@ Can you help me understand this feedback better and suggest how I can improve my
           })()}
         </div>
 
-        {/* Other action buttons (right side) */}
         <div className="flex gap-2">
           <Popover>
             <PopoverTrigger asChild>
@@ -616,13 +772,46 @@ Can you help me understand this feedback better and suggest how I can improve my
               </div>
 
               <div className="space-y-4">
-                <div>
+                <div className="relative">
                   <Textarea
-                    placeholder="Type your answer here..."
+                    placeholder={
+                      isListening
+                        ? "Recording... Click mic to stop"
+                        : "Type your answer here..."
+                    }
                     value={userAnswer}
                     onChange={(e) => setUserBack(e.target.value)}
-                    className="min-h-[150px] w-full"
+                    className={`min-h-[150px] w-full pr-12 transition-colors ${
+                      isListening || isProcessingSpeech
+                        ? "bg-gray-100 text-gray-500 cursor-not-allowed"
+                        : ""
+                    }`}
+                    disabled={isListening || isProcessingSpeech}
                   />
+                  {speechSupported && (
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="icon"
+                      className={`absolute right-2 top-2 h-8 w-8 ${
+                        isListening
+                          ? "text-red-500 bg-red-50 hover:bg-red-100"
+                          : isProcessingSpeech
+                          ? "text-blue-500 bg-blue-50"
+                          : "text-muted-foreground hover:text-foreground"
+                      }`}
+                      onClick={toggleRecording}
+                      disabled={isProcessingSpeech}
+                    >
+                      {isProcessingSpeech ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : isListening ? (
+                        <Square className="h-4 w-4" />
+                      ) : (
+                        <Mic className="h-4 w-4" />
+                      )}
+                    </Button>
+                  )}
                 </div>
                 <div className="flex gap-2">
                   <Button onClick={handleFlip}>Flip</Button>
@@ -704,13 +893,11 @@ Can you help me understand this feedback better and suggest how I can improve my
                   </Button>
                 </div>
 
-                {/* Manual grading buttons */}
                 {onCorrect &&
                   onWrong &&
                   !isGraded &&
                   !isGrading &&
                   (() => {
-                    // Check if auto-grade is enabled in localStorage
                     const savedSettings = localStorage.getItem(
                       "flashcardswithaigrading-settings"
                     );
@@ -724,7 +911,6 @@ Can you help me understand this feedback better and suggest how I can improve my
                       }
                     }
 
-                    // If auto-grade is enabled, don't show manual grading buttons
                     if (autoGrade) return null;
 
                     return (
@@ -767,7 +953,6 @@ Can you help me understand this feedback better and suggest how I can improve my
         </CardContent>
       </Card>
 
-      {/* AI Feedback Bubble */}
       <AnimatePresence>
         {isGraded && aiGrade && (
           <motion.div
@@ -808,7 +993,6 @@ Can you help me understand this feedback better and suggest how I can improve my
                     </div>
                   </div>
 
-                  {/* Progress Bar */}
                   <div className="w-full h-2 bg-muted rounded-full mb-4 overflow-hidden">
                     <motion.div
                       className={cn(
@@ -825,7 +1009,6 @@ Can you help me understand this feedback better and suggest how I can improve my
                     <MarkdownContent content={aiGrade.response} />
                   </div>
 
-                  {/* Ask ChatGPT Button */}
                   <TooltipProvider>
                     <div className="flex items-center gap-2">
                       <Tooltip>
@@ -894,7 +1077,6 @@ Can you help me understand this feedback better and suggest how I can improve my
         )}
       </AnimatePresence>
 
-      {/* Navigation Buttons */}
       <div className="flex justify-between mt-6">
         <Button
           variant="outline"
