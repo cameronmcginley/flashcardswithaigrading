@@ -46,7 +46,7 @@ export async function POST(req: NextRequest) {
     `.trim();
 
     const response = await openai.chat.completions.create({
-      model: "o3",
+      model: "gpt-5.1",
       messages: [{ role: "user", content: prompt }],
     });
 

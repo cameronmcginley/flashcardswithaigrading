@@ -57,7 +57,7 @@ export async function POST(request: NextRequest) {
 
     // Generate cards using OpenAI
     const completion = await openai.chat.completions.create({
-      model: "o3",
+      model: "gpt-5.1",
       messages: [
         { role: "system", content: SYSTEM_PROMPT },
         {
