@@ -1,6 +1,7 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  output: "standalone",
   // Enable React Strict Mode in dev & prod
   reactStrictMode: true,
 

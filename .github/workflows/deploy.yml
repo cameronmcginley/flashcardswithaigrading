@@ -1,35 +1,18 @@
-name: Deploy Website
+name: Deploy to VPS
 
 on:
   push:
-    branches:
-      - main
+    branches: [main]
 
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
     steps:
-      - name: Deploy using SSH
-        uses: appleboy/ssh-action@master
+      - name: Deploy via SSH
+        uses: appleboy/ssh-action@v1
         with:
           host: ${{ secrets.VPS_IP }}
           username: ${{ secrets.VPS_USERNAME }}
           key: ${{ secrets.VPS_PRIVATE_KEY }}
-          port: 22
           script: |
-            set -e
-
-            # Set the path for vps-setup repo
-            DEPLOY_DIR="/root/srv/vps-setup"
-
-            # Ensure the vps-setup repo is present and up to date
-            if [ ! -d "$DEPLOY_DIR" ]; then
-              git clone https://github.com/cameronmcginley/vps-setup.git "$DEPLOY_DIR"
-            else
-              cd "$DEPLOY_DIR"
-              git pull
-            fi
-
-            cd "$DEPLOY_DIR/apps/flashcardswithaigrading"
-            ./deploy.sh
+            cd /root/srv/vps-setup && ./deploy.sh flashcards
