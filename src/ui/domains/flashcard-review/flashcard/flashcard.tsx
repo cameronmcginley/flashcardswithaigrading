@@ -157,7 +157,7 @@ export const Flashcard = ({
     if (
       typeof window !== "undefined" &&
       navigator.mediaDevices &&
-      typeof navigator.mediaDevices.getUserMedia === "function"
+      navigator.mediaDevices.getUserMedia
     ) {
       setSpeechSupported(true);
     } else {
